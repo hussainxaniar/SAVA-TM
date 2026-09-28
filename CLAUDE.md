@@ -1,0 +1,23 @@
+# Agent instructions — Taskly
+
+The single source of truth for this project is [docs/blueprint.md](docs/blueprint.md). Read it before doing anything else. When code and the blueprint disagree, the blueprint wins until a human updates it.
+
+See [docs/model-routing.md](docs/model-routing.md) for how to switch between `claude` (Opus, architecture/review) and `claude-or` (OpenRouter implementer models).
+
+## Model roles
+
+| Role | Model | Owns |
+| --- | --- | --- |
+| Architect | Opus 5.5 (or Opus 5) | Schema, service contracts, permissions, Google sync, ticket writing, reviewing every diff under `src/server/` |
+| Implementer | GLM 5.3 Flash via OpenRouter (`claude-or z-ai/glm-5.3-flash`) for routine, high-volume UI/scaffolding work; GLM 5.3 via OpenRouter (`claude-or z-ai/glm-5.3`) for tickets needing more careful reasoning | UI components, pages, server actions that call existing services, seed data, tests |
+| Reviewer | Opus 5.5 | Diffs touching `src/server/`, `prisma/`, `auth` before merge |
+
+## Rules for every agent session
+
+1. Work on exactly one ticket from `docs/blueprint.md` Section 12. Read only the blueprint sections the ticket lists plus the files it names.
+2. Never change `prisma/schema.prisma` or anything in `src/server/services/` unless the ticket says so. If a schema or contract change seems needed, stop and write a note in `docs/questions.md`.
+3. Never call Prisma from components, pages or route handlers. All data access goes through `src/server/services/*`.
+4. Every mutation service calls `requireMember` (or `requireRole`) first and writes an `Activity` row inside the same transaction when the entity is a task.
+5. Use existing shadcn/ui components before writing new primitives. No new dependencies without the ticket allowing it.
+6. Finish by running `pnpm typecheck && pnpm lint && pnpm test`. A ticket is not done while any of these fail.
+7. Do not build anything listed as a non-goal in Section 1.
