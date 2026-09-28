@@ -2,7 +2,7 @@
 
 The single source of truth for this project is [docs/blueprint.md](docs/blueprint.md). Read it before doing anything else. When code and the blueprint disagree, the blueprint wins until a human updates it.
 
-See [docs/model-routing.md](docs/model-routing.md) for how to switch between `claude` (Opus, architecture/review) and `claude-or` (OpenRouter implementer models).
+See [docs/model-routing.md](docs/model-routing.md) for how to switch between `claude` (Opus, architecture/review) and `claude-or` (OpenRouter implementer models), and [docs/orchestration.md](docs/orchestration.md) for how an Opus session dispatches individual tickets to a GLM implementer session.
 
 ## Model roles
 

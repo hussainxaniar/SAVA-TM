@@ -2,7 +2,7 @@
 
 Sep 27, 2026 · @Xaniar
 
-> Model setup (which command to run for architect vs. implementer): see [docs/model-routing.md](model-routing.md).
+> Model setup (which command to run for architect vs. implementer): see [docs/model-routing.md](model-routing.md). For dispatching individual tickets from an Opus session to a GLM session, see [docs/orchestration.md](orchestration.md).
 
 ## 1. Purpose and scope
 
