@@ -12,7 +12,7 @@ Single-glance status for all 22 tickets. Update this file and the matching
 | T-05 | Members and invite links | A + I | ✅ done | faf7831 |
 | T-06 | Projects and sidebar | I | ✅ done | 37f97e1 |
 | T-07 | Statuses and lists settings | A + I | ✅ done | 4225c41 |
-| T-08 | Task services core | A | ⬜ pending | — |
+| T-08 | Task services core | A | ✅ done | dd513d9 |
 | T-09 | List view | I | ⬜ pending | — |
 | T-10 | Quick add and parser | I | ⬜ pending | — |
 | T-11 | Task panel shell | I | ⬜ pending | — |
