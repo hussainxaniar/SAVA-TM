@@ -9,6 +9,51 @@ This project uses two Claude Code entry points, matching the architect/implement
 
 `claude-or` is a shell function defined in `~/.zshrc`. It does not change how plain `claude` behaves — it only sets `ANTHROPIC_BASE_URL` / `ANTHROPIC_AUTH_TOKEN` / `ANTHROPIC_API_KEY` for the single command it launches.
 
+## Installing `claude-or` on a machine that doesn't have it yet
+
+`claude-or` lives in `~/.zshrc`, not in this repo, so a fresh clone (a new machine, a
+collaborator, a CI/cloud agent) won't have it until it's added. It reads the OpenRouter
+key from `.env` in this project — copy `.env.example` to `.env` and fill in
+`APIKEY-SavaTM` with a real OpenRouter key first, then append this to `~/.zshrc`:
+
+```sh
+claude-or() {
+  local model="$1"
+  if [ -z "$model" ]; then
+    echo "usage: claude-or <model-slug> [claude args...]" >&2
+    return 1
+  fi
+  shift
+
+  local dir="$PWD" env_file=""
+  while [ "$dir" != "/" ]; do
+    if [ -f "$dir/.env" ] && grep -q '^APIKEY-SavaTM=' "$dir/.env" 2>/dev/null; then
+      env_file="$dir/.env"
+      break
+    fi
+    dir=$(dirname "$dir")
+  done
+
+  if [ -z "$env_file" ]; then
+    echo "claude-or: no .env with APIKEY-SavaTM found in $PWD or any parent directory" >&2
+    return 1
+  fi
+
+  local key
+  key=$(grep -m1 '^APIKEY-SavaTM=' "$env_file" | cut -d '=' -f2-)
+
+  ANTHROPIC_BASE_URL="https://openrouter.ai/api" \
+  ANTHROPIC_AUTH_TOKEN="$key" \
+  ANTHROPIC_API_KEY="" \
+  claude --model "$model" "$@"
+}
+```
+
+Then `source ~/.zshrc` (or restart the terminal). The function walks up from your
+current directory looking for a `.env` containing `APIKEY-SavaTM`, so it works from
+anywhere inside this repo (or a clone of it at any path) without editing anything —
+nothing here is tied to a specific machine, username, or folder location.
+
 ## Example commands
 
 Architect session (your normal login, full Opus):
