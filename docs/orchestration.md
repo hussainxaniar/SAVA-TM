@@ -37,9 +37,24 @@ Model choice follows the Model roles table in `CLAUDE.md`:
 
 The script does **not** hardcode a permission-bypass flag. By default, `-p` (print /
 non-interactive) mode without any permission flag will not actually let the model
-edit files or run commands unattended — there's no terminal to approve prompts. To
-let a dispatched ticket actually write code without you approving each action, you
-pass the bypass flag yourself, explicitly, at the point of use:
+edit files or run commands unattended — there's no terminal to approve prompts.
+
+**Recommended (used since T-04):** auto-accept file edits, and allow only the check
+commands. The implementer can read and edit files in the repo and run the three checks
+plus `git diff`/`git status`, but no other shell command. You still review the diff.
+
+```sh
+scripts/dispatch-ticket.sh T-09 z-ai/glm-5.3-flash -- \
+  --permission-mode acceptEdits \
+  --allowedTools "Read,Edit,Write,Glob,Grep,Bash(pnpm typecheck),Bash(pnpm lint),Bash(pnpm test),Bash(git diff:*),Bash(git status)"
+```
+
+The script drops the `--` separator before passing the flags on, and it clears the
+`CLAUDE*` variables inherited from the orchestrator's session. Without that, the
+implementer acts as the orchestrator's child and forwards its permission prompts to a
+session that never answers them.
+
+**Last resort:** the full bypass flag, passed explicitly at the point of use:
 
 ```sh
 scripts/dispatch-ticket.sh T-09 z-ai/glm-5.3-flash -- --dangerously-skip-permissions

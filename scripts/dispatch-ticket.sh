@@ -18,6 +18,9 @@ fi
 ticket="$1"
 model="$2"
 shift 2
+# Drop the `--` separator; passed through, claude would read every flag after it as
+# prompt text and silently ignore it.
+if [ "${1:-}" = "--" ]; then shift; fi
 
 ticket_file="docs/tickets/${ticket}.md"
 
@@ -25,6 +28,13 @@ if [ ! -f "$ticket_file" ]; then
   echo "error: $ticket_file not found" >&2
   exit 1
 fi
+
+# When this script is launched from inside a Claude Code session (the Opus orchestrator),
+# the CLAUDE* variables it inherits make the implementer act as that session's child and
+# forward its permission prompts upstream, where nobody answers them. Run it standalone.
+for var in $(env | grep -oE '^CLAUDE[A-Z0-9_]*' || true); do
+  unset "$var"
+done
 
 # claude-or is usually a zsh function (docs/model-routing.md), which a bash script can't
 # see. Fall back to the same OpenRouter setup it performs.
