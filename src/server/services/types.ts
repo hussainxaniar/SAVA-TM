@@ -59,3 +59,62 @@ export type ProjectSettingsDTO = {
   statuses: (StatusDTO & { taskCount: number })[];
   lists: { id: string; name: string; subtaskDisplay: "NESTED" | "SEPARATE"; taskCount: number }[];
 };
+
+// ---------- Tasks (Section 8.1 / 8.4) ----------
+
+export type Priority = 1 | 2 | 3 | 4;
+
+export type TaskRowDTO = {
+  id: string;
+  title: string;
+  priority: Priority;
+  status: StatusDTO;
+  completedAt: string | null;
+  startDate: string | null;
+  dueDate: string | null;
+  dueHasTime: boolean;
+  assignees: UserLite[];
+  parentId: string | null;
+  parentTitle: string | null;
+  depth: number;
+  homeListId: string;
+  /** True when the row is in this list only through a TaskListLink (6.6). */
+  isLinkedHere: boolean;
+  /** Direct, non-deleted subtasks. */
+  subtaskCount: number;
+  openSubtaskCount: number;
+  commentCount: number;
+  /** Home position, or the link's position when isLinkedHere. */
+  position: string;
+};
+
+export type TaskDetailDTO = TaskRowDTO & {
+  description: unknown | null; // Tiptap JSON
+  projectId: string;
+  spaceId: string;
+  homeList: { id: string; name: string };
+  linkedLists: { id: string; name: string }[];
+  /** Ancestors, root first. */
+  breadcrumb: { id: string; title: string }[];
+  /** Direct, non-deleted subtasks in position order. */
+  subtasks: TaskRowDTO[];
+  timeBlocks: { id: string; start: string; end: string; syncState: string }[];
+  createdBy: UserLite;
+  createdAt: string;
+  updatedAt: string;
+};
+
+/** Section 8.4 getListView: Visible(L) (6.7), completed included; the client renders and sorts. */
+export type ListViewDTO = {
+  list: { id: string; name: string; subtaskDisplay: "NESTED" | "SEPARATE"; projectId: string };
+  statuses: StatusDTO[];
+  tasks: TaskRowDTO[];
+};
+
+/** Section 9.5 My Tasks rows show where each task lives. */
+export type MyTaskDTO = TaskRowDTO & {
+  projectId: string;
+  projectName: string;
+  projectColor: string;
+  listName: string;
+};
