@@ -95,9 +95,15 @@ export async function changeRole(
 ): Promise<void> {
   await requireRole(ctx.userId, input.spaceId, PERMISSIONS.changeRoles);
   await ownerSafeTransaction(async (tx) => {
-    const target = await tx.spaceMember.findUnique({
-      where: { spaceId_userId: { spaceId: input.spaceId, userId: input.userId } },
-    });
+    // Re-check the actor inside the transaction: they may have been demoted concurrently.
+    const [actor, target] = await Promise.all(
+      [ctx.userId, input.userId].map((userId) =>
+        tx.spaceMember.findUnique({ where: { spaceId_userId: { spaceId: input.spaceId, userId } } }),
+      ),
+    );
+    if (!actor || !hasRole(actor.role, PERMISSIONS.changeRoles)) {
+      throw new AppError("FORBIDDEN", "This needs the Owner role");
+    }
     if (!target) throw new AppError("NOT_FOUND", "Member not found");
     if (target.role === input.role) return;
     if (target.role === "OWNER" && (await countOwners(tx, input.spaceId)) <= 1) {
@@ -167,16 +173,21 @@ function countOwners(tx: Prisma.TransactionClient, spaceId: string) {
 
 /**
  * Serializable, so two concurrent changes can't both pass a last-owner check and leave a
- * space without an Owner; the loser gets CONFLICT.
+ * space without an Owner. Serialization failures (P2034) are expected under Serializable
+ * and are retried; if they persist, the caller gets CONFLICT.
  */
 async function ownerSafeTransaction<T>(fn: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
-  try {
-    return await db.$transaction(fn, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
-  } catch (e) {
-    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2034") {
-      throw new AppError("CONFLICT", "Someone else changed this space at the same time. Try again.");
+  const attempts = 3;
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await db.$transaction(fn, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+    } catch (e) {
+      const serialization = e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2034";
+      if (!serialization) throw e;
+      if (attempt === attempts) {
+        throw new AppError("CONFLICT", "Someone else changed this space at the same time. Try again.");
+      }
     }
-    throw e;
   }
 }
 
