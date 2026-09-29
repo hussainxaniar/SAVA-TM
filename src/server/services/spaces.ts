@@ -16,7 +16,7 @@ import type {
   MemberDTO,
   SpaceSummaryDTO,
 } from "./types";
-import { cleanName } from "./util";
+import { cleanName, serializableTransaction } from "./util";
 
 /**
  * Section 8.2 [A] / 7.2.1. The creator becomes OWNER, and the space starts with a
@@ -171,24 +171,8 @@ function countOwners(tx: Prisma.TransactionClient, spaceId: string) {
   return tx.spaceMember.count({ where: { spaceId, role: "OWNER" } });
 }
 
-/**
- * Serializable, so two concurrent changes can't both pass a last-owner check and leave a
- * space without an Owner. Serialization failures (P2034) are expected under Serializable
- * and are retried; if they persist, the caller gets CONFLICT.
- */
-async function ownerSafeTransaction<T>(fn: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
-  const attempts = 3;
-  for (let attempt = 1; ; attempt++) {
-    try {
-      return await db.$transaction(fn, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
-    } catch (e) {
-      const serialization = e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2034";
-      if (!serialization) throw e;
-      if (attempt === attempts) {
-        throw new AppError("CONFLICT", "Someone else changed this space at the same time. Try again.");
-      }
-    }
-  }
+function ownerSafeTransaction<T>(fn: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
+  return serializableTransaction(fn, "Someone else changed this space at the same time. Try again.");
 }
 
 // ---------- Invites ----------

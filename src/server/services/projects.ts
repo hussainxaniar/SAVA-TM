@@ -5,16 +5,11 @@ import { PERMISSIONS, requireMember, requireRole, spaceIdOfProject } from "../gu
 import { DEFAULT_LIST_NAME, DEFAULT_STATUSES } from "../defaults";
 import { positionAfter } from "@/lib/position";
 import { positionForMove, type MoveTarget } from "./ordering";
-import type { Ctx, SidebarDTO } from "./types";
-import { cleanName } from "./util";
+import type { Ctx, ProjectSettingsDTO, SidebarDTO } from "./types";
+import { checkColor, cleanName } from "./util";
 
 const DEFAULT_PROJECT_COLOR = "#64748B";
-const HEX_COLOR = /^#[0-9A-Fa-f]{6}$/;
 const MAX_ICON_LENGTH = 16; // one emoji, allowing multi-codepoint sequences
-
-function checkColor(color: string) {
-  if (!HEX_COLOR.test(color)) throw new AppError("VALIDATION", "Color must be a hex value like #2563EB");
-}
 
 /**
  * Section 8.3 [A]. Any member may create a project (7.3). New projects get the default
@@ -169,4 +164,40 @@ export async function getProjectLanding(ctx: Ctx, input: { projectId: string }):
     select: { id: true },
   });
   return list ? { listId: list.id } : null;
+}
+
+/** Section 9.6 project settings: the project, its statuses and active lists, with live task counts. */
+export async function getProjectSettings(ctx: Ctx, input: { projectId: string }): Promise<ProjectSettingsDTO> {
+  const spaceId = await spaceIdOfProject(input.projectId);
+  await requireMember(ctx.userId, spaceId);
+  const live = { where: { deletedAt: null } };
+  const project = await db.project.findUniqueOrThrow({
+    where: { id: input.projectId },
+    select: {
+      id: true,
+      spaceId: true,
+      name: true,
+      color: true,
+      icon: true,
+      statuses: { orderBy: { position: "asc" }, include: { _count: { select: { tasks: live } } } },
+      lists: {
+        where: { archivedAt: null },
+        orderBy: { position: "asc" },
+        select: { id: true, name: true, subtaskDisplay: true, _count: { select: { homeTasks: live } } },
+      },
+    },
+  });
+  const { statuses, lists, ...rest } = project;
+  return {
+    project: rest,
+    statuses: statuses.map(({ _count, id, name, color, category, position }) => ({
+      id,
+      name,
+      color,
+      category,
+      position,
+      taskCount: _count.tasks,
+    })),
+    lists: lists.map(({ _count, ...l }) => ({ ...l, taskCount: _count.homeTasks })),
+  };
 }

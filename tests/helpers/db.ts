@@ -42,3 +42,20 @@ export async function makeSpace<K extends string>(members: Record<K, SpaceRole>)
   });
   return { space, users };
 }
+
+/** A task row written directly (task services arrive in T-08). */
+export async function makeTask(input: {
+  spaceId: string;
+  projectId: string;
+  homeListId: string;
+  statusId: string;
+  createdById: string;
+  title: string;
+  position: string;
+  parentId?: string;
+  depth?: number;
+  completedAt?: Date | null;
+  deletedAt?: Date | null;
+}) {
+  return db.task.create({ data: { depth: 0, ...input } });
+}

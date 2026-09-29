@@ -47,3 +47,15 @@ export type SidebarDTO = {
     docs: { id: string; title: string; firstPageId: string | null }[];
   }[];
 };
+
+export type StatusCategoryName = "TODO" | "ACTIVE" | "DONE";
+
+/** Section 8.1. */
+export type StatusDTO = { id: string; name: string; color: string; category: StatusCategoryName; position: string };
+
+/** Project settings (9.6): statuses and active lists, with how many live tasks each holds. */
+export type ProjectSettingsDTO = {
+  project: { id: string; spaceId: string; name: string; color: string; icon: string | null };
+  statuses: (StatusDTO & { taskCount: number })[];
+  lists: { id: string; name: string; subtaskDisplay: "NESTED" | "SEPARATE"; taskCount: number }[];
+};
