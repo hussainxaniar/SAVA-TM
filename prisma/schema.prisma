@@ -1,5 +1,6 @@
-// This is your Prisma schema file.
-// Full schema will be added in T-02.
+// Sava TM schema — mirrors docs/blueprint.md Section 5. Only the Architect changes it.
+// Auth models (User, Session, Account, Verification) come from `@better-auth/cli generate`;
+// the domain relation fields on User are added by hand below the generated ones.
 
 generator client {
   provider = "prisma-client-js"
@@ -9,4 +10,384 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
+}
+
+enum SpaceRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum StatusCategory {
+  TODO
+  ACTIVE
+  DONE
+}
+
+enum SubtaskDisplay {
+  NESTED
+  SEPARATE
+}
+
+enum SyncState {
+  PENDING
+  SYNCED
+  ERROR
+}
+
+enum ActivityType {
+  TASK_CREATED
+  TASK_RENAMED
+  TASK_DESCRIPTION_CHANGED
+  STATUS_CHANGED
+  PRIORITY_CHANGED
+  START_DATE_CHANGED
+  DUE_DATE_CHANGED
+  ASSIGNEE_ADDED
+  ASSIGNEE_REMOVED
+  MOVED_TO_LIST
+  ADDED_TO_LIST
+  REMOVED_FROM_LIST
+  SUBTASK_ADDED
+  PARENT_CHANGED
+  COMMENT_ADDED
+  SCHEDULED
+  UNSCHEDULED
+  TASK_COMPLETED
+  TASK_REOPENED
+  TASK_DELETED
+  TASK_RESTORED
+}
+
+// ---------- Auth (Better Auth) — relations added by us ----------
+
+model User {
+  id            String    @id
+  name          String
+  email         String
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+
+  memberships SpaceMember[]
+  assignments TaskAssignee[]
+  comments    Comment[]
+  activities  Activity[]
+  timeBlocks  TimeBlock[]
+  googleCal   GoogleCalendarConnection?
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+// ---------- Tenancy ----------
+
+model Space {
+  id          String        @id @default(cuid(2))
+  name        String
+  icon        String?
+  createdById String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  members     SpaceMember[]
+  invites     Invite[]
+  projects    Project[]
+}
+
+model SpaceMember {
+  spaceId  String
+  userId   String
+  role     SpaceRole @default(MEMBER)
+  joinedAt DateTime  @default(now())
+  space    Space     @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([spaceId, userId])
+  @@index([userId])
+}
+
+model Invite {
+  id          String    @id @default(cuid(2))
+  spaceId     String
+  token       String    @unique // 32-byte random, base64url
+  role        SpaceRole @default(MEMBER) // never OWNER
+  createdById String
+  expiresAt   DateTime // default now + 7 days
+  maxUses     Int? // null = unlimited
+  uses        Int       @default(0)
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  space       Space     @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+}
+
+// ---------- Structure ----------
+
+model Project {
+  id         String    @id @default(cuid(2))
+  spaceId    String
+  name       String
+  color      String    @default("#64748B")
+  icon       String?
+  position   String
+  archivedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  space      Space     @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  statuses   Status[]
+  lists      List[]
+  tasks      Task[]
+  docs       Doc[]
+
+  @@index([spaceId, position])
+}
+
+model Status {
+  id        String         @id @default(cuid(2))
+  projectId String
+  name      String
+  color     String
+  category  StatusCategory
+  position  String
+  project   Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks     Task[]
+
+  @@unique([projectId, name])
+  @@index([projectId, position])
+}
+
+model List {
+  id             String         @id @default(cuid(2))
+  projectId      String
+  name           String
+  position       String
+  subtaskDisplay SubtaskDisplay @default(NESTED)
+  archivedAt     DateTime?
+  createdAt      DateTime       @default(now())
+  project        Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  homeTasks      Task[]         @relation("HomeList")
+  links          TaskListLink[]
+
+  @@index([projectId, position])
+}
+
+// ---------- Tasks ----------
+
+model Task {
+  id          String    @id @default(cuid(2))
+  spaceId     String // denormalized for fast guards
+  projectId   String
+  homeListId  String
+  parentId    String? // null = top-level task
+  depth       Int       @default(0) // 0,1,2 (max 3 levels)
+  title       String
+  description Json? // Tiptap JSON
+  statusId    String
+  priority    Int       @default(4) // 1 = P1 urgent … 4 = none
+  startDate   DateTime?
+  dueDate     DateTime?
+  dueHasTime  Boolean   @default(false)
+  position    String // order among siblings in home list
+  completedAt DateTime?
+  deletedAt   DateTime? // soft delete
+  createdById String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  project    Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  homeList   List           @relation("HomeList", fields: [homeListId], references: [id])
+  status     Status         @relation(fields: [statusId], references: [id])
+  parent     Task?          @relation("Subtasks", fields: [parentId], references: [id], onDelete: Cascade)
+  subtasks   Task[]         @relation("Subtasks")
+  links      TaskListLink[]
+  assignees  TaskAssignee[]
+  comments   Comment[]
+  activities Activity[]
+  timeBlocks TimeBlock[]
+
+  @@index([homeListId, parentId, position])
+  @@index([parentId])
+  @@index([projectId])
+  @@index([spaceId, dueDate])
+}
+
+model TaskListLink {
+  // task ALSO appears in this list
+  taskId    String
+  listId    String
+  position  String
+  addedById String
+  createdAt DateTime @default(now())
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  list      List     @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, listId])
+  @@index([listId, position])
+}
+
+model TaskAssignee {
+  taskId     String
+  userId     String
+  assignedAt DateTime @default(now())
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, userId])
+  @@index([userId])
+}
+
+model Comment {
+  id        String    @id @default(cuid(2))
+  taskId    String
+  authorId  String
+  body      Json // Tiptap JSON
+  bodyText  String // plain text for previews/search
+  editedAt  DateTime?
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  task      Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author    User      @relation(fields: [authorId], references: [id])
+
+  @@index([taskId, createdAt])
+}
+
+model Activity {
+  // append-only, never updated
+  id        String       @id @default(cuid(2))
+  spaceId   String
+  taskId    String
+  actorId   String
+  type      ActivityType
+  payload   Json // { from?, to?, listId?, userId?, … }
+  createdAt DateTime     @default(now())
+  task      Task         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  actor     User         @relation(fields: [actorId], references: [id])
+
+  @@index([taskId, createdAt])
+}
+
+// ---------- Calendar ----------
+
+model TimeBlock {
+  // one scheduled slot; a task can have many
+  id            String    @id @default(cuid(2))
+  taskId        String
+  userId        String // whose calendar it lives on
+  spaceId       String
+  start         DateTime
+  end           DateTime
+  googleEventId String?
+  googleEtag    String?
+  syncState     SyncState @default(PENDING)
+  lastSyncError String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  task          Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, googleEventId])
+  @@index([userId, start])
+  @@index([taskId])
+}
+
+model GoogleCalendarConnection {
+  id              String   @id @default(cuid(2))
+  userId          String   @unique
+  googleEmail     String
+  calendarId      String   @default("primary")
+  accessTokenEnc  String // AES-256-GCM, key = ENCRYPTION_KEY
+  refreshTokenEnc String
+  expiresAt       DateTime
+  scope           String
+  syncToken       String? // Calendar API incremental sync
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ---------- Docs ----------
+
+model Doc {
+  id          String    @id @default(cuid(2))
+  spaceId     String
+  projectId   String
+  title       String
+  icon        String?
+  position    String
+  createdById String
+  archivedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  pages       DocPage[]
+
+  @@index([projectId, position])
+}
+
+model DocPage {
+  id          String    @id @default(cuid(2))
+  docId       String
+  parentId    String? // nested pages, max depth 3
+  title       String    @default("Untitled")
+  content     Json // Tiptap JSON
+  position    String
+  createdById String
+  updatedById String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  doc         Doc       @relation(fields: [docId], references: [id], onDelete: Cascade)
+  parent      DocPage?  @relation("PageTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children    DocPage[] @relation("PageTree")
+
+  @@index([docId, parentId, position])
 }
