@@ -7,7 +7,7 @@ Single-glance status for all 22 tickets. Update this file and the matching
 |----|-------|-------|-------|--------|
 | T-01 | Scaffold, tooling, deploy | A | ✅ done | ff03725 |
 | T-02 | Schema, migration, seed, position helper | A | ✅ done | 2795b93 |
-| T-03 | Auth and guards | A | ⬜ pending | — |
+| T-03 | Auth and guards | A | ✅ done | c58af5a |
 | T-04 | Spaces and onboarding | A + I | ⬜ pending | — |
 | T-05 | Members and invite links | A + I | ⬜ pending | — |
 | T-06 | Projects and sidebar | I | ⬜ pending | — |
