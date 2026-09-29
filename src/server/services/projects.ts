@@ -1,14 +1,20 @@
 import type { Prisma } from "@prisma/client";
 import { db } from "../db";
 import { AppError } from "../errors";
-import { requireMember } from "../guards";
+import { PERMISSIONS, requireMember, requireRole, spaceIdOfProject } from "../guards";
 import { DEFAULT_LIST_NAME, DEFAULT_STATUSES } from "../defaults";
 import { positionAfter } from "@/lib/position";
-import type { Ctx } from "./types";
+import { positionForMove, type MoveTarget } from "./ordering";
+import type { Ctx, SidebarDTO } from "./types";
 import { cleanName } from "./util";
 
 const DEFAULT_PROJECT_COLOR = "#64748B";
 const HEX_COLOR = /^#[0-9A-Fa-f]{6}$/;
+const MAX_ICON_LENGTH = 16; // one emoji, allowing multi-codepoint sequences
+
+function checkColor(color: string) {
+  if (!HEX_COLOR.test(color)) throw new AppError("VALIDATION", "Color must be a hex value like #2563EB");
+}
 
 /**
  * Section 8.3 [A]. Any member may create a project (7.3). New projects get the default
@@ -34,7 +40,7 @@ export async function insertProject(
 ): Promise<{ projectId: string; firstListId: string }> {
   const name = cleanName(input.name, "Project name");
   const color = input.color ?? DEFAULT_PROJECT_COLOR;
-  if (!HEX_COLOR.test(color)) throw new AppError("VALIDATION", "Color must be a hex value like #2563EB");
+  checkColor(color);
 
   let statuses: Prisma.StatusCreateWithoutProjectInput[];
   if (input.copyStatusesFromProjectId) {
@@ -72,4 +78,95 @@ export async function insertProject(
     select: { id: true, lists: { select: { id: true } } },
   });
   return { projectId: project.id, firstListId: project.lists[0].id };
+}
+
+/** Section 8.3. Any member may rename a project (7.3); color and icon follow the same rule. */
+export async function updateProject(
+  ctx: Ctx,
+  input: { projectId: string; name?: string; color?: string; icon?: string | null },
+): Promise<void> {
+  const spaceId = await spaceIdOfProject(input.projectId);
+  await requireMember(ctx.userId, spaceId);
+  const data: { name?: string; color?: string; icon?: string | null } = {};
+  if (input.name !== undefined) data.name = cleanName(input.name, "Project name");
+  if (input.color !== undefined) {
+    checkColor(input.color);
+    data.color = input.color;
+  }
+  if (input.icon !== undefined) {
+    const icon = input.icon?.trim() || null;
+    if (icon && icon.length > MAX_ICON_LENGTH) throw new AppError("VALIDATION", "Icon must be a single emoji");
+    data.icon = icon;
+  }
+  if (Object.keys(data).length === 0) return;
+  await db.project.update({ where: { id: input.projectId }, data });
+}
+
+/**
+ * Section 8.3. Any member. Moves a project among the space's active projects;
+ * see MoveTarget for what beforeId/afterId mean.
+ */
+export async function reorderProject(ctx: Ctx, input: { projectId: string } & MoveTarget): Promise<void> {
+  const spaceId = await spaceIdOfProject(input.projectId);
+  await requireMember(ctx.userId, spaceId);
+  await db.$transaction(async (tx) => {
+    const siblings = await tx.project.findMany({
+      where: { spaceId, archivedAt: null },
+      select: { id: true, position: true },
+    });
+    const position = positionForMove(siblings, input.projectId, input);
+    await tx.project.update({ where: { id: input.projectId }, data: { position } });
+  });
+}
+
+/** Section 8.3. ADMIN (7.3). Archived projects disappear from the sidebar; nothing is deleted. */
+export async function archiveProject(ctx: Ctx, input: { projectId: string }): Promise<void> {
+  const spaceId = await spaceIdOfProject(input.projectId);
+  await requireRole(ctx.userId, spaceId, PERMISSIONS.archiveProject);
+  await db.project.updateMany({ where: { id: input.projectId, archivedAt: null }, data: { archivedAt: new Date() } });
+}
+
+/** Section 8.3. Projects → lists → docs for the sidebar. */
+export async function getSidebar(ctx: Ctx, input: { spaceId: string }): Promise<SidebarDTO> {
+  await requireMember(ctx.userId, input.spaceId);
+  const active = { archivedAt: null };
+  const byPosition = { position: "asc" as const };
+  const projects = await db.project.findMany({
+    where: { spaceId: input.spaceId, ...active },
+    orderBy: byPosition,
+    select: {
+      id: true,
+      name: true,
+      color: true,
+      icon: true,
+      lists: { where: active, orderBy: byPosition, select: { id: true, name: true } },
+      docs: {
+        where: active,
+        orderBy: byPosition,
+        select: {
+          id: true,
+          title: true,
+          pages: { where: { parentId: null }, orderBy: byPosition, take: 1, select: { id: true } },
+        },
+      },
+    },
+  });
+  return {
+    projects: projects.map(({ docs, ...p }) => ({
+      ...p,
+      docs: docs.map(({ pages, ...d }) => ({ ...d, firstPageId: pages[0]?.id ?? null })),
+    })),
+  };
+}
+
+/** Where /p/[projectId] lands: the project's first active list (6.3.1: there is always one). */
+export async function getProjectLanding(ctx: Ctx, input: { projectId: string }): Promise<{ listId: string } | null> {
+  const spaceId = await spaceIdOfProject(input.projectId);
+  await requireMember(ctx.userId, spaceId);
+  const list = await db.list.findFirst({
+    where: { projectId: input.projectId, archivedAt: null },
+    orderBy: { position: "asc" },
+    select: { id: true },
+  });
+  return list ? { listId: list.id } : null;
 }

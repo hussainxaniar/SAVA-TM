@@ -34,3 +34,16 @@ export type InviteProblem = "NOT_FOUND" | "EXPIRED" | "REVOKED" | "USED_UP";
 export type InviteInfoDTO =
   | { valid: true; spaceName: string; role: InviteRole; memberSpaceId: string | null }
   | { valid: false; reason: InviteProblem; spaceName: string | null; memberSpaceId: string | null };
+
+/** Section 8.3 getSidebar. Archived projects, lists and docs are excluded; all in position order. */
+export type SidebarDTO = {
+  projects: {
+    id: string;
+    name: string;
+    color: string;
+    icon: string | null;
+    lists: { id: string; name: string }[];
+    /** firstPageId: the doc's first root page, so the sidebar can link straight to it. */
+    docs: { id: string; title: string; firstPageId: string | null }[];
+  }[];
+};

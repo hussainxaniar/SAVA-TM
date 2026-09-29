@@ -1,8 +1,8 @@
-import Link from "next/link";
-import { Settings } from "lucide-react";
 import { notFound } from "next/navigation";
-import { SpaceSwitcher } from "@/components/sidebar/space-switcher";
+import { Sidebar } from "@/components/sidebar/sidebar";
+import { can } from "@/server/guards";
 import { getSessionUser } from "@/server/auth";
+import { getSidebar } from "@/server/services/projects";
 import { listMySpaces } from "@/server/services/spaces";
 
 // Space shell: sidebar (Section 9.1) + main view. Lives here rather than in (app)/layout
@@ -16,28 +16,21 @@ export default async function SpaceLayout({
 }) {
   const { spaceId } = await params;
   const user = await getSessionUser();
-  const spaces = await listMySpaces({ userId: user.id });
+  const ctx = { userId: user.id };
+  const spaces = await listMySpaces(ctx);
   const current = spaces.find((s) => s.id === spaceId);
   if (!current) notFound(); // not a member, or no such space — indistinguishable (7.4)
+  const { projects } = await getSidebar(ctx, { spaceId });
 
   return (
     <div className="flex h-full">
-      <aside className="flex w-[260px] shrink-0 flex-col border-r bg-muted/30">
-        <div className="p-2">
-          <SpaceSwitcher current={current} spaces={spaces} />
-        </div>
-        {/* TODO (T-06): My Tasks, Calendar, Projects tree */}
-        <div className="mt-auto border-t p-2">
-          <Link
-            href={`/s/${spaceId}/settings`}
-            className="flex h-8 items-center gap-2 rounded-md px-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
-          >
-            <Settings className="size-4" />
-            Space settings
-          </Link>
-          {/* TODO (T-06): user menu */}
-        </div>
-      </aside>
+      <Sidebar
+        space={current}
+        spaces={spaces}
+        projects={projects}
+        user={{ name: user.name, email: user.email, image: user.image }}
+        canArchiveProjects={can(current.role, "archiveProject")}
+      />
       <div className="min-w-0 flex-1 overflow-auto">{children}</div>
       {/* TODO (T-11): Task panel host */}
     </div>
