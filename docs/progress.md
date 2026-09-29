@@ -30,6 +30,7 @@ Single-glance status for all 22 tickets. Update this file and the matching
 
 Notes:
 - Google OAuth (sign-in and Calendar) is **on hold** until the calendar work (T-17/T-18); T-03's Google sign-in is wired but untested.
+- Local development and tests use Postgres in Docker (`pnpm db:up`, docker-compose.yml); the full test suite runs in ~10 s.
 - Deploys: Vercel builds `main` with `pnpm build:vercel` (vercel.json) = `prisma migrate deploy && next build`.
 
 States: ⬜ pending · 🔄 in progress · ✅ done · ❌ blocked

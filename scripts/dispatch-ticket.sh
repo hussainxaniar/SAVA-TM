@@ -59,8 +59,8 @@ run_implementer() {
 prompt="$(cat "$ticket_file")
 
 When done: run pnpm typecheck && pnpm lint && pnpm test, then list exactly which files you changed.
-pnpm test uses a shared remote test database and takes several minutes: run it ONCE, in the
-foreground, with a Bash timeout of 600000 ms. Never start a second test run while one is still
-running (two runs reset the same database and fail each other). Do not use git stash, commit or checkout."
+pnpm test needs the local Postgres container (already running; if not, the human runs pnpm db:up).
+Run it once, in the foreground. Never start a second test run while one is still running (two runs
+reset the same database and fail each other). Do not use git stash, commit or checkout."
 
 run_implementer "$model" -p "$prompt" "$@"
