@@ -14,3 +14,10 @@ FORBIDDEN.** Please update the 7.4 comment to match, or say if you want the oppo
 Next.js 16 deprecated `middleware.ts` and renamed it to `proxy.ts` (same behaviour,
 export `proxy`). Sections 3 and 7.1 still say `src/middleware.ts`; please update them
 when convenient.
+
+## Q3 (T-04) — Sidebar lives in `s/[spaceId]/layout.tsx`
+
+Section 3's tree marks `(app)/layout.tsx` as "sidebar + task panel host". The sidebar is
+space-scoped and only the `[spaceId]` segment knows the space, so the shell went into
+`src/app/(app)/s/[spaceId]/layout.tsx`; `(app)/layout.tsx` only validates the session.
+Please update the tree comment, or say if you want it done differently.
