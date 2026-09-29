@@ -31,9 +31,19 @@ export async function serializableTransaction<T>(
     try {
       return await db.$transaction(fn, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
     } catch (e) {
-      const serialization = e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2034";
-      if (!serialization) throw e;
+      if (!isRetryableConflict(e)) throw e;
       if (attempt === attempts) throw new AppError("CONFLICT", conflictMessage);
     }
   }
+}
+
+/**
+ * Serialization failures and deadlocks: the database aborted one of two conflicting
+ * transactions and the loser should simply retry. Prisma usually reports both as P2034, but
+ * some paths surface the raw Postgres code (40001 serialization, 40P01 deadlock).
+ */
+function isRetryableConflict(e: unknown): boolean {
+  if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2034") return true;
+  const message = e instanceof Error ? e.message : "";
+  return /\b(40001|40P01)\b|deadlock detected|could not serialize access/.test(message);
 }
