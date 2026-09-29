@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { Settings } from "lucide-react";
 import { notFound } from "next/navigation";
 import { SpaceSwitcher } from "@/components/sidebar/space-switcher";
 import { getSessionUser } from "@/server/auth";
@@ -24,7 +26,17 @@ export default async function SpaceLayout({
         <div className="p-2">
           <SpaceSwitcher current={current} spaces={spaces} />
         </div>
-        {/* TODO (T-06): My Tasks, Calendar, Projects tree, footer */}
+        {/* TODO (T-06): My Tasks, Calendar, Projects tree */}
+        <div className="mt-auto border-t p-2">
+          <Link
+            href={`/s/${spaceId}/settings`}
+            className="flex h-8 items-center gap-2 rounded-md px-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+          >
+            <Settings className="size-4" />
+            Space settings
+          </Link>
+          {/* TODO (T-06): user menu */}
+        </div>
       </aside>
       <div className="min-w-0 flex-1 overflow-auto">{children}</div>
       {/* TODO (T-11): Task panel host */}

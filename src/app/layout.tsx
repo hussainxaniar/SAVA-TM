@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "sonner";
 import { cn } from "@/lib/utils";
 
 const inter = Inter({
@@ -27,6 +28,8 @@ export default function RootLayout({
     <html lang="en" className={cn(inter.variable, jetbrainsMono.variable, "font-sans")} suppressHydrationWarning>
       <body className="min-h-screen bg-background font-sans antialiased">
         {children}
+        {/* Section 4: toasts for errors only; success is silent. */}
+        <Toaster position="bottom-right" richColors />
       </body>
     </html>
   );
