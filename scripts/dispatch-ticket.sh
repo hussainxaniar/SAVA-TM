@@ -26,13 +26,28 @@ if [ ! -f "$ticket_file" ]; then
   exit 1
 fi
 
-if ! command -v claude-or >/dev/null 2>&1; then
-  echo "error: claude-or not found. Run 'source ~/.zshrc' in this shell first." >&2
-  exit 1
-fi
+# claude-or is usually a zsh function (docs/model-routing.md), which a bash script can't
+# see. Fall back to the same OpenRouter setup it performs.
+run_implementer() {
+  if command -v claude-or >/dev/null 2>&1; then
+    claude-or "$@"
+    return
+  fi
+  local model="$1"; shift
+  local key
+  key="$(grep -m1 '^APIKEY-SavaTM=' .env 2>/dev/null | cut -d '=' -f2- | sed -E 's/^"(.*)"$/\1/')"
+  if [ -z "$key" ]; then
+    echo "error: claude-or not found and no APIKEY-SavaTM in .env" >&2
+    exit 1
+  fi
+  ANTHROPIC_BASE_URL="https://openrouter.ai/api" \
+  ANTHROPIC_AUTH_TOKEN="$key" \
+  ANTHROPIC_API_KEY="" \
+  claude --model "$model" "$@"
+}
 
 prompt="$(cat "$ticket_file")
 
 When done: run pnpm typecheck && pnpm lint && pnpm test, then list exactly which files you changed."
 
-claude-or "$model" -p "$prompt" "$@"
+run_implementer "$model" -p "$prompt" "$@"
