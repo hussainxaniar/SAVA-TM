@@ -1,3 +1,4 @@
-// TODO (T-03): Better Auth handler
-export const GET = () => new Response("Auth not configured", { status: 501 });
-export const POST = () => new Response("Auth not configured", { status: 501 });
+import { toNextJsHandler } from "better-auth/next-js";
+import { auth } from "@/server/auth";
+
+export const { GET, POST } = toNextJsHandler(auth);
