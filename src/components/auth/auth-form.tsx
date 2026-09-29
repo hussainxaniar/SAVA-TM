@@ -52,7 +52,8 @@ export function AuthForm({ mode, next, googleEnabled }: Props) {
 
   return (
     <div className="space-y-4">
-      <form onSubmit={onSubmit} className="space-y-3">
+      {/* method="post": if submitted before hydration, credentials must never land in the URL. */}
+      <form method="post" onSubmit={onSubmit} className="space-y-3">
         {isSignUp && (
           <div className="space-y-1.5">
             <Label htmlFor="name">Name</Label>

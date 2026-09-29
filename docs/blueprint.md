@@ -110,9 +110,11 @@ One Next.js app in one repo, deployed to Vercel with a hosted Postgres. No monor
 │  │  ├─ api/auth/[...all]/route.ts
 │  │  ├─ api/google/callback/route.ts
 │  │  └─ (app)/
-│  │     ├─ layout.tsx          # sidebar + task panel host
-│  │     ├─ page.tsx            # redirect to last space
+│  │     ├─ layout.tsx          # validates the session only (no sidebar)
+│  │     ├─ page.tsx            # last space, or "Create your space" onboarding
 │  │     └─ s/[spaceId]/
+│  │        ├─ layout.tsx                   # space shell: sidebar + task panel host; 404 for non-members
+│  │        ├─ page.tsx                     # redirect to first project's first list
 │  │        ├─ settings/page.tsx            # members, invites
 │  │        ├─ my-tasks/page.tsx
 │  │        ├─ calendar/page.tsx
@@ -127,6 +129,7 @@ One Next.js app in one repo, deployed to Vercel with a hosted Postgres. No monor
 │  │  ├─ tasks/                   # TaskRow, TaskList, QuickAdd, TaskPanel…
 │  │  ├─ calendar/
 │  │  └─ docs/
+│  ├─ proxy.ts                    # Next 16's name for middleware.ts: session-cookie redirect, last-space cookie
 │  ├─ server/
 │  │  ├─ db.ts                    # Prisma singleton
 │  │  ├─ auth.ts                  # Better Auth config + getSessionUser()
@@ -136,6 +139,7 @@ One Next.js app in one repo, deployed to Vercel with a hosted Postgres. No monor
 │  │  │  ├─ tasks.ts  comments.ts  activity.ts
 │  │  │  ├─ docs.ts  timeblocks.ts  google-calendar.ts
 │  │  └─ actions/                 # thin "use server" wrappers: zod parse → service
+│  │                               #   x.ts ("use server", exports only actions) + x.schema.ts (zod schemas)
 │  ├─ lib/                        # position.ts, quick-add-parser.ts, utils
 │  └─ hooks/                      # TanStack Query hooks per entity
 └─ tests/
@@ -563,7 +567,7 @@ All members of a space see everything in that space. There is no per-project pri
 ### 7.1 Authentication
 
 - Better Auth with email/password (min 8 chars, email verification off in v1) and Google social sign-in. Built-in rate limiting stays on.
-- Session cookie; `src/middleware.ts` redirects unauthenticated requests under `/(app)` to `/sign-in?next=<path>`.
+- Session cookie; `src/proxy.ts` (Next 16's rename of `middleware.ts`) redirects unauthenticated requests under `/(app)` to `/sign-in?next=<path>`.
 - `getSessionUser()` in `src/server/auth.ts` returns `{ id, name, email, image }` or throws `UNAUTHENTICATED`.
 - Google sign-in requests only `openid email profile`. Calendar access is a separate, later consent (Section 10), so people can use the app without granting calendar access.
 
@@ -593,8 +597,8 @@ All members of a space see everything in that space. There is no per-project pri
 
 ```ts
 requireUser(): Promise<SessionUser>
-requireMember(userId: string, spaceId: string): Promise<SpaceMember>          // FORBIDDEN if not a member
-requireRole(userId: string, spaceId: string, min: 'ADMIN' | 'OWNER'): Promise<SpaceMember>
+requireMember(userId: string, spaceId: string): Promise<SpaceMember>          // NOT_FOUND if not a member (never leak existence)
+requireRole(userId: string, spaceId: string, min: 'ADMIN' | 'OWNER'): Promise<SpaceMember> // NOT_FOUND if not a member; FORBIDDEN if role too low
 // Resolvers: load entity, return its spaceId, then call requireMember
 spaceIdOfProject(projectId) / spaceIdOfList(listId) / spaceIdOfTask(taskId) / spaceIdOfDoc(docId)
 ```

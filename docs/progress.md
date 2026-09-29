@@ -28,4 +28,8 @@ Single-glance status for all 22 tickets. Update this file and the matching
 | T-21 | Polish: shortcuts, empty states, responsive | I | ⬜ pending | — |
 | T-22 | E2E tests and production release | A + I | ⬜ pending | — |
 
+Notes:
+- Google OAuth (sign-in and Calendar) is **on hold** until the calendar work (T-17/T-18); T-03's Google sign-in is wired but untested.
+- Deploys: Vercel builds `main` with `pnpm build:vercel` (vercel.json) = `prisma migrate deploy && next build`.
+
 States: ⬜ pending · 🔄 in progress · ✅ done · ❌ blocked
