@@ -14,8 +14,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Taskly",
-  description: "Task management for teams",
+  title: "Sava TM",
+  description: "Sava Task Manager — task management for teams",
 };
 
 export default function RootLayout({

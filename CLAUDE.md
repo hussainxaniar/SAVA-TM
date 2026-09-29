@@ -1,4 +1,4 @@
-# Agent instructions — Taskly
+# Agent instructions — Sava TM (Sava Task Manager)
 
 The single source of truth for this project is [docs/blueprint.md](docs/blueprint.md). Read it before doing anything else. When code and the blueprint disagree, the blueprint wins until a human updates it.
 

@@ -8,7 +8,7 @@ Sep 27, 2026 · @Xaniar
 
 We are building a web task manager for our internal team in one weekend: Todoist-level simplicity with a small set of ClickUp structure (spaces, projects, lists, custom statuses, subtasks, docs, calendar). It must be clean enough to commercialize later, so multi-tenancy and permissions are built in from day one.
 
-**Working name:** Taskly (placeholder; rename freely).
+**Name:** Sava TM (Sava Task Manager).
 
 ### In scope (v1)
 
