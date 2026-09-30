@@ -1,14 +1,53 @@
 "use client";
 
+import { useCallback } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { TaskDialog } from "./task-dialog";
+
 export type TaskDialogHostProps = {
   spaceId: string;
 };
 
 /**
- * T-11: renders the task dialog while the URL has `?task=<id>`, on any page of the space.
- * Implemented by the implementer per docs/tickets/T-11.md.
+ * T-11: renders the task dialog while the URL has `?task=<id>`, on any page of the space
+ * (Section 9.4). The id lives in the URL, so reload keeps the dialog open and tasks are
+ * linkable; closing (Esc, ×, click outside) just drops the param.
  */
-export function TaskDialogHost(props: TaskDialogHostProps) {
-  void props;
-  return null;
+export function TaskDialogHost({ spaceId }: TaskDialogHostProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const taskId = searchParams.get("task");
+
+  const buildUrl = useCallback(
+    (task: string | null) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (task) params.set("task", task);
+      else params.delete("task");
+      const qs = params.toString();
+      return qs ? `${pathname}?${qs}` : pathname;
+    },
+    [pathname, searchParams],
+  );
+
+  const close = useCallback(
+    () => router.replace(buildUrl(null), { scroll: false }),
+    [router, buildUrl],
+  );
+
+  /** Opening another task (breadcrumb ancestor, subtask, ↑/↓) keeps the rest of the URL. */
+  const openTask = useCallback(
+    (id: string) => router.replace(buildUrl(id), { scroll: false }),
+    [router, buildUrl],
+  );
+
+  return (
+    <TaskDialog
+      spaceId={spaceId}
+      taskId={taskId}
+      open={taskId !== null}
+      onClose={close}
+      onOpenTask={openTask}
+    />
+  );
 }

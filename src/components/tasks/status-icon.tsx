@@ -115,14 +115,21 @@ export function StatusControl({
   statuses,
   disabled,
   onSetStatus,
+  size,
+  variant = "icon",
 }: {
   task: TaskRowDTO;
   /** The project's statuses, in menu order. */
   statuses: readonly StatusDTO[];
   disabled?: boolean;
   onSetStatus: (task: TaskRowDTO, statusId: string, completeSubtasks?: boolean) => void;
+  /** Glyph size (the "icon" variant's default is 18, 16 when done). */
+  size?: number;
+  /** "pill" renders the trigger as the task dialog's status pill (9.4.6). */
+  variant?: "icon" | "pill";
 }) {
   const done = task.completedAt !== null;
+  const glyphSize = size ?? (done ? 16 : 18);
   const [open, setOpen] = useState(false);
   const [pendingStatusId, setPendingStatusId] = useState<string | null>(null);
 
@@ -142,15 +149,37 @@ export function StatusControl({
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger
           render={
-            <button
-              type="button"
-              aria-label={`Status: ${task.status.name}`}
-              disabled={disabled}
-              className="shrink-0 disabled:pointer-events-none"
-            />
+            variant === "pill" ? (
+              <button
+                type="button"
+                aria-label={`Status: ${task.status.name}`}
+                disabled={disabled}
+                className={cn(
+                  "flex h-[26px] w-fit shrink-0 items-center gap-2 rounded-md pl-2 pr-2.5 disabled:pointer-events-none",
+                  done ? "bg-done text-white" : "bg-pill text-foreground/80",
+                )}
+              />
+            ) : (
+              <button
+                type="button"
+                aria-label={`Status: ${task.status.name}`}
+                disabled={disabled}
+                className="shrink-0 disabled:pointer-events-none"
+              />
+            )
           }
         >
-          <StatusGlyph status={task.status} statuses={statuses} size={done ? 16 : 18} />
+          {variant === "pill" && (
+            <StatusGlyph status={task.status} statuses={statuses} size={14} pill />
+          )}
+          {variant === "pill" && (
+            <span className="text-xs font-semibold uppercase tracking-[0.04em]">
+              {task.status.name}
+            </span>
+          )}
+          {variant === "icon" && (
+            <StatusGlyph status={task.status} statuses={statuses} size={glyphSize} />
+          )}
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           <DropdownMenuGroup>

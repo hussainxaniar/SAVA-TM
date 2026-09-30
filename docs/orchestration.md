@@ -30,8 +30,10 @@ scripts/dispatch-ticket.sh T-09 z-ai/glm-5.3-flash
 ```
 
 Model choice follows the Model roles table in `CLAUDE.md`:
-- `z-ai/glm-5.3-flash` — routine, high-volume UI/scaffolding tickets.
-- `z-ai/glm-5.3` — tickets that need more careful reasoning.
+- `z-ai/glm-5.3-flash` — **the default for every implementer ticket.** The Architect does the logic-heavy parts
+  (services, parsers, hooks, cache patches) and writes precise handoffs, so the implementer's part is routine UI.
+- `z-ai/glm-5.3` — only when Flash's attempt fails review twice on the same ticket, or the Architect records in
+  the ticket why Flash isn't enough. (Decided with the human on 2026-09-30, to save credits.)
 
 ### Permission mode — read this before running unattended
 
@@ -97,8 +99,8 @@ Work through the tickets in blueprint.md Section 12, in build order, one at a ti
 - If it's "I" or "A + I": do any Architect part yourself first (e.g. services), write
   or refine docs/tickets/<id>.md using the Section 2 handoff template if it doesn't
   exist yet, then dispatch the implementer part with
-  scripts/dispatch-ticket.sh <id> <model-slug> — z-ai/glm-5.3-flash for routine
-  tickets, z-ai/glm-5.3 for ones needing more careful reasoning.
+  scripts/dispatch-ticket.sh <id> <model-slug> — z-ai/glm-5.3-flash by default;
+  z-ai/glm-5.3 only after Flash fails review twice or with a recorded reason.
 - After a dispatch, review it yourself: git diff, then
   pnpm typecheck && pnpm lint && pnpm test. Fix or re-dispatch before moving on.
 - If a schema or service-layer change seems needed outside a ticket's stated scope,

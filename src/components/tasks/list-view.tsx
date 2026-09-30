@@ -15,6 +15,7 @@ import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { comparePositions } from "@/lib/position";
 import { buildGroups, type DisplayMode, type SortMode } from "@/lib/list-view";
 import { rememberLastList } from "@/lib/last-list";
+import { publishTaskOrder } from "@/lib/task-nav";
 import {
   useCreateTask,
   useDeleteTask,
@@ -163,6 +164,27 @@ export function ListView({ initialData, spaceId, canDeleteLists }: ListViewProps
   useEffect(() => {
     rememberLastList(spaceId, listId);
   }, [spaceId, listId]);
+
+  // The rows on screen, in order (T-11): the task dialog's ↑/↓ steps through them.
+  const isGroupOpen = useCallback(
+    (statusId: string) =>
+      groupOverrides[statusId] ??
+      // The same rule the render uses: DONE groups follow "Show completed".
+      (data.statuses.find((s) => s.id === statusId)?.category === "DONE" ? showCompleted : true),
+    [groupOverrides, data.statuses, showCompleted],
+  );
+  const rowOrder = useMemo(() => {
+    const ids: string[] = [];
+    for (const group of groups) {
+      if (!isGroupOpen(group.status.id)) continue;
+      for (const row of group.rows) if (!row.task.id.startsWith("temp-")) ids.push(row.task.id);
+    }
+    return ids;
+  }, [groups, isGroupOpen]);
+  useEffect(() => {
+    publishTaskOrder(rowOrder);
+  }, [rowOrder]);
+  useEffect(() => () => publishTaskOrder([]), []);
 
   const onDragEnd = useCallback(
     ({ active, over }: DragEndEvent) => {

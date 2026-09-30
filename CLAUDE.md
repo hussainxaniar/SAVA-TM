@@ -11,7 +11,7 @@ See [docs/model-routing.md](docs/model-routing.md) for how to switch between `cl
 | Role | Model | Owns |
 | --- | --- | --- |
 | Architect | Opus 5.5 (or Opus 5) | Schema, service contracts, permissions, Google sync, ticket writing, reviewing every diff under `src/server/` |
-| Implementer | GLM 5.3 Flash via OpenRouter (`claude-or z-ai/glm-5.3-flash`) for routine, high-volume UI/scaffolding work; GLM 5.3 via OpenRouter (`claude-or z-ai/glm-5.3`) for tickets needing more careful reasoning | UI components, pages, server actions that call existing services, seed data, tests |
+| Implementer | GLM 5.3 Flash via OpenRouter (`claude-or z-ai/glm-5.3-flash`) by default for every implementer ticket; GLM 5.3 via OpenRouter (`claude-or z-ai/glm-5.3`) only after Flash fails review twice or with a reason recorded in the ticket (docs/orchestration.md) | UI components, pages, server actions that call existing services, seed data, tests |
 | Reviewer | Opus 5.5 | Diffs touching `src/server/`, `prisma/`, `auth` before merge |
 
 ## Rules for every agent session
