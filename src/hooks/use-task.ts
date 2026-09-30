@@ -1,12 +1,16 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { comparePositions, positionBetween } from "@/lib/position";
 import {
+  addTaskToListAction,
   createTaskAction,
   deleteTaskAction,
   getTaskAction,
+  moveTaskAction,
+  removeTaskFromListAction,
   reorderTaskAction,
   restoreTaskAction,
   setParentAction,
@@ -16,6 +20,7 @@ import type { ListViewDTO, TaskDetailDTO, TaskRowDTO } from "@/server/services/t
 import {
   ActionError,
   descendants,
+  listViewKey,
   patchStatus,
   patchTaskFields,
   recount,
@@ -167,6 +172,7 @@ export function useAddSubtask() {
           parentTitle: prev.title,
           depth: prev.depth + 1,
           homeListId: prev.homeList.id,
+          linkedListIds: [],
           isLinkedHere: false,
           subtaskCount: 0,
           openSubtaskCount: 0,
@@ -253,6 +259,99 @@ export function useSetParent() {
       ]);
     },
   });
+}
+
+// ---------- Move / link (6.5, 6.6) ----------
+
+/**
+ * "Move to…" and a plain sidebar drop: a top-level task and its subtree change home list. The
+ * rows leave the old home list's view at once; everything re-syncs on settle and the sidebar
+ * counts refresh. Subtasks are refused by the server (the UI hides the option for them).
+ */
+export function useMoveTask() {
+  const qc = useQueryClient();
+  const router = useRouter();
+  return useMutation({
+    mutationFn: async (v: { taskId: string; fromListId: string; toListId: string; beforeId?: string | null; afterId?: string | null }) =>
+      unwrap(
+        await moveTaskAction({ taskId: v.taskId, toListId: v.toListId, beforeId: v.beforeId ?? null, afterId: v.afterId ?? null }),
+      ),
+    onMutate: async (v) => {
+      const key = listViewKey(v.fromListId);
+      await qc.cancelQueries({ queryKey: key });
+      const prev = qc.getQueryData<ListViewDTO>(key);
+      if (prev) qc.setQueryData(key, withoutSubtree(prev, v.taskId));
+      return { prev };
+    },
+    onError: (error, v, context) => {
+      if (context?.prev) qc.setQueryData(listViewKey(v.fromListId), context.prev);
+      toast.error(error instanceof Error ? error.message : "Something went wrong. Try again.");
+    },
+    onSuccess: () => router.refresh(),
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: ALL_LISTS });
+      void qc.invalidateQueries({ queryKey: ALL_TASKS });
+    },
+  });
+}
+
+/** "Add to list…" and an Alt sidebar drop: a link, home unchanged (any depth). */
+export function useAddToList() {
+  const qc = useQueryClient();
+  const router = useRouter();
+  return useMutation({
+    mutationFn: async (v: { taskId: string; listId: string }) => unwrap(await addTaskToListAction(v)),
+    onError: (error) => toast.error(error instanceof Error ? error.message : "Something went wrong. Try again."),
+    onSuccess: () => router.refresh(),
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: ALL_LISTS });
+      void qc.invalidateQueries({ queryKey: ALL_TASKS });
+    },
+  });
+}
+
+/**
+ * "Remove from this list" (a linked row) and the dialog's list chip ×: deletes only the link.
+ * The linked row (and the subtree shown under it) leaves that list's view at once.
+ */
+export function useRemoveFromList() {
+  const qc = useQueryClient();
+  const router = useRouter();
+  return useMutation({
+    mutationFn: async (v: { taskId: string; listId: string }) => unwrap(await removeTaskFromListAction(v)),
+    onMutate: async (v) => {
+      const key = listViewKey(v.listId);
+      await qc.cancelQueries({ queryKey: key });
+      const prev = qc.getQueryData<ListViewDTO>(key);
+      if (prev) qc.setQueryData(key, withoutSubtree(prev, v.taskId));
+      const detailKey = taskKey(v.taskId);
+      const prevDetail = qc.getQueryData<TaskDetailDTO>(detailKey);
+      if (prevDetail) {
+        qc.setQueryData<TaskDetailDTO>(detailKey, {
+          ...prevDetail,
+          linkedListIds: prevDetail.linkedListIds.filter((id) => id !== v.listId),
+          linkedLists: prevDetail.linkedLists.filter((l) => l.id !== v.listId),
+        });
+      }
+      return { prev, prevDetail };
+    },
+    onError: (error, v, context) => {
+      if (context?.prev) qc.setQueryData(listViewKey(v.listId), context.prev);
+      if (context?.prevDetail) qc.setQueryData(taskKey(v.taskId), context.prevDetail);
+      toast.error(error instanceof Error ? error.message : "Something went wrong. Try again.");
+    },
+    onSuccess: () => router.refresh(),
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: ALL_LISTS });
+      void qc.invalidateQueries({ queryKey: ALL_TASKS });
+    },
+  });
+}
+
+/** A list view without `taskId` and the descendants shown under it. */
+function withoutSubtree(data: ListViewDTO, taskId: string): ListViewDTO {
+  const gone = new Set([taskId, ...descendants(data.tasks, taskId)]);
+  return recount({ ...data, tasks: data.tasks.filter((t) => !gone.has(t.id)) });
 }
 
 /** Cached task details (dialogs) whose subtask list includes `taskId`. */

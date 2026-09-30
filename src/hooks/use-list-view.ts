@@ -155,6 +155,7 @@ export function useCreateTask(listId: string) {
         parentTitle: parent?.title ?? null,
         depth: parent ? parent.depth + 1 : 0,
         homeListId: parent?.homeListId ?? listId,
+        linkedListIds: [],
         isLinkedHere: false,
         subtaskCount: 0,
         openSubtaskCount: 0,

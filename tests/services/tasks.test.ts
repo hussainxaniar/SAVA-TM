@@ -5,11 +5,14 @@ import { createList } from "@/server/services/lists";
 import { createProject } from "@/server/services/projects";
 import { createStatus } from "@/server/services/statuses";
 import {
+  addTaskToList,
   createTask,
   deleteTask,
   getListView,
   getMyTasks,
   getTask,
+  moveTask,
+  removeTaskFromList,
   reorderTask,
   restoreTask,
   setAssignees,
@@ -443,6 +446,10 @@ describe("sidebar open counts and list view project", () => {
       spaceId: s.space.id,
       name: "P",
       color: "#64748B",
+      lists: [
+        { id: general, name: "General" },
+        { id: other, name: "Other" },
+      ],
     });
   });
 });
@@ -452,7 +459,15 @@ describe("getTask dialog context", () => {
     const t = await createTask(me, { listId: general, title: "T" });
     const extra = await createStatus(as(s.users.owner.id), { projectId, name: "Review", color: "#F59E0B", category: "ACTIVE" });
     const detail = await getTask(me, { taskId: t.id });
-    expect(detail.project).toEqual({ id: projectId, name: "P", color: expect.any(String) });
+    expect(detail.project).toEqual({
+      id: projectId,
+      name: "P",
+      color: expect.any(String),
+      lists: [
+        { id: general, name: "General" },
+        { id: other, name: "Other" },
+      ],
+    });
     const ordered = await db.status.findMany({ where: { projectId }, orderBy: { position: "asc" }, select: { id: true } });
     expect(detail.statuses.map((x) => x.id)).toEqual(ordered.map((x) => x.id));
     expect(detail.statuses.map((x) => x.id)).toContain(extra.id);
@@ -528,5 +543,68 @@ describe("setParent", () => {
     expect((await types(t.id)).filter((x) => x === "PARENT_CHANGED")).toHaveLength(0);
     const outsider = await makeUser("outsider-setparent");
     await expect(setParent(as(outsider.id), { taskId: t.id, parentId: null })).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+});
+
+describe("moveTask (6.5)", () => {
+  it("moves a top-level task with its subtree, drops a link to the target, logs MOVED_TO_LIST", async () => {
+    const x = await createTask(me, { listId: other, title: "X" });
+    const t = await createTask(me, { listId: general, title: "T" });
+    const child = await createTask(me, { listId: general, parentId: t.id, title: "Child" });
+    await addTaskToList(me, { taskId: t.id, listId: other });
+
+    await moveTask(me, { taskId: t.id, toListId: other, afterId: x.id }); // dropped above X
+    const rows = await db.task.findMany({ where: { id: { in: [t.id, child.id] } }, select: { homeListId: true } });
+    expect(rows.every((r) => r.homeListId === other)).toBe(true);
+    expect(await db.taskListLink.count({ where: { taskId: t.id } })).toBe(0);
+    expect(await titles(general)).toEqual([]);
+    const roots = (await view(other)).filter((r) => r.parentId === null).sort((a, b) => comparePositions(a.position, b.position));
+    expect(roots.map((r) => r.title)).toEqual(["T", "X"]);
+    const moved = (await activity(t.id)).filter((a) => a.type === "MOVED_TO_LIST");
+    expect(moved.map((a) => a.payload)).toEqual([{ fromListId: general, toListId: other }]);
+  });
+
+  it("rejects subtasks and lists of other projects; the home list is a no-op", async () => {
+    const t = await createTask(me, { listId: general, title: "T" });
+    const child = await createTask(me, { listId: general, parentId: t.id, title: "Child" });
+    await expect(moveTask(me, { taskId: child.id, toListId: other })).rejects.toMatchObject({ code: "VALIDATION" });
+    const q = await createProject(as(s.users.owner.id), { spaceId: s.space.id, name: "Q" });
+    await expect(moveTask(me, { taskId: t.id, toListId: q.firstListId })).rejects.toMatchObject({ code: "VALIDATION" });
+    await moveTask(me, { taskId: t.id, toListId: general });
+    expect((await types(t.id)).filter((x) => x === "MOVED_TO_LIST")).toHaveLength(0);
+  });
+});
+
+describe("addTaskToList / removeTaskFromList (6.6)", () => {
+  it("links tasks and subtasks at the end of the target, then removes only the link", async () => {
+    const x = await createTask(me, { listId: other, title: "X" });
+    const t = await createTask(me, { listId: general, title: "T" });
+    const child = await createTask(me, { listId: general, parentId: t.id, title: "Child" });
+    await addTaskToList(me, { taskId: child.id, listId: other });
+    const rows = await view(other);
+    const linked = rows.find((r) => r.id === child.id)!;
+    expect(linked.isLinkedHere).toBe(true);
+    expect(comparePositions(linked.position, rows.find((r) => r.id === x.id)!.position)).toBeGreaterThan(0);
+    expect((await getTask(me, { taskId: child.id })).linkedListIds).toEqual([other]);
+
+    await removeTaskFromList(me, { taskId: child.id, listId: other });
+    expect(await titles(other)).toEqual(["X"]);
+    expect(await db.task.count({ where: { id: child.id, deletedAt: null } })).toBe(1);
+    expect((await types(child.id)).filter((x) => x === "ADDED_TO_LIST" || x === "REMOVED_FROM_LIST")).toEqual([
+      "ADDED_TO_LIST",
+      "REMOVED_FROM_LIST",
+    ]);
+  });
+
+  it("rejects the home list, duplicates, other projects and removing the home list", async () => {
+    const t = await createTask(me, { listId: general, title: "T" });
+    await expect(addTaskToList(me, { taskId: t.id, listId: general })).rejects.toMatchObject({ code: "VALIDATION" });
+    await addTaskToList(me, { taskId: t.id, listId: other });
+    await expect(addTaskToList(me, { taskId: t.id, listId: other })).rejects.toMatchObject({ code: "VALIDATION" });
+    const q = await createProject(as(s.users.owner.id), { spaceId: s.space.id, name: "Q" });
+    await expect(addTaskToList(me, { taskId: t.id, listId: q.firstListId })).rejects.toMatchObject({ code: "VALIDATION" });
+    await expect(removeTaskFromList(me, { taskId: t.id, listId: general })).rejects.toMatchObject({ code: "VALIDATION" });
+    const outsider = await makeUser("outsider-link");
+    await expect(removeTaskFromList(as(outsider.id), { taskId: t.id, listId: other })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 });

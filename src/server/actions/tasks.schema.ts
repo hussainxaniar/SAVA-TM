@@ -47,6 +47,20 @@ export const setCompletedSchema = z.object({
 export const setAssigneesSchema = z.object({ taskId: id, userIds: z.array(id).max(50) });
 
 /** Within `listId`: beforeId = task now directly above; afterId = directly below (services/ordering.ts). */
+/** Section 6.5: beforeId/afterId place it among the target's roots (a sidebar drop sends neither = last). */
+export const moveTaskSchema = z.object({
+  taskId: id,
+  toListId: id,
+  beforeId: id.nullable().optional(),
+  afterId: id.nullable().optional(),
+});
+
+/** Section 6.6: addTaskToList / removeTaskFromList. */
+export const taskListLinkSchema = z.object({
+  taskId: id,
+  listId: id,
+});
+
 /** null = "Convert to task" (promote to top level). */
 export const setParentSchema = z.object({
   taskId: id,

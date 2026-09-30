@@ -18,7 +18,7 @@ import { cleanName, serializableTransaction } from "./util";
  *   PRIORITY_CHANGED { from, to } · START_DATE_CHANGED / DUE_DATE_CHANGED { from, to } (ISO | null)
  *   ASSIGNEE_ADDED / ASSIGNEE_REMOVED { userId } · TASK_COMPLETED / TASK_REOPENED {}
  *   TASK_DELETED / TASK_RESTORED {} · PARENT_CHANGED { from, to } (parent ids | null)
- * moveTask / addTaskToList / removeTaskFromList arrive in T-13.
+ *   MOVED_TO_LIST { fromListId, toListId } · ADDED_TO_LIST / REMOVED_FROM_LIST { listId }
  */
 
 const MAX_DEPTH = 2; // 0, 1, 2 = three levels (6.4.1)
@@ -42,7 +42,15 @@ export async function getListView(ctx: Ctx, input: { listId: string }): Promise<
       name: true,
       subtaskDisplay: true,
       projectId: true,
-      project: { select: { id: true, spaceId: true, name: true, color: true } },
+      project: {
+        select: {
+          id: true,
+          spaceId: true,
+          name: true,
+          color: true,
+          lists: { where: { archivedAt: null }, orderBy: { position: "asc" }, select: { id: true, name: true } },
+        },
+      },
     },
   });
   const [statuses, visible] = await Promise.all([
@@ -73,7 +81,7 @@ export async function getTask(ctx: Ctx, input: { taskId: string }): Promise<Task
       links: {
         where: { list: { archivedAt: null } },
         orderBy: { createdAt: "asc" },
-        select: { list: { select: { id: true, name: true } } },
+        select: { listId: true, list: { select: { id: true, name: true } } },
       },
       timeBlocks: { orderBy: { start: "asc" }, select: { id: true, start: true, end: true, syncState: true } },
       parent: { select: { id: true, title: true, parent: { select: { id: true, title: true } } } },
@@ -87,7 +95,13 @@ export async function getTask(ctx: Ctx, input: { taskId: string }): Promise<Task
     db.user.findUnique({ where: { id: task.createdById }, select: { id: true, name: true, image: true } }),
     db.project.findUniqueOrThrow({
       where: { id: task.projectId },
-      select: { id: true, name: true, color: true, statuses: { orderBy: { position: "asc" } } },
+      select: {
+        id: true,
+        name: true,
+        color: true,
+        statuses: { orderBy: { position: "asc" } },
+        lists: { where: { archivedAt: null }, orderBy: { position: "asc" }, select: { id: true, name: true } },
+      },
     }),
   ]);
 
@@ -100,7 +114,7 @@ export async function getTask(ctx: Ctx, input: { taskId: string }): Promise<Task
     description: task.description,
     projectId: task.projectId,
     spaceId: task.spaceId,
-    project: { id: project.id, name: project.name, color: project.color },
+    project: { id: project.id, name: project.name, color: project.color, lists: project.lists },
     statuses: project.statuses.map(toStatusDTO),
     homeList: task.homeList,
     linkedLists: task.links.map((l) => l.list),
@@ -455,6 +469,118 @@ export async function reorderTask(ctx: Ctx, input: { taskId: string; listId: str
       await tx.task.update({ where: { id: task.id }, data: { position } });
     }
   });
+}
+
+// ---------- Move / link (6.5, 6.6) ----------
+
+/**
+ * Section 6.5. Moves a top-level task and its whole subtree to another list of the same project
+ * (a subtask is VALIDATION: convert it first, or add it to the list). It lands where the client
+ * dropped it among the target's roots (MoveTarget), else last. Links of the subtree to the
+ * target are dropped (it's home there now). Logs MOVED_TO_LIST.
+ */
+export async function moveTask(ctx: Ctx, input: { taskId: string; toListId: string } & MoveTarget): Promise<void> {
+  const spaceId = await spaceIdOfTask(input.taskId);
+  await requireMember(ctx.userId, spaceId);
+
+  await serializableTransaction(async (tx) => {
+    const task = await tx.task.findFirst({
+      where: { id: input.taskId, deletedAt: null },
+      select: { id: true, parentId: true, projectId: true, homeListId: true },
+    });
+    if (!task) throw notFound();
+    if (task.parentId) {
+      throw new AppError("VALIDATION", "Only top-level tasks can move. Convert it to a task first, or add it to that list.");
+    }
+    const target = await activeListOfProject(tx, input.toListId, task.projectId);
+    if (target.id === task.homeListId) return;
+
+    const roots = rootsWithPositions(await visibleInList(tx, target.id), target.id);
+    const position = positionForMove(roots, task.id, input);
+    const subtree = [task.id, ...(await descendantIds(tx, [task.id], { includeDeleted: true }))];
+
+    await tx.task.update({ where: { id: task.id }, data: { homeListId: target.id, position } });
+    await tx.task.updateMany({ where: { id: { in: subtree.slice(1) } }, data: { homeListId: target.id } });
+    await tx.taskListLink.deleteMany({ where: { listId: target.id, taskId: { in: subtree } } });
+    await logActivity(tx, {
+      spaceId,
+      taskId: task.id,
+      actorId: ctx.userId,
+      type: "MOVED_TO_LIST",
+      payload: { fromListId: task.homeListId, toListId: target.id },
+    });
+  });
+}
+
+/**
+ * Section 6.6. Links a task (any depth) into another list of its project: not its home list, not
+ * already linked. The link goes after the target's last root. Logs ADDED_TO_LIST.
+ */
+export async function addTaskToList(ctx: Ctx, input: { taskId: string; listId: string }): Promise<void> {
+  const spaceId = await spaceIdOfTask(input.taskId);
+  await requireMember(ctx.userId, spaceId);
+
+  await serializableTransaction(async (tx) => {
+    const task = await tx.task.findFirst({
+      where: { id: input.taskId, deletedAt: null },
+      select: { id: true, projectId: true, homeListId: true },
+    });
+    if (!task) throw notFound();
+    const list = await activeListOfProject(tx, input.listId, task.projectId);
+    if (list.id === task.homeListId) throw new AppError("VALIDATION", "That's already this task's home list");
+    const existing = await tx.taskListLink.findUnique({
+      where: { taskId_listId: { taskId: task.id, listId: list.id } },
+      select: { taskId: true },
+    });
+    if (existing) throw new AppError("VALIDATION", "This task is already in that list");
+
+    const last = rootsWithPositions(await visibleInList(tx, list.id), list.id)
+      .map((r) => r.position)
+      .sort(comparePositions)
+      .at(-1);
+    await tx.taskListLink.create({
+      data: { taskId: task.id, listId: list.id, position: positionAfter(last), addedById: ctx.userId },
+    });
+    await logActivity(tx, { spaceId, taskId: task.id, actorId: ctx.userId, type: "ADDED_TO_LIST", payload: { listId: list.id } });
+  });
+}
+
+/**
+ * Section 6.6.4. Removes only the link; a task can't leave its home list (move it instead).
+ * Logs REMOVED_FROM_LIST.
+ */
+export async function removeTaskFromList(ctx: Ctx, input: { taskId: string; listId: string }): Promise<void> {
+  const spaceId = await spaceIdOfTask(input.taskId);
+  await requireMember(ctx.userId, spaceId);
+
+  await db.$transaction(async (tx) => {
+    const task = await tx.task.findFirst({
+      where: { id: input.taskId, deletedAt: null },
+      select: { id: true, homeListId: true },
+    });
+    if (!task) throw notFound();
+    if (task.homeListId === input.listId) {
+      throw new AppError("VALIDATION", "A task can't leave its home list. Move it to another list instead.");
+    }
+    const removed = await tx.taskListLink.deleteMany({ where: { taskId: task.id, listId: input.listId } });
+    if (removed.count === 0) throw new AppError("VALIDATION", "This task isn't in that list");
+    await logActivity(tx, {
+      spaceId,
+      taskId: task.id,
+      actorId: ctx.userId,
+      type: "REMOVED_FROM_LIST",
+      payload: { listId: input.listId },
+    });
+  });
+}
+
+/** A live list of `projectId`; anything else (other project, archived, missing) is VALIDATION. */
+async function activeListOfProject(tx: Prisma.TransactionClient, listId: string, projectId: string) {
+  const list = await tx.list.findUnique({ where: { id: listId }, select: { id: true, projectId: true, archivedAt: true } });
+  if (!list || list.projectId !== projectId || list.archivedAt) {
+    throw new AppError("VALIDATION", "Pick a list in this task's project");
+  }
+  return list;
 }
 
 // ---------- Re-parent ----------

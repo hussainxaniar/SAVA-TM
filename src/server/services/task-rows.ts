@@ -25,6 +25,7 @@ export const taskRowSelect = {
   position: true,
   status: true,
   parent: { select: { title: true } },
+  links: { where: { list: { archivedAt: null } }, orderBy: { createdAt: "asc" }, select: { listId: true } },
   assignees: {
     orderBy: { assignedAt: "asc" },
     select: { user: { select: { id: true, name: true, image: true } } },
@@ -73,6 +74,7 @@ export function toTaskRow(
     parentTitle: r.parent?.title ?? null,
     depth: r.depth,
     homeListId: r.homeListId,
+    linkedListIds: r.links.map((l) => l.listId),
     isLinkedHere: linkPosition !== undefined,
     subtaskCount: r._count.subtasks,
     openSubtaskCount,

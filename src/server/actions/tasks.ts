@@ -1,11 +1,14 @@
 "use server";
 
 import {
+  addTaskToList,
   createTask,
   deleteTask,
   getListView,
   getMyTasks,
   getTask,
+  moveTask,
+  removeTaskFromList,
   reorderTask,
   restoreTask,
   setAssignees,
@@ -17,11 +20,13 @@ import { action } from "./action";
 import {
   createTaskSchema,
   listViewSchema,
+  moveTaskSchema,
   myTasksSchema,
   reorderTaskSchema,
   setAssigneesSchema,
   setCompletedSchema,
   setParentSchema,
+  taskListLinkSchema,
   taskSchema,
   updateTaskSchema,
 } from "./tasks.schema";
@@ -44,6 +49,12 @@ export const updateTaskAction = action(updateTaskSchema, (input, ctx) => updateT
 export const setCompletedAction = action(setCompletedSchema, (input, ctx) => setCompleted(ctx, input));
 export const setAssigneesAction = action(setAssigneesSchema, (input, ctx) => setAssignees(ctx, input));
 export const reorderTaskAction = action(reorderTaskSchema, (input, ctx) => reorderTask(ctx, input));
+/** "Move to…" and a plain sidebar drop (6.5): top-level tasks only. */
+export const moveTaskAction = action(moveTaskSchema, (input, ctx) => moveTask(ctx, input));
+/** "Add to list…" and an Alt sidebar drop (6.6). */
+export const addTaskToListAction = action(taskListLinkSchema, (input, ctx) => addTaskToList(ctx, input));
+/** "Remove from this list" (linked rows only) and the dialog's list chip ×. */
+export const removeTaskFromListAction = action(taskListLinkSchema, (input, ctx) => removeTaskFromList(ctx, input));
 /** "Make subtask of…" (parentId) / "Convert to task" (parentId: null), rules 6.4.3. */
 export const setParentAction = action(setParentSchema, (input, ctx) => setParent(ctx, input));
 /** Soft delete; pair with restoreTaskAction for the 10-second Undo toast (6.4.5). */

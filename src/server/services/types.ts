@@ -79,6 +79,8 @@ export type TaskRowDTO = {
   parentTitle: string | null;
   depth: number;
   homeListId: string;
+  /** Active lists the task is linked into (6.6), oldest link first; never includes homeListId. */
+  linkedListIds: string[];
   /** True when the row is in this list only through a TaskListLink (6.6). */
   isLinkedHere: boolean;
   /** Direct, non-deleted subtasks. */
@@ -93,8 +95,8 @@ export type TaskDetailDTO = TaskRowDTO & {
   description: unknown | null; // Tiptap JSON
   projectId: string;
   spaceId: string;
-  /** For the task dialog's breadcrumb. */
-  project: { id: string; name: string; color: string };
+  /** For the task dialog's breadcrumb and the Move to… / Add to list… pickers (active lists, in order). */
+  project: { id: string; name: string; color: string; lists: { id: string; name: string }[] };
   /** The project's statuses in position order (the dialog's status menu). */
   statuses: StatusDTO[];
   homeList: { id: string; name: string };
@@ -112,7 +114,8 @@ export type TaskDetailDTO = TaskRowDTO & {
 /** Section 8.4 getListView: Visible(L) (6.7), completed included; the client renders and sorts. */
 export type ListViewDTO = {
   list: { id: string; name: string; subtaskDisplay: "NESTED" | "SEPARATE"; projectId: string };
-  project: { id: string; spaceId: string; name: string; color: string };
+  /** lists: the project's active lists in order (the Move to… / Add to list… pickers). */
+  project: { id: string; spaceId: string; name: string; color: string; lists: { id: string; name: string }[] };
   statuses: StatusDTO[];
   tasks: TaskRowDTO[];
 };

@@ -20,6 +20,7 @@ function task(id: string, over: Omit<Partial<TaskRowDTO>, "status"> & { status?:
     startDate: null,
     dueDate: null,
     dueHasTime: false,
+    linkedListIds: [],
     assignees: [],
     parentId: null,
     parentTitle: null,
