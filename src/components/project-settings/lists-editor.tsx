@@ -112,13 +112,15 @@ function ListRowItem({
   }
 
   return (
-    <SortableRow id={list.id} label={list.name}>
+    <SortableRow id={list.id}>
       <Hash className="size-4 shrink-0 text-muted-foreground" />
       {editing ? (
         <Input
           value={draft}
           autoFocus
           onFocus={(e) => e.target.select()}
+          // The row drags from anywhere; keep text selection working inside the input.
+          onPointerDown={(e) => e.stopPropagation()}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {

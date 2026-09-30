@@ -1,28 +1,24 @@
 "use client";
 
 import { memo, useState } from "react";
-import { Calendar, ChevronDown, ChevronRight, Link } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { Calendar, ChevronDown, ChevronRight, Link, Plus } from "lucide-react";
 import { AvatarStack } from "@/components/tasks/avatar-stack";
-import { StatusGlyph, SubtaskGlyph } from "@/components/tasks/status-icon";
+import { StatusControl, SubtaskGlyph } from "@/components/tasks/status-icon";
 import { PriorityFlag } from "@/components/tasks/priority-flag";
 import { TaskRowMenu } from "@/components/tasks/task-row-menu";
 import { formatDue, type DisplayMode, type ListRow } from "@/lib/list-view";
 import { cn } from "@/lib/utils";
-import type { Priority, TaskRowDTO } from "@/server/services/types";
+import type { Priority, StatusDTO, TaskRowDTO } from "@/server/services/types";
 
-/** dnd-kit's draggable attributes/listeners, loosely typed so this file needn't import dnd internals. */
+/**
+ * dnd-kit's draggable state, loosely typed so this file needn't import dnd internals. The
+ * listeners go on the row itself — dragging starts after 4px (PointerSensor), so plain
+ * clicks still work.
+ */
 export type DragHandle = {
   attributes: Record<string, unknown>;
   listeners: Record<string, unknown> | undefined;
+  isDragging: boolean;
 };
 
 type CompleteOpts = { completed: boolean; includeSubtasks?: boolean };
@@ -32,9 +28,11 @@ export type TaskRowProps = {
   mode: DisplayMode;
   dragHandle: DragHandle | null;
   collapsed: boolean;
+  statuses: readonly StatusDTO[];
   onToggleCollapsed: (taskId: string) => void;
   onOpenTask: (taskId: string) => void;
   onComplete: (task: TaskRowDTO, opts: CompleteOpts) => void;
+  onSetStatus: (task: TaskRowDTO, statusId: string, completeSubtasks?: boolean) => void;
   onSetPriority: (taskId: string, priority: Priority) => void;
   onDeleteTask: (task: TaskRowDTO) => void;
   onAddChild: (task: TaskRowDTO) => void;
@@ -60,9 +58,11 @@ export const TaskRow = memo(function TaskRow({
   mode,
   dragHandle,
   collapsed,
+  statuses,
   onToggleCollapsed,
   onOpenTask,
   onComplete,
+  onSetStatus,
   onSetPriority,
   onDeleteTask,
   onAddChild,
@@ -71,17 +71,6 @@ export const TaskRow = memo(function TaskRow({
   const done = task.completedAt !== null;
   const temp = task.id.startsWith("temp-");
   const [menuOpen, setMenuOpen] = useState(false);
-  const [confirmOpen, setConfirmOpen] = useState(false);
-
-  function requestComplete() {
-    if (done) {
-      onComplete(task, { completed: false });
-    } else if (task.openSubtaskCount > 0) {
-      setConfirmOpen(true);
-    } else {
-      onComplete(task, { completed: true });
-    }
-  }
 
   const titleClass = cn(
     "truncate text-sm text-foreground",
@@ -107,9 +96,7 @@ export const TaskRow = memo(function TaskRow({
           }}
           className="flex size-[26px] items-center justify-center rounded-md border border-border bg-background text-muted-foreground hover:bg-sidebar disabled:pointer-events-none"
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden>
-            <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          </svg>
+          <Plus className="size-3.5" aria-hidden />
         </button>
       )}
       {!temp && (
@@ -128,39 +115,13 @@ export const TaskRow = memo(function TaskRow({
     </div>
   );
 
-  const handle =
-    dragHandle && !temp ? (
-      <button
-        type="button"
-        aria-label={`Reorder ${task.title}`}
-        className="absolute -left-[22px] top-1/2 z-10 flex -translate-y-1/2 cursor-grab items-center justify-center text-muted-foreground/60 opacity-0 group-hover/row:opacity-100 active:cursor-grabbing"
-        {...dragHandle.attributes}
-        {...dragHandle.listeners}
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden className="fill-current">
-          <circle cx="9" cy="6" r="1.6" />
-          <circle cx="15" cy="6" r="1.6" />
-          <circle cx="9" cy="12" r="1.6" />
-          <circle cx="15" cy="12" r="1.6" />
-          <circle cx="9" cy="18" r="1.6" />
-          <circle cx="15" cy="18" r="1.6" />
-        </svg>
-      </button>
-    ) : null;
-
   const statusButton = (
-    <button
-      type="button"
-      aria-label={`${done ? "Reopen" : "Complete"} ${task.title}`}
-      disabled={temp}
-      onClick={(e) => {
-        e.stopPropagation();
-        requestComplete();
-      }}
-      className="shrink-0 disabled:pointer-events-none"
+    <span
+      onClick={(e) => e.stopPropagation()}
+      onContextMenu={(e) => e.stopPropagation()}
     >
-      <StatusGlyph category={task.status.category} size={done ? 16 : 18} />
-    </button>
+      <StatusControl task={task} statuses={statuses} disabled={temp} onSetStatus={onSetStatus} />
+    </span>
   );
 
   const subs =
@@ -176,33 +137,13 @@ export const TaskRow = memo(function TaskRow({
   const due = dueLabel(task);
   const flag = task.priority < 4 ? <PriorityFlag priority={task.priority} /> : null;
 
-  const confirmDialog = (
-    <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>
-            Also complete {task.openSubtaskCount} open subtask
-            {task.openSubtaskCount === 1 ? "" : "s"}?
-          </AlertDialogTitle>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel onClick={() => onComplete(task, { completed: true })}>
-            Only this task
-          </AlertDialogCancel>
-          <AlertDialogAction
-            autoFocus
-            onClick={(e) => {
-              e.preventDefault();
-              setConfirmOpen(false);
-              onComplete(task, { completed: true, includeSubtasks: true });
-            }}
-          >
-            Complete all
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  );
+  // Dragging: the row itself carries the dnd listeners (a 4px move starts the drag, so
+  // clicks, menus and the status control still work); only roots in manual sort get a handle.
+  const drag =
+    dragHandle && !temp
+      ? { attributes: dragHandle.attributes, listeners: dragHandle.listeners }
+      : {};
+  const dragging = dragHandle?.isDragging ?? false;
 
   const rowProps = {
     onClick: () => {
@@ -216,13 +157,16 @@ export const TaskRow = memo(function TaskRow({
     className: cn(
       "group/row relative flex border-b border-divider hover:-mx-2 hover:rounded-md hover:bg-sidebar hover:px-2",
       mode === "NESTED" ? "min-h-9 items-center" : "items-start py-2.5",
+      drag.listeners && "cursor-grab",
+      dragging && "cursor-grabbing opacity-50",
     ),
+    ...drag.attributes,
+    ...drag.listeners,
   } as const;
 
   if (mode === "SEPARATE") {
     return (
       <div {...rowProps}>
-        {handle}
         <div className="w-5 shrink-0" />
         <div className="mt-px ml-0.5 mr-3 shrink-0">{statusButton}</div>
         <div className="flex min-w-0 grow flex-col gap-[3px]">
@@ -260,14 +204,12 @@ export const TaskRow = memo(function TaskRow({
         <div className="flex w-16 shrink-0 items-center self-stretch justify-center">
           <AvatarStack users={task.assignees} />
         </div>
-        {confirmDialog}
       </div>
     );
   }
 
   return (
     <div {...rowProps}>
-      {handle}
       <div className="w-5 shrink-0" />
       {Array.from({ length: row.indent }, (_, i) => (
         <div key={i} className="w-5 shrink-0" />
@@ -324,7 +266,6 @@ export const TaskRow = memo(function TaskRow({
         {due?.label}
       </div>
       <div className="flex w-8 shrink-0 justify-center">{flag}</div>
-      {confirmDialog}
     </div>
   );
 });

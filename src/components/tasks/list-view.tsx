@@ -22,6 +22,7 @@ import {
   useListView,
   useReorderTask,
   useSetCompleted,
+  useSetStatus,
   useUpdateTask,
 } from "@/hooks/use-list-view";
 import { useLocalStorage } from "@/hooks/use-local-storage";
@@ -65,6 +66,7 @@ export function ListView({ initialData, spaceId, canDeleteLists }: ListViewProps
   const collapsed = useMemo(() => new Set(collapsedIds), [collapsedIds]);
 
   const setCompleted = useSetCompleted(listId);
+  const setStatus = useSetStatus(listId);
   const updateTask = useUpdateTask(listId);
   const createTask = useCreateTask(listId);
   const reorderTask = useReorderTask(listId);
@@ -108,6 +110,12 @@ export function ListView({ initialData, spaceId, canDeleteLists }: ListViewProps
         includeSubtasks: opts.includeSubtasks,
       }),
     [setCompleted],
+  );
+
+  const changeStatus = useCallback(
+    (task: TaskRowDTO, statusId: string, completeSubtasks?: boolean) =>
+      setStatus.mutate({ taskId: task.id, statusId, completeSubtasks }),
+    [setStatus],
   );
 
   const setPriority = useCallback(
@@ -194,9 +202,11 @@ export function ListView({ initialData, spaceId, canDeleteLists }: ListViewProps
   );
 
   const rowProps = {
+    statuses: data.statuses,
     onToggleCollapsed: toggleCollapsed,
     onOpenTask: openTask,
     onComplete: complete,
+    onSetStatus: changeStatus,
     onSetPriority: setPriority,
     onDeleteTask: removeTask,
     onAddChild: addChild,

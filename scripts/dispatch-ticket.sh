@@ -61,6 +61,7 @@ prompt="$(cat "$ticket_file")
 When done: run pnpm typecheck && pnpm lint && pnpm test, then list exactly which files you changed.
 pnpm test needs the local Postgres container (already running; if not, the human runs pnpm db:up).
 Run it once, in the foreground. Never start a second test run while one is still running (two runs
-reset the same database and fail each other). Do not use git stash, commit or checkout."
+reset the same database and fail each other). Do not use git stash, commit or checkout. Never open image files (.jpg/.png/.gif): this model
+cannot read images and the session fails; use the docs/design/*.jsx.txt exports instead."
 
 run_implementer "$model" -p "$prompt" "$@"

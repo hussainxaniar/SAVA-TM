@@ -17,7 +17,6 @@ import {
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -91,16 +90,17 @@ export function SortableRows<T extends { id: string }>({
   );
 }
 
-/** One settings row: a grip handle plus the editor's own content, styled per 9.8. */
+/**
+ * One settings row: the whole row is the drag target (a 4px move starts the drag, so clicks,
+ * selects and inputs still work). `attributes` gives it `aria-roledescription="sortable"` and
+ * the other dnd-kit sortable semantics; the tooltip tells mouse users it drags.
+ */
 export function SortableRow({
   id,
-  label,
   className,
   children,
 }: {
   id: string;
-  /** Row name, for the handle's accessible label ("Reorder <label>"). */
-  label: string;
   className?: string;
   children: ReactNode;
 }) {
@@ -123,20 +123,14 @@ export function SortableRow({
         transition,
       }}
       className={cn(
-        "flex items-center gap-3 px-4 py-2.5",
-        isDragging && "relative z-10 opacity-50",
+        "flex cursor-grab items-center gap-3 px-4 py-2.5",
+        isDragging && "relative z-10 cursor-grabbing opacity-50",
         className,
       )}
+      title="Drag to reorder"
+      {...attributes}
+      {...listeners}
     >
-      <button
-        type="button"
-        aria-label={`Reorder ${label}`}
-        className="flex size-5 shrink-0 cursor-grab items-center justify-center rounded-md text-muted-foreground/60 hover:bg-accent hover:text-muted-foreground active:cursor-grabbing"
-        {...attributes}
-        {...listeners}
-      >
-        <GripVertical className="size-4" />
-      </button>
       {children}
     </div>
   );

@@ -1,76 +1,32 @@
-import type { StatusCategoryName } from "@/server/services/types";
+"use client";
 
-/*
- * The design's status glyphs (docs/design/list-view-*.jpg), inlined as SVG so they pick up the
- * theme tokens via currentColor / fill utilities (dark mode keeps working).
- */
-
-/** To do: dashed circle. */
-function Todo({ size, strokeWidth }: { size: number; strokeWidth: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden className="text-muted-foreground">
-      <circle
-        cx="12"
-        cy="12"
-        r="9"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={strokeWidth}
-        strokeDasharray="3.2 3.2"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-/** Active: circle with a quarter wedge. */
-function Active({ size, strokeWidth }: { size: number; strokeWidth: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden className="text-status-active">
-      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth={strokeWidth} />
-      <path d="M12 12V6A6 6 0 0 1 18 12z" fill="currentColor" />
-    </svg>
-  );
-}
-
-/** Done row icon: filled done circle with a white check. */
-function DoneRow({ size }: { size: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden>
-      <circle cx="12" cy="12" r="11" className="fill-done" />
-      <path
-        d="m7.5 12.5 3 3 6-7"
-        fill="none"
-        className="stroke-white"
-        strokeWidth="2.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-/** Done pill icon: white circle with a green check (sits inside the green pill). */
-function DonePill({ size }: { size: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden>
-      <circle cx="12" cy="12" r="10" className="fill-white" />
-      <path
-        d="m7.5 12.5 3 3 6-7"
-        fill="none"
-        className="stroke-done"
-        strokeWidth="2.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
+import { useState } from "react";
+import { ChartPie, Check, CircleCheck, CircleDashed } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import type { StatusCategoryName, StatusDTO, TaskRowDTO } from "@/server/services/types";
 
 /**
- * Status glyph for a row (18/16px) or a group pill (14px, `pill`).
- * TODO/ACTIVE colors are baked in; DONE uses two colors so it is handled per variant.
+ * Status glyphs for rows and group pills (docs/design/list-view-*.jsx.txt), as lucide icons so
+ * they pick up the theme tokens via currentColor / fill utilities (dark mode keeps working).
  */
+
+/** One status's category icon, 14px — used by the status menu items. */
 export function StatusGlyph({
   category,
   size = 18,
@@ -80,9 +36,136 @@ export function StatusGlyph({
   size?: number;
   pill?: boolean;
 }) {
-  if (category === "DONE") return pill ? <DonePill size={size} /> : <DoneRow size={size} />;
-  if (category === "ACTIVE") return <Active size={size} strokeWidth={pill ? 2.5 : 2.2} />;
-  return <Todo size={size} strokeWidth={pill ? 2.5 : 2} />;
+  if (category === "DONE") {
+    // Rows: a green disc with a white check; the done group's pill: white disc, green check.
+    return (
+      <CircleCheck
+        size={size}
+        strokeWidth={pill ? 2.5 : 2}
+        aria-hidden
+        className={pill ? "fill-white text-done" : "fill-done text-white"}
+      />
+    );
+  }
+  if (category === "ACTIVE") {
+    return (
+      <ChartPie
+        size={size}
+        strokeWidth={pill ? 2.5 : 2}
+        aria-hidden
+        className="text-status-active"
+      />
+    );
+  }
+  return (
+    <CircleDashed
+      size={size}
+      strokeWidth={pill ? 2.5 : 2}
+      aria-hidden
+      className="text-muted-foreground"
+    />
+  );
+}
+
+/**
+ * The row's status circle (ClickUp-style): opens the status menu instead of toggling done.
+ * Picking the current status does nothing; moving into a DONE status with open subtasks
+ * asks whether to complete them too (the same dialog the row menu's Complete uses).
+ */
+export function StatusControl({
+  task,
+  statuses,
+  disabled,
+  onSetStatus,
+}: {
+  task: TaskRowDTO;
+  /** The project's statuses, in menu order. */
+  statuses: readonly StatusDTO[];
+  disabled?: boolean;
+  onSetStatus: (task: TaskRowDTO, statusId: string, completeSubtasks?: boolean) => void;
+}) {
+  const done = task.completedAt !== null;
+  const [open, setOpen] = useState(false);
+  const [pendingStatusId, setPendingStatusId] = useState<string | null>(null);
+
+  function pick(status: StatusDTO) {
+    if (status.id === task.status.id) return;
+    if (status.category === "DONE" && !done && task.openSubtaskCount > 0) {
+      setPendingStatusId(status.id);
+      return;
+    }
+    onSetStatus(task, status.id);
+  }
+
+  const pending = pendingStatusId ? statuses.find((s) => s.id === pendingStatusId) : null;
+
+  return (
+    <>
+      <DropdownMenu open={open} onOpenChange={setOpen}>
+        <DropdownMenuTrigger
+          render={
+            <button
+              type="button"
+              aria-label={`Status: ${task.status.name}`}
+              disabled={disabled}
+              className="shrink-0 disabled:pointer-events-none"
+            />
+          }
+        >
+          <StatusGlyph category={task.status.category} size={done ? 16 : 18} />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>Status</DropdownMenuLabel>
+            {statuses.map((status) => (
+              <DropdownMenuItem key={status.id} onClick={() => pick(status)}>
+                <StatusGlyph category={status.category} size={14} />
+                {status.name}
+                {status.id === task.status.id && (
+                  <Check className="ml-auto" aria-hidden />
+                )}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <AlertDialog
+        open={pending !== null}
+        onOpenChange={(o) => {
+          if (!o) setPendingStatusId(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Also complete {task.openSubtaskCount} open subtask
+              {task.openSubtaskCount === 1 ? "" : "s"}?
+            </AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                if (pending) onSetStatus(task, pending.id);
+                setPendingStatusId(null);
+              }}
+            >
+              Only this task
+            </AlertDialogCancel>
+            <AlertDialogAction
+              autoFocus
+              onClick={(e) => {
+                e.preventDefault();
+                if (pending) onSetStatus(task, pending.id, true);
+                setPendingStatusId(null);
+              }}
+            >
+              Complete all
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
 }
 
 /** The subtask glyph (branch with two circles) used next to subtask counts and parent lines. */

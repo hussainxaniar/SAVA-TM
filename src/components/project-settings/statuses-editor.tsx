@@ -134,7 +134,7 @@ function StatusRowItem({ status, others }: { status: StatusRow; others: StatusRo
   }
 
   return (
-    <SortableRow id={status.id} label={status.name}>
+    <SortableRow id={status.id}>
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
@@ -170,6 +170,8 @@ function StatusRowItem({ status, others }: { status: StatusRow; others: StatusRo
           value={draft}
           autoFocus
           onFocus={(e) => e.target.select()}
+          // The row drags from anywhere; keep text selection working inside the input.
+          onPointerDown={(e) => e.stopPropagation()}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {

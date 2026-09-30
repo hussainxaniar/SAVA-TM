@@ -25,7 +25,6 @@ import {
   ChevronDown,
   ChevronRight,
   FileText,
-  GripVertical,
   List,
   MoreHorizontal,
 } from "lucide-react";
@@ -208,13 +207,20 @@ function ProjectRow({
       <div
         className={cn(
           "group relative flex h-8 items-center gap-1.5 rounded-md pl-1 pr-2 hover:bg-sidebar-accent",
+          isDragging && "cursor-grabbing",
         )}
+        // The whole project row drags (a 4px move starts it, so clicks still work); the
+        // sortable wrapper above keeps the header and its lists/docs moving together.
+        {...attributes}
+        {...listeners}
       >
         {editing ? (
           <Input
             value={draft}
             autoFocus
             onFocus={(e) => e.target.select()}
+            // Keep text selection usable: a drag never starts from inside the rename input.
+            onPointerDown={(e) => e.stopPropagation()}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
@@ -235,15 +241,6 @@ function ProjectRow({
           />
         ) : (
           <>
-            <button
-              type="button"
-              aria-label={`Reorder ${project.name}`}
-              className="absolute -left-2 top-1/2 z-10 flex -translate-y-1/2 cursor-grab items-center justify-center rounded-md bg-sidebar text-muted-foreground opacity-0 group-hover:opacity-100 active:cursor-grabbing"
-              {...attributes}
-              {...listeners}
-            >
-              <GripVertical className="size-3" />
-            </button>
             <button
               type="button"
               aria-expanded={expanded}

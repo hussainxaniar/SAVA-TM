@@ -52,7 +52,7 @@ function SortableBlock({
         transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
         transition,
       }}
-      className={isDragging ? "relative z-10 opacity-50" : undefined}
+      className={isDragging ? "relative z-10" : undefined}
     >
       {children(
         disabled
@@ -60,6 +60,7 @@ function SortableBlock({
           : {
               attributes: attributes as unknown as Record<string, unknown>,
               listeners: listeners as unknown as Record<string, unknown> | undefined,
+              isDragging,
             },
       )}
     </div>
