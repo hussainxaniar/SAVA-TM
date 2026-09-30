@@ -8,7 +8,7 @@ import { positionForMove, type MoveTarget } from "./ordering";
 import { toStatusDTO } from "./statuses";
 import { loadTaskRows, taskRowSelect, toTaskRow, type DbClient } from "./task-rows";
 import type { Ctx, ListViewDTO, MyTaskDTO, TaskDetailDTO, TaskRowDTO } from "./types";
-import { cleanName } from "./util";
+import { cleanName, serializableTransaction } from "./util";
 
 /*
  * Section 8.4 (all [A]); rules in Section 6. Every mutation checks membership first and writes
@@ -17,8 +17,8 @@ import { cleanName } from "./util";
  *   TASK_DESCRIPTION_CHANGED {} · STATUS_CHANGED { from, to } (status ids)
  *   PRIORITY_CHANGED { from, to } · START_DATE_CHANGED / DUE_DATE_CHANGED { from, to } (ISO | null)
  *   ASSIGNEE_ADDED / ASSIGNEE_REMOVED { userId } · TASK_COMPLETED / TASK_REOPENED {}
- *   TASK_DELETED / TASK_RESTORED {}
- * moveTask / addTaskToList / removeTaskFromList / setParent arrive in T-13.
+ *   TASK_DELETED / TASK_RESTORED {} · PARENT_CHANGED { from, to } (parent ids | null)
+ * moveTask / addTaskToList / removeTaskFromList arrive in T-13.
  */
 
 const MAX_DEPTH = 2; // 0, 1, 2 = three levels (6.4.1)
@@ -457,6 +457,89 @@ export async function reorderTask(ctx: Ctx, input: { taskId: string; listId: str
   });
 }
 
+// ---------- Re-parent ----------
+
+/**
+ * Section 6.4.3 ("Make subtask of…" / "Convert to task"). parentId = null promotes the task to
+ * the top level of its home list (a subtask's home is its parent's). Otherwise the new parent
+ * must be live, in the same project, not the task or one of its descendants, and the moved
+ * subtree must stay within MAX_DEPTH. The subtree takes the parent's home list (6.4.2); links
+ * that would duplicate that home are dropped. The task goes last among its new siblings.
+ * Serializable, so two concurrent re-parents can't form a cycle. Logs PARENT_CHANGED.
+ */
+export async function setParent(ctx: Ctx, input: { taskId: string; parentId: string | null }): Promise<void> {
+  const spaceId = await spaceIdOfTask(input.taskId);
+  await requireMember(ctx.userId, spaceId);
+
+  await serializableTransaction(async (tx) => {
+    const task = await tx.task.findFirst({
+      where: { id: input.taskId, deletedAt: null },
+      select: { id: true, parentId: true, projectId: true, homeListId: true, depth: true },
+    });
+    if (!task) throw notFound();
+    if (task.parentId === input.parentId) return;
+
+    // The whole subtree, deleted rows included, so a later restore finds consistent depths.
+    const levels: { ids: string[]; live: boolean[] }[] = [];
+    let frontier = [task.id];
+    while (frontier.length > 0) {
+      const children = await tx.task.findMany({
+        where: { parentId: { in: frontier } },
+        select: { id: true, deletedAt: true },
+      });
+      if (children.length === 0) break;
+      levels.push({ ids: children.map((c) => c.id), live: children.map((c) => c.deletedAt === null) });
+      frontier = children.map((c) => c.id);
+    }
+    const liveHeight = levels.filter((l) => l.live.some(Boolean)).length;
+
+    let target: { parentId: string | null; depth: number; homeListId: string };
+    if (input.parentId === null) {
+      target = { parentId: null, depth: 0, homeListId: task.homeListId };
+    } else {
+      if (input.parentId === task.id || levels.some((l) => l.ids.includes(input.parentId!))) {
+        throw new AppError("VALIDATION", "A task can't become a subtask of itself or of its own subtasks");
+      }
+      const parent = await tx.task.findFirst({
+        where: { id: input.parentId, deletedAt: null },
+        select: { id: true, projectId: true, homeListId: true, depth: true },
+      });
+      if (!parent) throw notFound();
+      if (parent.projectId !== task.projectId) {
+        throw new AppError("VALIDATION", "Subtasks must stay in the same project");
+      }
+      if (parent.depth + 1 + liveHeight > MAX_DEPTH) {
+        throw new AppError("VALIDATION", "That would put subtasks more than three levels deep");
+      }
+      target = { parentId: parent.id, depth: parent.depth + 1, homeListId: parent.homeListId };
+    }
+
+    const position = await newTaskPosition(tx, { homeListId: target.homeListId, parentId: target.parentId }, null);
+    await tx.task.update({
+      where: { id: task.id },
+      data: { parentId: target.parentId, depth: target.depth, homeListId: target.homeListId, position },
+    });
+    for (const [i, level] of levels.entries()) {
+      await tx.task.updateMany({
+        where: { id: { in: level.ids } },
+        data: { depth: target.depth + i + 1, homeListId: target.homeListId },
+      });
+    }
+    if (target.homeListId !== task.homeListId) {
+      await tx.taskListLink.deleteMany({
+        where: { listId: target.homeListId, taskId: { in: [task.id, ...levels.flatMap((l) => l.ids)] } },
+      });
+    }
+    await logActivity(tx, {
+      spaceId,
+      taskId: task.id,
+      actorId: ctx.userId,
+      type: "PARENT_CHANGED",
+      payload: { from: task.parentId, to: target.parentId },
+    });
+  });
+}
+
 // ---------- Delete / restore ----------
 
 /** Section 6.4.5. Soft-deletes the task and its live subtree with one timestamp; logs TASK_DELETED. */
@@ -485,10 +568,13 @@ export async function restoreTask(ctx: Ctx, input: { taskId: string }): Promise<
   await db.$transaction(async (tx) => {
     const task = await tx.task.findUniqueOrThrow({
       where: { id: input.taskId },
-      select: { id: true, deletedAt: true, parent: { select: { deletedAt: true } } },
+      select: { id: true, deletedAt: true, depth: true, parent: { select: { deletedAt: true } } },
     });
     if (!task.deletedAt) return; // already live: nothing to undo
     if (task.parent?.deletedAt) throw new AppError("VALIDATION", "Restore the parent task first");
+    // A subtask deleted on its own, whose old parent was later moved deeper (setParent), may no
+    // longer fit (6.4.1).
+    if (task.depth > MAX_DEPTH) throw new AppError("VALIDATION", "This subtask can no longer be restored at that depth");
 
     const ids = [task.id, ...(await descendantIds(tx, [task.id], { includeDeleted: true }))];
     await tx.task.updateMany({ where: { id: { in: ids }, deletedAt: task.deletedAt }, data: { deletedAt: null } });

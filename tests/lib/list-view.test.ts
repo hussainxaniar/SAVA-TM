@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { avatarColors, buildGroups, dateOnlyISO, formatDue, initials } from "@/lib/list-view";
+import { avatarColors, buildGroups, dateOnlyISO, formatDue, initials, parentCandidates } from "@/lib/list-view";
 import type { StatusDTO, TaskRowDTO } from "@/server/services/types";
 
 const statuses: StatusDTO[] = [
@@ -131,5 +131,23 @@ describe("avatars", () => {
     expect(initials("ada")).toBe("A");
     expect(initials("  ")).toBe("?");
     expect(avatarColors("user-1")).toEqual(avatarColors("user-1"));
+  });
+});
+
+describe("parentCandidates", () => {
+  // A ─ B ─ C ; D ─ E ; F
+  const t = (id: string, parentId: string | null, depth: number) => ({ id, parentId, depth });
+  const tasks = [t("A", null, 0), t("B", "A", 1), t("C", "B", 2), t("D", null, 0), t("E", "D", 1), t("F", null, 0), t("temp-1", null, 0)];
+  const ids = (taskId: string) => parentCandidates(tasks, taskId).map((x) => x.id);
+
+  it("offers roots and depth-1 tasks for a leaf, never itself, its parent or temp rows", () => {
+    expect(ids("F")).toEqual(["A", "B", "D", "E"]);
+    expect(ids("E")).toEqual(["A", "B", "F"]); // not D (current parent)
+  });
+
+  it("leaves room for the subtree and blocks cycles", () => {
+    expect(ids("B")).toEqual(["D", "F"]); // B has one level below: only roots fit; not A (parent), not C (descendant)
+    expect(ids("A")).toEqual([]); // two levels below: nothing fits
+    expect(ids("missing")).toEqual([]);
   });
 });

@@ -47,6 +47,12 @@ export const setCompletedSchema = z.object({
 export const setAssigneesSchema = z.object({ taskId: id, userIds: z.array(id).max(50) });
 
 /** Within `listId`: beforeId = task now directly above; afterId = directly below (services/ordering.ts). */
+/** null = "Convert to task" (promote to top level). */
+export const setParentSchema = z.object({
+  taskId: id,
+  parentId: id.nullable(),
+});
+
 export const reorderTaskSchema = z.object({
   taskId: id,
   listId: id,

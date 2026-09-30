@@ -125,6 +125,42 @@ const byPosition = (a: TaskRowDTO, b: TaskRowDTO) => comparePositions(a.position
 
 // ---------- Due dates ----------
 
+// ---------- Re-parenting (6.4.3) ----------
+
+/** Deepest allowed depth: 0, 1, 2 = three levels (6.4.1). Mirrors the server's MAX_DEPTH. */
+export const MAX_TASK_DEPTH = 2;
+
+/**
+ * Tasks in `tasks` (a list view's Visible(L), which always holds each member's whole subtree)
+ * that `taskId` may become a subtask of: not itself, not one of its descendants, not its current
+ * parent, not a temporary row, and deep enough room for its subtree. The server re-checks.
+ */
+export function parentCandidates<T extends { id: string; parentId: string | null; depth: number }>(
+  tasks: readonly T[],
+  taskId: string,
+): T[] {
+  const task = tasks.find((t) => t.id === taskId);
+  if (!task) return [];
+  const below = new Set<string>();
+  let height = 0;
+  let frontier = [taskId];
+  while (frontier.length > 0) {
+    const next = tasks.filter((t) => t.parentId !== null && frontier.includes(t.parentId)).map((t) => t.id);
+    if (next.length === 0) break;
+    height += 1;
+    next.forEach((id) => below.add(id));
+    frontier = next;
+  }
+  return tasks.filter(
+    (t) =>
+      t.id !== taskId &&
+      t.id !== task.parentId &&
+      !below.has(t.id) &&
+      !t.id.startsWith("temp-") &&
+      t.depth + 1 + height <= MAX_TASK_DEPTH,
+  );
+}
+
 export type DueTone = "overdue" | "today" | "default";
 
 /**

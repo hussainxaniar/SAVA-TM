@@ -1,4 +1,5 @@
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { comparePositions } from "@/lib/position";
 import { db } from "@/server/db";
 import { createList } from "@/server/services/lists";
 import { createProject } from "@/server/services/projects";
@@ -13,6 +14,7 @@ import {
   restoreTask,
   setAssignees,
   setCompleted,
+  setParent,
   updateTask,
 } from "@/server/services/tasks";
 import { makeSpace, makeUser, resetDb } from "../helpers/db";
@@ -454,5 +456,77 @@ describe("getTask dialog context", () => {
     const ordered = await db.status.findMany({ where: { projectId }, orderBy: { position: "asc" }, select: { id: true } });
     expect(detail.statuses.map((x) => x.id)).toEqual(ordered.map((x) => x.id));
     expect(detail.statuses.map((x) => x.id)).toContain(extra.id);
+  });
+});
+
+describe("setParent", () => {
+  const row = (id: string) =>
+    db.task.findUniqueOrThrow({ where: { id }, select: { parentId: true, depth: true, homeListId: true } });
+
+  it("makes a task a subtask (last among siblings) and promotes it back, logging PARENT_CHANGED", async () => {
+    const parent = await createTask(me, { listId: general, title: "Parent" });
+    await createTask(me, { listId: general, parentId: parent.id, title: "Existing child" });
+    const t = await createTask(me, { listId: general, title: "Loose" });
+    const child = await createTask(me, { listId: general, parentId: t.id, title: "Loose child" });
+
+    await setParent(me, { taskId: t.id, parentId: parent.id });
+    expect(await row(t.id)).toEqual({ parentId: parent.id, depth: 1, homeListId: general });
+    expect((await row(child.id)).depth).toBe(2);
+    expect((await getTask(me, { taskId: parent.id })).subtasks.map((x) => x.title)).toEqual(["Existing child", "Loose"]);
+
+    await setParent(me, { taskId: t.id, parentId: null });
+    expect(await row(t.id)).toEqual({ parentId: null, depth: 0, homeListId: general });
+    expect((await row(child.id)).depth).toBe(1);
+    const roots = await db.task.findMany({ where: { homeListId: general, parentId: null }, select: { title: true, position: true } });
+    expect(roots.sort((x, y) => comparePositions(x.position, y.position)).at(-1)?.title).toBe("Loose"); // last root again
+
+    const log = (await activity(t.id)).filter((a) => a.type === "PARENT_CHANGED").map((a) => a.payload);
+    expect(log).toEqual([{ from: null, to: parent.id }, { from: parent.id, to: null }]);
+  });
+
+  it("takes the parent's home list for the whole subtree and drops a link to that list", async () => {
+    const parent = await createTask(me, { listId: other, title: "In Other" });
+    const t = await createTask(me, { listId: general, title: "In General" });
+    const child = await createTask(me, { listId: general, parentId: t.id, title: "Child" });
+    await link(t.id, other, "a5");
+    await setParent(me, { taskId: t.id, parentId: parent.id });
+    expect((await row(t.id)).homeListId).toBe(other);
+    expect((await row(child.id)).homeListId).toBe(other);
+    expect(await db.taskListLink.count({ where: { taskId: t.id } })).toBe(0);
+    expect(await titles(general)).not.toContain("In General");
+  });
+
+  it("rejects cycles, other projects, too-deep subtrees and deleted parents", async () => {
+    const a = await createTask(me, { listId: general, title: "A" });
+    const b = await createTask(me, { listId: general, parentId: a.id, title: "B" });
+    const c = await createTask(me, { listId: general, parentId: b.id, title: "C" });
+    await expect(setParent(me, { taskId: a.id, parentId: a.id })).rejects.toMatchObject({ code: "VALIDATION" });
+    await expect(setParent(me, { taskId: a.id, parentId: c.id })).rejects.toMatchObject({ code: "VALIDATION" });
+
+    // A (with two levels below) can't go under anything: it would reach depth 3.
+    const d = await createTask(me, { listId: general, title: "D" });
+    await expect(setParent(me, { taskId: a.id, parentId: d.id })).rejects.toMatchObject({ code: "VALIDATION" });
+    // B (one level below) can go under D (depth 1, its child depth 2) but not under D's child.
+    await setParent(me, { taskId: b.id, parentId: d.id });
+    expect((await row(c.id)).depth).toBe(2);
+    const e = await createTask(me, { listId: general, parentId: d.id, title: "E" });
+    await expect(setParent(me, { taskId: b.id, parentId: e.id })).rejects.toMatchObject({ code: "VALIDATION" });
+
+    const elsewhere = await createProject(as(s.users.owner.id), { spaceId: s.space.id, name: "Q" });
+    const foreign = await createTask(me, { listId: elsewhere.firstListId, title: "Foreign" });
+    await expect(setParent(me, { taskId: d.id, parentId: foreign.id })).rejects.toMatchObject({ code: "VALIDATION" });
+
+    const gone = await createTask(me, { listId: general, title: "Gone" });
+    await deleteTask(me, { taskId: gone.id });
+    await expect(setParent(me, { taskId: d.id, parentId: gone.id })).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
+  it("is a no-op for the current parent and hides the task from non-members", async () => {
+    const p = await createTask(me, { listId: general, title: "P" });
+    const t = await createTask(me, { listId: general, parentId: p.id, title: "T" });
+    await setParent(me, { taskId: t.id, parentId: p.id });
+    expect((await types(t.id)).filter((x) => x === "PARENT_CHANGED")).toHaveLength(0);
+    const outsider = await makeUser("outsider-setparent");
+    await expect(setParent(as(outsider.id), { taskId: t.id, parentId: null })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 });

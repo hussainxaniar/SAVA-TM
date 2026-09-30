@@ -2,8 +2,17 @@
 
 import { useMutation, useQuery, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { deleteTaskAction, getTaskAction, restoreTaskAction, updateTaskAction } from "@/server/actions/tasks";
-import type { ListViewDTO, TaskDetailDTO } from "@/server/services/types";
+import { comparePositions, positionBetween } from "@/lib/position";
+import {
+  createTaskAction,
+  deleteTaskAction,
+  getTaskAction,
+  reorderTaskAction,
+  restoreTaskAction,
+  setParentAction,
+  updateTaskAction,
+} from "@/server/actions/tasks";
+import type { ListViewDTO, TaskDetailDTO, TaskRowDTO } from "@/server/services/types";
 import {
   ActionError,
   descendants,
@@ -22,6 +31,7 @@ import {
  */
 
 const ALL_LISTS: QueryKey = ["tasks"];
+const ALL_TASKS: QueryKey = ["task"];
 
 /** The open task. Not-found (deleted, or no access) is not retried: the dialog shows it. */
 export function useTask(taskId: string | null) {
@@ -57,6 +67,9 @@ export function useEditTask() {
       const prevTask = qc.getQueryData<TaskDetailDTO>(key);
       const prevLists = touchesLists ? qc.getQueriesData<ListViewDTO>({ queryKey: ALL_LISTS }) : [];
       if (prevTask) qc.setQueryData<TaskDetailDTO>(key, patchDetail(prevTask, v));
+      // The parent's dialog lists this task among its subtasks: keep that row in step too.
+      const prevParents = touchesLists ? parentsShowing(qc, v.taskId) : [];
+      for (const [parentKey, parent] of prevParents) qc.setQueryData(parentKey, patchSubtaskRow(parent, v));
       for (const [listKey, data] of prevLists) {
         if (!data?.tasks.some((t) => t.id === v.taskId)) continue;
         const next = v.statusId
@@ -64,18 +77,19 @@ export function useEditTask() {
           : patchTaskFields(data, { taskId: v.taskId, title: v.title });
         qc.setQueryData(listKey, recount(next));
       }
-      return { prevTask, prevLists };
+      return { prevTask, prevLists, prevParents };
     },
     onError: (error, v, context) => {
       if (context?.prevTask) qc.setQueryData(taskKey(v.taskId), context.prevTask);
       for (const [listKey, data] of context?.prevLists ?? []) qc.setQueryData(listKey, data);
+      for (const [parentKey, data] of context?.prevParents ?? []) qc.setQueryData(parentKey, data);
       toast.error(error instanceof Error ? error.message : "Something went wrong. Try again.");
     },
     onSettled: (_r, _e, v) => {
       // Description-only saves don't refetch the task: the editor is the source of truth while
       // it's open, and a refetch mid-typing would be wasted.
       if (v.title !== undefined || v.statusId !== undefined) {
-        void qc.invalidateQueries({ queryKey: taskKey(v.taskId) });
+        void qc.invalidateQueries({ queryKey: ALL_TASKS }); // this task and any parent showing it
         void qc.invalidateQueries({ queryKey: ALL_LISTS });
       }
     },
@@ -120,6 +134,149 @@ export function useDeleteTaskAnywhere() {
     },
     onSettled: () => void qc.invalidateQueries({ queryKey: ALL_LISTS }),
   });
+}
+
+/**
+ * The dialog's "+ Add subtask" (T-12): a temporary row (id "temp-…") appears in the parent's
+ * subtask list at once and is swapped for the server's row; list views re-sync on settle.
+ * Depth past three levels is refused by the server (6.4.1) and rolls back with its message.
+ */
+export function useAddSubtask() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: { parentId: string; listId: string; title: string; tempId: string }) =>
+      unwrap(await createTaskAction({ listId: v.listId, parentId: v.parentId, title: v.title })),
+    onMutate: async (v) => {
+      const key = taskKey(v.parentId);
+      await qc.cancelQueries({ queryKey: key });
+      const prev = qc.getQueryData<TaskDetailDTO>(key);
+      if (prev) {
+        const status = prev.statuses.find((x) => x.category === "TODO") ?? prev.status;
+        const last = prev.subtasks.at(-1)?.position ?? null;
+        const temp: TaskRowDTO = {
+          id: v.tempId,
+          title: v.title.trim(),
+          priority: 4,
+          status,
+          completedAt: null,
+          startDate: null,
+          dueDate: null,
+          dueHasTime: false,
+          assignees: [],
+          parentId: prev.id,
+          parentTitle: prev.title,
+          depth: prev.depth + 1,
+          homeListId: prev.homeList.id,
+          isLinkedHere: false,
+          subtaskCount: 0,
+          openSubtaskCount: 0,
+          commentCount: 0,
+          position: positionBetween(last, null),
+        };
+        qc.setQueryData<TaskDetailDTO>(key, {
+          ...prev,
+          subtasks: [...prev.subtasks, temp],
+          subtaskCount: prev.subtaskCount + 1,
+          openSubtaskCount: prev.openSubtaskCount + 1,
+        });
+      }
+      return { prev };
+    },
+    onError: (error, v, context) => {
+      if (context?.prev) qc.setQueryData(taskKey(v.parentId), context.prev);
+      toast.error(error instanceof Error ? error.message : "Something went wrong. Try again.");
+    },
+    onSuccess: (row, v) => {
+      qc.setQueryData<TaskDetailDTO>(taskKey(v.parentId), (d) =>
+        d ? { ...d, subtasks: d.subtasks.map((t) => (t.id === v.tempId ? row : t)) } : d,
+      );
+    },
+    onSettled: (_r, _e, v) => {
+      void qc.invalidateQueries({ queryKey: taskKey(v.parentId) });
+      void qc.invalidateQueries({ queryKey: ALL_LISTS });
+    },
+  });
+}
+
+/**
+ * Drag to reorder in the dialog's subtask list. beforeId = the subtask now directly above,
+ * afterId = directly below (same convention as the list view). listId = the parent's home list.
+ */
+export function useReorderSubtask() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: { parentId: string; taskId: string; listId: string; beforeId: string | null; afterId: string | null }) =>
+      unwrap(await reorderTaskAction({ taskId: v.taskId, listId: v.listId, beforeId: v.beforeId, afterId: v.afterId })),
+    onMutate: async (v) => {
+      const key = taskKey(v.parentId);
+      await qc.cancelQueries({ queryKey: key });
+      const prev = qc.getQueryData<TaskDetailDTO>(key);
+      if (prev) {
+        const pos = (id: string | null) => (id ? prev.subtasks.find((t) => t.id === id)?.position ?? null : null);
+        try {
+          const position = positionBetween(pos(v.beforeId), pos(v.afterId));
+          const subtasks = prev.subtasks
+            .map((t) => (t.id === v.taskId ? { ...t, position } : t))
+            .sort((a, b) => comparePositions(a.position, b.position));
+          qc.setQueryData<TaskDetailDTO>(key, { ...prev, subtasks });
+        } catch {
+          // neighbours out of order locally; the server decides
+        }
+      }
+      return { prev };
+    },
+    onError: (error, v, context) => {
+      if (context?.prev) qc.setQueryData(taskKey(v.parentId), context.prev);
+      toast.error(error instanceof Error ? error.message : "Something went wrong. Try again.");
+    },
+    onSettled: (_r, _e, v) => {
+      void qc.invalidateQueries({ queryKey: taskKey(v.parentId) });
+      void qc.invalidateQueries({ queryKey: ALL_LISTS });
+    },
+  });
+}
+
+/**
+ * "Make subtask of…" (parentId) / "Convert to task" (parentId: null), rules 6.4.3. Not
+ * optimistic: the tree changes shape, so every list and open dialog re-syncs when it lands.
+ * Returns a promise so the caller can toast on success; failures toast here.
+ */
+export function useSetParent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: { taskId: string; parentId: string | null }) => unwrap(await setParentAction(v)),
+    onError: (error) => toast.error(error instanceof Error ? error.message : "Something went wrong. Try again."),
+    onSettled: async () => {
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ALL_LISTS }),
+        qc.invalidateQueries({ queryKey: ALL_TASKS }),
+      ]);
+    },
+  });
+}
+
+/** Cached task details (dialogs) whose subtask list includes `taskId`. */
+function parentsShowing(qc: ReturnType<typeof useQueryClient>, taskId: string) {
+  return qc
+    .getQueriesData<TaskDetailDTO>({ queryKey: ALL_TASKS })
+    .filter((entry): entry is [QueryKey, TaskDetailDTO] => !!entry[1]?.subtasks?.some((t) => t.id === taskId));
+}
+
+/** Applies a title/status edit to the matching row in a parent's subtask list. */
+function patchSubtaskRow(parent: TaskDetailDTO, v: TaskEdit): TaskDetailDTO {
+  const now = new Date().toISOString();
+  const status = v.statusId ? parent.statuses.find((x) => x.id === v.statusId) : undefined;
+  const subtasks = parent.subtasks.map((t) => {
+    if (t.id !== v.taskId) return t;
+    const next = { ...t };
+    if (v.title !== undefined) next.title = v.title.trim();
+    if (status) {
+      next.status = status;
+      next.completedAt = status.category === "DONE" ? (t.completedAt ?? now) : null;
+    }
+    return next;
+  });
+  return { ...parent, subtasks, openSubtaskCount: subtasks.filter((t) => !t.completedAt).length };
 }
 
 function patchDetail(task: TaskDetailDTO, v: TaskEdit): TaskDetailDTO {
