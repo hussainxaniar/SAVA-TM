@@ -1,0 +1,557 @@
+(
+    <div style={{ backgroundColor: '#FFFFFF', boxSizing: 'border-box', display: 'flex', fontSize: '12px', fontSynthesis: 'none', height: '900px', lineHeight: '16px', MozOsxFontSmoothing: 'grayscale', overflow: 'clip', overflowWrap: 'anywhere', WebkitFontSmoothing: 'antialiased', width: '1440px' }}>
+      <div style={{ backgroundColor: '#F6F6F7', borderRightColor: '#E8E8EA', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', flexShrink: '0', height: '900px', paddingBlock: '12px', paddingInline: '8px', width: '260px' }}>
+        <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '8px', height: '36px', paddingBlock: '4px', paddingInline: '8px' }}>
+          <div style={{ alignItems: 'center', backgroundColor: '#18181B', borderRadius: '6px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '24px', justifyContent: 'center', width: '24px' }}>
+            <div style={{ boxSizing: 'border-box', color: '#FFFFFF', display: 'flex', fontFamily: '"Inter-Regular_SemiBold", "Inter", system-ui, sans-serif', fontSize: '12px', fontWeight: 600, lineHeight: '16px' }}>
+              S
+            </div>
+          </div>
+          <div style={{ boxSizing: 'border-box', color: '#18181B', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular_SemiBold", "Inter", system-ui, sans-serif', fontSize: '14px', fontWeight: 600, lineHeight: '18px' }}>
+            Sava Studio
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+            <path d="m7 15 5 5 5-5M7 9l5-5 5 5" fill="none" stroke="#71717A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+        <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '8px', height: '36px', marginTop: '8px', paddingInline: '8px' }}>
+          <div style={{ alignItems: 'center', backgroundColor: '#2563EB', borderRadius: '10px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '20px', justifyContent: 'center', width: '20px' }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+              <path d="M12 5v14M5 12h14" fill="none" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
+            </svg>
+          </div>
+          <div style={{ boxSizing: 'border-box', color: '#2563EB', display: 'inline-block', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular_SemiBold", "Inter", system-ui, sans-serif', fontSize: '14px', fontWeight: 600, lineHeight: '18px' }}>
+            Add task
+          </div>
+          <div style={{ backgroundColor: '#FFFFFF', borderColor: '#E1E1E4', borderRadius: '4px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'inline-block', paddingInline: '5px' }}>
+            <div style={{ boxSizing: 'border-box', color: '#71717A', display: 'inline-block', fontFamily: '"Inter-Regular_Medium", "Inter", system-ui, sans-serif', fontSize: '12px', fontWeight: 500, lineHeight: '16px' }}>
+              Q
+            </div>
+          </div>
+        </div>
+        <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', marginTop: '4px' }}>
+          <div style={{ alignItems: 'center', borderRadius: '6px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '10px', height: '32px', paddingInline: '8px' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+              <circle cx="12" cy="12" r="9" fill="none" stroke="#52525B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="m8.5 12 2.5 2.5 4.5-5" fill="none" stroke="#52525B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <div style={{ boxSizing: 'border-box', color: '#18181B', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '14px', lineHeight: '18px' }}>
+              My Tasks
+            </div>
+          </div>
+          <div style={{ alignItems: 'center', borderRadius: '6px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '10px', height: '32px', paddingInline: '8px' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+              <rect x="3" y="4" width="18" height="17" rx="2" fill="none" stroke="#52525B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M3 9h18M8 2v4M16 2v4" fill="none" stroke="#52525B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <div style={{ boxSizing: 'border-box', color: '#18181B', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '14px', lineHeight: '18px' }}>
+              Calendar
+            </div>
+          </div>
+        </div>
+        <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '28px', marginTop: '20px', paddingInline: '8px' }}>
+          <div style={{ boxSizing: 'border-box', color: '#71717A', display: 'inline-block', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular_SemiBold", "Inter", system-ui, sans-serif', fontSize: '12px', fontWeight: 600, letterSpacing: '0.02em', lineHeight: '16px' }}>
+            Projects
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+            <path d="M12 5v14M5 12h14" fill="none" stroke="#71717A" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </div>
+        <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '1px' }}>
+          <div style={{ alignItems: 'center', borderRadius: '6px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '6px', height: '32px', paddingLeft: '4px', paddingRight: '8px' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+              <path d="m6 9 6 6 6-6" fill="none" stroke="#71717A" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <div style={{ backgroundColor: '#2563EB', borderRadius: '2px', boxSizing: 'border-box', flexShrink: '0', height: '8px', marginLeft: '4px', marginRight: '4px', width: '8px' }} />
+            <div style={{ boxSizing: 'border-box', color: '#18181B', display: 'inline-block', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular_Medium", "Inter", system-ui, sans-serif', fontSize: '14px', fontWeight: 500, lineHeight: '18px' }}>
+              Website Redesign
+            </div>
+          </div>
+          <div style={{ alignItems: 'center', backgroundColor: '#E9EFFE', borderRadius: '6px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '8px', height: '32px', paddingLeft: '36px', paddingRight: '8px' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+              <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" fill="none" stroke="#1D4ED8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <div style={{ boxSizing: 'border-box', color: '#1D4ED8', display: 'inline-block', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular_Medium", "Inter", system-ui, sans-serif', fontSize: '14px', fontWeight: 500, lineHeight: '18px' }}>
+              Design
+            </div>
+            <div style={{ boxSizing: 'border-box', color: '#1D4ED8', display: 'inline-block', fontFamily: '"Inter-Regular_Medium", "Inter", system-ui, sans-serif', fontSize: '12px', fontWeight: 500, lineHeight: '16px' }}>
+              14
+            </div>
+          </div>
+          <div style={{ alignItems: 'center', borderRadius: '6px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '8px', height: '32px', paddingLeft: '36px', paddingRight: '8px' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+              <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" fill="none" stroke="#71717A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <div style={{ boxSizing: 'border-box', color: '#3F3F46', display: 'inline-block', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '14px', lineHeight: '18px' }}>
+              Development
+            </div>
+            <div style={{ boxSizing: 'border-box', color: '#71717A', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+              22
+            </div>
+          </div>
+          <div style={{ alignItems: 'center', borderRadius: '6px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '8px', height: '32px', paddingLeft: '36px', paddingRight: '8px' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+              <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" fill="none" stroke="#71717A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <div style={{ boxSizing: 'border-box', color: '#3F3F46', display: 'inline-block', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '14px', lineHeight: '18px' }}>
+              Content
+            </div>
+            <div style={{ boxSizing: 'border-box', color: '#71717A', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+              6
+            </div>
+          </div>
+          <div style={{ alignItems: 'center', borderRadius: '6px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '8px', height: '32px', paddingLeft: '36px', paddingRight: '8px' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+              <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h6" fill="none" stroke="#71717A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <div style={{ boxSizing: 'border-box', color: '#3F3F46', display: 'inline-block', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '14px', lineHeight: '18px' }}>
+              Brand guidelines
+            </div>
+          </div>
+          <div style={{ alignItems: 'center', borderRadius: '6px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '6px', height: '32px', marginTop: '4px', paddingLeft: '4px', paddingRight: '8px' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+              <path d="m9 6 6 6-6 6" fill="none" stroke="#71717A" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <div style={{ backgroundColor: '#7C3AED', borderRadius: '2px', boxSizing: 'border-box', flexShrink: '0', height: '8px', marginLeft: '4px', marginRight: '4px', width: '8px' }} />
+            <div style={{ boxSizing: 'border-box', color: '#18181B', display: 'inline-block', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular_Medium", "Inter", system-ui, sans-serif', fontSize: '14px', fontWeight: 500, lineHeight: '18px' }}>
+              Mobile App
+            </div>
+          </div>
+          <div style={{ alignItems: 'center', borderRadius: '6px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '6px', height: '32px', paddingLeft: '4px', paddingRight: '8px' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+              <path d="m9 6 6 6-6 6" fill="none" stroke="#71717A" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <div style={{ backgroundColor: '#16A34A', borderRadius: '2px', boxSizing: 'border-box', flexShrink: '0', height: '8px', marginLeft: '4px', marginRight: '4px', width: '8px' }} />
+            <div style={{ boxSizing: 'border-box', color: '#18181B', display: 'inline-block', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular_Medium", "Inter", system-ui, sans-serif', fontSize: '14px', fontWeight: 500, lineHeight: '18px' }}>
+              Marketing
+            </div>
+          </div>
+          <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '8px', height: '32px', marginTop: '4px', paddingInline: '8px' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+              <path d="M12 5v14M5 12h14" fill="none" stroke="#71717A" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+            <div style={{ boxSizing: 'border-box', color: '#71717A', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '14px', lineHeight: '18px' }}>
+              New project
+            </div>
+          </div>
+        </div>
+        <div style={{ boxSizing: 'border-box', flexBasis: '0%', flexGrow: '1' }} />
+        <div style={{ alignItems: 'center', borderTopColor: '#E8E8EA', borderTopStyle: 'solid', borderTopWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '8px', height: '40px', marginLeft: '-8px', marginRight: '-8px', paddingInline: '16px' }}>
+          <div style={{ alignItems: 'center', backgroundColor: '#DBEAFE', borderRadius: '12px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '24px', justifyContent: 'center', width: '24px' }}>
+            <div style={{ boxSizing: 'border-box', color: '#1D4ED8', display: 'flex', fontFamily: '"Inter-Regular_SemiBold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 600, lineHeight: '14px' }}>
+              HX
+            </div>
+          </div>
+          <div style={{ boxSizing: 'border-box', color: '#18181B', display: 'inline-block', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular_Medium", "Inter", system-ui, sans-serif', fontSize: '14px', fontWeight: 500, lineHeight: '18px' }}>
+            Hussain
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+            <circle cx="12" cy="12" r="3" fill="none" stroke="#71717A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1" fill="none" stroke="#71717A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+      </div>
+      <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexDirection: 'column', flexGrow: '1', height: '900px', overflow: 'clip' }}>
+        <div style={{ alignItems: 'center', backgroundColor: '#F6F6F780', borderBottomColor: '#E8E8EA', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', flexShrink: '0', paddingBottom: '16px', width: '100%' }}>
+          <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', paddingTop: '20px', width: '880px' }}>
+            <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '6px', height: '20px' }}>
+              <div style={{ backgroundColor: '#2563EB', borderRadius: '2px', boxSizing: 'border-box', flexShrink: '0', height: '8px', width: '8px' }} />
+              <div style={{ boxSizing: 'border-box', color: '#71717A', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px' }}>
+                Website Redesign
+              </div>
+              <div style={{ boxSizing: 'border-box', flexBasis: '0%', flexGrow: '1' }} />
+              <div style={{ boxSizing: 'border-box', color: '#3F3F46', display: 'inline-block', fontFamily: '"Inter-Regular_Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px' }}>
+                Share
+              </div>
+            </div>
+            <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '44px', marginTop: '8px' }}>
+              <div style={{ boxSizing: 'border-box', color: '#000000', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular_SemiBold", "Inter", system-ui, sans-serif', fontSize: '28px', fontWeight: 600, letterSpacing: '-0.02em', lineHeight: '34px' }}>
+                Design
+              </div>
+              <div style={{ alignItems: 'center', borderRadius: '6px', boxSizing: 'border-box', display: 'flex', gap: '6px', height: '30px', paddingInline: '10px' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <path d="M4 6h16M7 12h10M10 18h4" fill="none" stroke="#52525B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <div style={{ boxSizing: 'border-box', color: '#3F3F46', display: 'inline-block', fontFamily: '"Inter-Regular_Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px' }}>
+                  View
+                </div>
+              </div>
+              <div style={{ alignItems: 'center', borderRadius: '6px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '30px', justifyContent: 'center', width: '30px' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <path d="M5 12h.01M12 12h.01M19 12h.01" fill="none" stroke="#52525B" strokeWidth="2.4" strokeLinecap="round" />
+                </svg>
+              </div>
+            </div>
+            <div style={{ boxSizing: 'border-box', color: '#71717A', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px', marginTop: '2px' }}>
+              14 tasks · 3 statuses
+            </div>
+          </div>
+        </div>
+        <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', paddingTop: '4px', width: '880px' }}>
+          <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', marginTop: '28px' }}>
+            <div style={{ alignItems: 'center', borderBottomColor: '#E8E8EA', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '32px' }}>
+              <div style={{ boxSizing: 'border-box', display: 'flex', flexShrink: '0', justifyContent: 'center', width: '20px' }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <path d="m6 9 6 6 6-6" fill="none" stroke="#71717A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <div style={{ alignItems: 'center', backgroundColor: '#F0F0F2', borderRadius: '6px', boxSizing: 'border-box', display: 'flex', gap: '8px', height: '24px', paddingLeft: '8px', paddingRight: '10px' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <circle cx="12" cy="12" r="9" fill="none" stroke="#71717A" strokeWidth="2.5" strokeDasharray="3.2 3.2" />
+                </svg>
+                <div style={{ boxSizing: 'border-box', color: '#3F3F46', display: 'inline-block', fontFamily: '"Inter-Regular_SemiBold", "Inter", system-ui, sans-serif', fontSize: '12px', fontWeight: 600, letterSpacing: '0.04em', lineHeight: '16px', textTransform: 'uppercase' }}>
+                  To do
+                </div>
+              </div>
+              <div style={{ boxSizing: 'border-box', color: '#71717A', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px', marginLeft: '8px' }}>
+                4
+              </div>
+              <div style={{ boxSizing: 'border-box', flexBasis: '0%', flexGrow: '1' }} />
+              <div style={{ boxSizing: 'border-box', color: '#71717A', flexShrink: '0', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px', width: '56px' }}>
+                Subs
+              </div>
+              <div style={{ boxSizing: 'border-box', color: '#71717A', flexShrink: '0', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px', width: '72px' }}>
+                Assignee
+              </div>
+              <div style={{ boxSizing: 'border-box', color: '#71717A', flexShrink: '0', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px', width: '96px' }}>
+                Due
+              </div>
+              <div style={{ boxSizing: 'border-box', color: '#71717A', display: 'flex', flexShrink: '0', flexWrap: 'wrap', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', justifyContent: 'center', lineHeight: '16px', textAlign: 'center', width: '32px' }}>
+                Pri
+              </div>
+            </div>
+            <div style={{ alignItems: 'center', borderBottomColor: '#F0F0F1', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '36px' }}>
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '20px' }} />
+              <div style={{ boxSizing: 'border-box', display: 'flex', flexShrink: '0', justifyContent: 'center', width: '20px' }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <path d="m9 6 6 6-6 6" fill="none" stroke="#71717A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <div style={{ boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '18px', marginLeft: '2px', marginRight: '10px', width: '18px' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <circle cx="12" cy="12" r="9" fill="none" stroke="#71717A" strokeWidth="2" strokeDasharray="3.2 3.2" />
+                </svg>
+              </div>
+              <div style={{ boxSizing: 'border-box', color: '#000000', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '14px', lineHeight: '18px' }}>
+                Audit current site and competitor patterns
+              </div>
+              <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '4px', width: '56px' }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <circle cx="6" cy="6" r="2.5" fill="none" stroke="#71717A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <circle cx="18" cy="18" r="2.5" fill="none" stroke="#71717A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M6 8.5V12a3 3 0 0 0 3 3h6.5" fill="none" stroke="#71717A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <div style={{ boxSizing: 'border-box', color: '#71717A', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                  0/3
+                </div>
+              </div>
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '72px' }}>
+                <div style={{ alignItems: 'center', backgroundColor: '#FDE68A', borderRadius: '11px', boxSizing: 'border-box', display: 'flex', height: '22px', justifyContent: 'center', width: '22px' }}>
+                  <div style={{ boxSizing: 'border-box', color: '#78350F', display: 'flex', fontFamily: '"Inter-Regular_SemiBold", "Inter", system-ui, sans-serif', fontSize: '10px', fontWeight: 600, lineHeight: '12px' }}>
+                    MR
+                  </div>
+                </div>
+              </div>
+              <div style={{ boxSizing: 'border-box', color: '#3F3F46', flexShrink: '0', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px', width: '96px' }}>
+                Oct 2
+              </div>
+              <div style={{ boxSizing: 'border-box', display: 'flex', flexShrink: '0', justifyContent: 'center', width: '32px' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <path d="M5 22V4M5 4h13l-2 4.5 2 4.5H5" fill="#2563EB" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+            </div>
+            <div style={{ alignItems: 'center', borderBottomColor: '#F0F0F1', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '36px' }}>
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '20px' }} />
+              <div style={{ boxSizing: 'border-box', display: 'flex', flexShrink: '0', justifyContent: 'center', width: '20px' }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <path d="m6 9 6 6 6-6" fill="none" stroke="#71717A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <div style={{ boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '18px', marginLeft: '2px', marginRight: '10px', width: '18px' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <circle cx="12" cy="12" r="9" fill="none" stroke="#71717A" strokeWidth="2" strokeDasharray="3.2 3.2" />
+                </svg>
+              </div>
+              <div style={{ boxSizing: 'border-box', color: '#000000', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular_Medium", "Inter", system-ui, sans-serif', fontSize: '14px', fontWeight: 500, lineHeight: '18px' }}>
+                Homepage layouts — desktop and tablet
+              </div>
+              <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '4px', width: '56px' }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <circle cx="6" cy="6" r="2.5" fill="none" stroke="#71717A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <circle cx="18" cy="18" r="2.5" fill="none" stroke="#71717A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M6 8.5V12a3 3 0 0 0 3 3h6.5" fill="none" stroke="#71717A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <div style={{ boxSizing: 'border-box', color: '#71717A', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                  1/2
+                </div>
+              </div>
+              <div style={{ boxSizing: 'border-box', display: 'flex', flexShrink: '0', width: '72px' }}>
+                <div style={{ alignItems: 'center', backgroundColor: '#DBEAFE', borderColor: '#FFFFFF', borderRadius: '11px', borderStyle: 'solid', borderWidth: '2px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '26px', justifyContent: 'center', width: '26px' }}>
+                  <div style={{ boxSizing: 'border-box', color: '#1D4ED8', display: 'flex', fontFamily: '"Inter-Regular_SemiBold", "Inter", system-ui, sans-serif', fontSize: '10px', fontWeight: 600, lineHeight: '12px' }}>
+                    HX
+                  </div>
+                </div>
+                <div style={{ alignItems: 'center', backgroundColor: '#FDE68A', borderColor: '#FFFFFF', borderRadius: '11px', borderStyle: 'solid', borderWidth: '2px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '26px', justifyContent: 'center', marginLeft: '-6px', width: '26px' }}>
+                  <div style={{ boxSizing: 'border-box', color: '#78350F', display: 'flex', fontFamily: '"Inter-Regular_SemiBold", "Inter", system-ui, sans-serif', fontSize: '10px', fontWeight: 600, lineHeight: '12px' }}>
+                    MR
+                  </div>
+                </div>
+              </div>
+              <div style={{ boxSizing: 'border-box', color: '#16A34A', flexShrink: '0', fontFamily: '"Inter-Regular_Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: '96px' }}>
+                Today
+              </div>
+              <div style={{ boxSizing: 'border-box', display: 'flex', flexShrink: '0', justifyContent: 'center', width: '32px' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <path d="M5 22V4M5 4h13l-2 4.5 2 4.5H5" fill="#DC2626" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+            </div>
+            <div style={{ alignItems: 'center', backgroundColor: '#F6F6F7', borderBottomColor: '#F0F0F1', borderBottomStyle: 'solid', borderBottomWidth: '1px', borderRadius: '6px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '36px', marginLeft: '-8px', marginRight: '-8px', paddingInline: '8px' }}>
+              <div style={{ alignItems: 'center', alignSelf: 'stretch', boxSizing: 'border-box', display: 'flex', flexShrink: '0', justifyContent: 'center', marginLeft: '-22px', marginRight: '22px', width: '20px' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <circle cx="9" cy="6" r="1.6" fill="#A1A1AA" />
+                  <circle cx="15" cy="6" r="1.6" fill="#A1A1AA" />
+                  <circle cx="9" cy="12" r="1.6" fill="#A1A1AA" />
+                  <circle cx="15" cy="12" r="1.6" fill="#A1A1AA" />
+                  <circle cx="9" cy="18" r="1.6" fill="#A1A1AA" />
+                  <circle cx="15" cy="18" r="1.6" fill="#A1A1AA" />
+                </svg>
+              </div>
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '20px' }} />
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '20px' }} />
+              <div style={{ boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '16px', marginLeft: '2px', marginRight: '10px', width: '16px' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <circle cx="12" cy="12" r="11" fill="#15803D" />
+                  <path d="m7.5 12.5 3 3 6-7" fill="none" stroke="#FFFFFF" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <div style={{ boxSizing: 'border-box', color: '#71717A', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '14px', lineHeight: '18px', textDecoration: 'line-through 1px', textUnderlinePosition: 'from-font' }}>
+                Hero section
+              </div>
+              <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', gap: '2px', marginRight: '12px' }}>
+                <div style={{ alignItems: 'center', backgroundColor: '#FFFFFF', borderColor: '#E1E1E4', borderRadius: '6px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '26px', justifyContent: 'center', width: '26px' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                    <path d="M12 5v14M5 12h14" fill="none" stroke="#52525B" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                </div>
+                <div style={{ alignItems: 'center', backgroundColor: '#FFFFFF', borderColor: '#E1E1E4', borderRadius: '6px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '26px', justifyContent: 'center', width: '26px' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                    <path d="M5 12h.01M12 12h.01M19 12h.01" fill="none" stroke="#52525B" strokeWidth="2.4" strokeLinecap="round" />
+                  </svg>
+                </div>
+              </div>
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '56px' }} />
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '72px' }}>
+                <div style={{ alignItems: 'center', backgroundColor: '#DBEAFE', borderRadius: '11px', boxSizing: 'border-box', display: 'flex', height: '22px', justifyContent: 'center', width: '22px' }}>
+                  <div style={{ boxSizing: 'border-box', color: '#1D4ED8', display: 'flex', fontFamily: '"Inter-Regular_SemiBold", "Inter", system-ui, sans-serif', fontSize: '10px', fontWeight: 600, lineHeight: '12px' }}>
+                    HX
+                  </div>
+                </div>
+              </div>
+              <div style={{ boxSizing: 'border-box', color: '#71717A', flexShrink: '0', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px', width: '96px' }}>
+                Sep 28
+              </div>
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '32px' }} />
+            </div>
+            <div style={{ alignItems: 'center', borderBottomColor: '#F0F0F1', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '36px' }}>
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '20px' }} />
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '20px' }} />
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '20px' }} />
+              <div style={{ boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '18px', marginLeft: '2px', marginRight: '10px', width: '18px' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <circle cx="12" cy="12" r="9" fill="none" stroke="#3B82F6" strokeWidth="2.2" />
+                  <path d="M12 12V6A6 6 0 0 1 18 12z" fill="#3B82F6" />
+                </svg>
+              </div>
+              <div style={{ boxSizing: 'border-box', color: '#000000', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '14px', lineHeight: '18px' }}>
+                Pricing block and plan comparison
+              </div>
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '56px' }} />
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '72px' }}>
+                <div style={{ alignItems: 'center', backgroundColor: '#FDE68A', borderRadius: '11px', boxSizing: 'border-box', display: 'flex', height: '22px', justifyContent: 'center', width: '22px' }}>
+                  <div style={{ boxSizing: 'border-box', color: '#78350F', display: 'flex', fontFamily: '"Inter-Regular_SemiBold", "Inter", system-ui, sans-serif', fontSize: '10px', fontWeight: 600, lineHeight: '12px' }}>
+                    MR
+                  </div>
+                </div>
+              </div>
+              <div style={{ boxSizing: 'border-box', color: '#DC2626', flexShrink: '0', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px', width: '96px' }}>
+                Sep 26
+              </div>
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '32px' }} />
+            </div>
+            <div style={{ alignItems: 'center', borderBottomColor: '#F0F0F1', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '36px' }}>
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '20px' }} />
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '20px' }} />
+              <div style={{ boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '18px', marginLeft: '2px', marginRight: '10px', width: '18px' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <circle cx="12" cy="12" r="9" fill="none" stroke="#71717A" strokeWidth="2" strokeDasharray="3.2 3.2" />
+                </svg>
+              </div>
+              <div style={{ boxSizing: 'border-box', color: '#000000', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '14px', lineHeight: '18px' }}>
+                Build shared component library in Paper
+              </div>
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '56px' }} />
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '72px' }}>
+                <div style={{ alignItems: 'center', backgroundColor: '#DBEAFE', borderRadius: '11px', boxSizing: 'border-box', display: 'flex', height: '22px', justifyContent: 'center', width: '22px' }}>
+                  <div style={{ boxSizing: 'border-box', color: '#1D4ED8', display: 'flex', fontFamily: '"Inter-Regular_SemiBold", "Inter", system-ui, sans-serif', fontSize: '10px', fontWeight: 600, lineHeight: '12px' }}>
+                    HX
+                  </div>
+                </div>
+              </div>
+              <div style={{ boxSizing: 'border-box', color: '#3F3F46', flexShrink: '0', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px', width: '96px' }}>
+                Oct 6
+              </div>
+              <div style={{ boxSizing: 'border-box', display: 'flex', flexShrink: '0', justifyContent: 'center', width: '32px' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <path d="M5 22V4M5 4h13l-2 4.5 2 4.5H5" fill="#EA580C" stroke="#EA580C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+            </div>
+            <div style={{ alignItems: 'center', borderBottomColor: '#F0F0F1', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '36px' }}>
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '20px' }} />
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '20px' }} />
+              <div style={{ boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '18px', marginLeft: '2px', marginRight: '10px', width: '18px' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <circle cx="12" cy="12" r="9" fill="none" stroke="#71717A" strokeWidth="2" strokeDasharray="3.2 3.2" />
+                </svg>
+              </div>
+              <div style={{ boxSizing: 'border-box', color: '#000000', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '14px', lineHeight: '18px' }}>
+                Navigation and footer
+              </div>
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '56px' }} />
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '72px' }} />
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '96px' }} />
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '32px' }} />
+            </div>
+            <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '36px' }}>
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '20px' }} />
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '20px' }} />
+              <div style={{ boxSizing: 'border-box', display: 'flex', flexShrink: '0', justifyContent: 'center', marginLeft: '2px', marginRight: '10px', width: '18px' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <path d="M12 5v14M5 12h14" fill="none" stroke="#2563EB" strokeWidth="2.2" strokeLinecap="round" />
+                </svg>
+              </div>
+              <div style={{ boxSizing: 'border-box', color: '#71717A', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '14px', lineHeight: '18px' }}>
+                Add task
+              </div>
+            </div>
+          </div>
+          <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', marginTop: '24px' }}>
+            <div style={{ alignItems: 'center', borderBottomColor: '#E8E8EA', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '32px' }}>
+              <div style={{ boxSizing: 'border-box', display: 'flex', flexShrink: '0', justifyContent: 'center', width: '20px' }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <path d="m6 9 6 6 6-6" fill="none" stroke="#71717A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <div style={{ alignItems: 'center', backgroundColor: '#F0F0F2', borderRadius: '6px', boxSizing: 'border-box', display: 'flex', gap: '8px', height: '24px', paddingLeft: '8px', paddingRight: '10px' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <circle cx="12" cy="12" r="9" fill="none" stroke="#3B82F6" strokeWidth="2.5" />
+                  <path d="M12 12V6A6 6 0 0 1 18 12z" fill="#3B82F6" />
+                </svg>
+                <div style={{ boxSizing: 'border-box', color: '#3F3F46', display: 'inline-block', fontFamily: '"Inter-Regular_SemiBold", "Inter", system-ui, sans-serif', fontSize: '12px', fontWeight: 600, letterSpacing: '0.04em', lineHeight: '16px', textTransform: 'uppercase' }}>
+                  In progress
+                </div>
+              </div>
+              <div style={{ boxSizing: 'border-box', color: '#71717A', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px', marginLeft: '8px' }}>
+                2
+              </div>
+            </div>
+            <div style={{ alignItems: 'center', borderBottomColor: '#F0F0F1', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '36px' }}>
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '20px' }} />
+              <div style={{ boxSizing: 'border-box', display: 'flex', flexShrink: '0', justifyContent: 'center', width: '20px' }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <path d="m9 6 6 6-6 6" fill="none" stroke="#71717A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <div style={{ boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '18px', marginLeft: '2px', marginRight: '10px', width: '18px' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <circle cx="12" cy="12" r="9" fill="none" stroke="#3B82F6" strokeWidth="2.2" />
+                  <path d="M12 12V6A6 6 0 0 1 18 12z" fill="#3B82F6" />
+                </svg>
+              </div>
+              <div style={{ boxSizing: 'border-box', color: '#000000', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '14px', lineHeight: '18px' }}>
+                Design system tokens: color, type and spacing
+              </div>
+              <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '4px', width: '56px' }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <circle cx="6" cy="6" r="2.5" fill="none" stroke="#71717A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <circle cx="18" cy="18" r="2.5" fill="none" stroke="#71717A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M6 8.5V12a3 3 0 0 0 3 3h6.5" fill="none" stroke="#71717A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <div style={{ boxSizing: 'border-box', color: '#71717A', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                  2/4
+                </div>
+              </div>
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '72px' }}>
+                <div style={{ alignItems: 'center', backgroundColor: '#DBEAFE', borderRadius: '11px', boxSizing: 'border-box', display: 'flex', height: '22px', justifyContent: 'center', width: '22px' }}>
+                  <div style={{ boxSizing: 'border-box', color: '#1D4ED8', display: 'flex', fontFamily: '"Inter-Regular_SemiBold", "Inter", system-ui, sans-serif', fontSize: '10px', fontWeight: 600, lineHeight: '12px' }}>
+                    HX
+                  </div>
+                </div>
+              </div>
+              <div style={{ boxSizing: 'border-box', color: '#DC2626', flexShrink: '0', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px', width: '96px' }}>
+                Sep 27
+              </div>
+              <div style={{ boxSizing: 'border-box', display: 'flex', flexShrink: '0', justifyContent: 'center', width: '32px' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <path d="M5 22V4M5 4h13l-2 4.5 2 4.5H5" fill="#DC2626" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+            </div>
+            <div style={{ alignItems: 'center', borderBottomColor: '#F0F0F1', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '36px' }}>
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '20px' }} />
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '20px' }} />
+              <div style={{ boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '18px', marginLeft: '2px', marginRight: '10px', width: '18px' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <circle cx="12" cy="12" r="9" fill="none" stroke="#3B82F6" strokeWidth="2.2" />
+                  <path d="M12 12V6A6 6 0 0 1 18 12z" fill="#3B82F6" />
+                </svg>
+              </div>
+              <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', gap: '6px' }}>
+                <div style={{ boxSizing: 'border-box', color: '#000000', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '14px', lineHeight: '18px' }}>
+                  Mobile breakpoints for the homepage
+                </div>
+                <svg width="13" height="13" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1" fill="none" stroke="#A1A1AA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '56px' }} />
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '72px' }}>
+                <div style={{ alignItems: 'center', backgroundColor: '#FDE68A', borderRadius: '11px', boxSizing: 'border-box', display: 'flex', height: '22px', justifyContent: 'center', width: '22px' }}>
+                  <div style={{ boxSizing: 'border-box', color: '#78350F', display: 'flex', fontFamily: '"Inter-Regular_SemiBold", "Inter", system-ui, sans-serif', fontSize: '10px', fontWeight: 600, lineHeight: '12px' }}>
+                    MR
+                  </div>
+                </div>
+              </div>
+              <div style={{ boxSizing: 'border-box', color: '#3F3F46', flexShrink: '0', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px', width: '96px' }}>
+                Oct 1
+              </div>
+              <div style={{ boxSizing: 'border-box', flexShrink: '0', width: '32px' }} />
+            </div>
+          </div>
+          <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', marginTop: '24px' }}>
+            <div style={{ alignItems: 'center', borderBottomColor: '#E8E8EA', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '32px' }}>
+              <div style={{ boxSizing: 'border-box', display: 'flex', flexShrink: '0', justifyContent: 'center', width: '20px' }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <path d="m9 6 6 6-6 6" fill="none" stroke="#71717A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <div style={{ alignItems: 'center', backgroundColor: '#15803D', borderRadius: '6px', boxSizing: 'border-box', display: 'flex', gap: '8px', height: '24px', paddingLeft: '8px', paddingRight: '10px' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0' }}>
+                  <circle cx="12" cy="12" r="10" fill="#FFFFFF" />
+                  <path d="m7.5 12.5 3 3 6-7" fill="none" stroke="#15803D" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <div style={{ boxSizing: 'border-box', color: '#FFFFFF', display: 'inline-block', fontFamily: '"Inter-Regular_SemiBold", "Inter", system-ui, sans-serif', fontSize: '12px', fontWeight: 600, letterSpacing: '0.04em', lineHeight: '16px', textTransform: 'uppercase' }}>
+                  Done
+                </div>
+              </div>
+              <div style={{ boxSizing: 'border-box', color: '#71717A', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px', marginLeft: '8px' }}>
+                8
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )

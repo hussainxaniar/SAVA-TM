@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
+import { Providers } from "@/components/providers";
+import { themeInitScript } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 const inter = Inter({
@@ -26,8 +28,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={cn(inter.variable, jetbrainsMono.variable, "font-sans")} suppressHydrationWarning>
+      <head>
+        {/* Apply the saved theme before paint (no flash). */}
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className="min-h-screen bg-background font-sans antialiased">
-        {children}
+        <Providers>{children}</Providers>
         {/* Section 4: toasts for errors only; success is silent. */}
         <Toaster position="bottom-right" richColors />
       </body>

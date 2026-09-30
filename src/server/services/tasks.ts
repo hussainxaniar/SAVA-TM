@@ -35,9 +35,15 @@ const DESCRIPTION_COALESCE_MS = 10 * 60 * 1000; // 6.9.4
  */
 export async function getListView(ctx: Ctx, input: { listId: string }): Promise<ListViewDTO> {
   await requireMember(ctx.userId, await spaceIdOfList(input.listId));
-  const list = await db.list.findUniqueOrThrow({
+  const { project, ...list } = await db.list.findUniqueOrThrow({
     where: { id: input.listId },
-    select: { id: true, name: true, subtaskDisplay: true, projectId: true },
+    select: {
+      id: true,
+      name: true,
+      subtaskDisplay: true,
+      projectId: true,
+      project: { select: { id: true, spaceId: true, name: true, color: true } },
+    },
   });
   const [statuses, visible] = await Promise.all([
     db.status.findMany({ where: { projectId: list.projectId }, orderBy: { position: "asc" } }),
@@ -48,7 +54,7 @@ export async function getListView(ctx: Ctx, input: { listId: string }): Promise<
     { id: { in: [...visible.tasks.keys()] } },
     { listId: list.id, linkPositions: visible.linkPositions },
   );
-  return { list, statuses: statuses.map(toStatusDTO), tasks: rows };
+  return { list, project, statuses: statuses.map(toStatusDTO), tasks: rows };
 }
 
 /** Section 8.4. The task panel (9.4). Soft-deleted tasks are NOT_FOUND. */

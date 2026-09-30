@@ -42,7 +42,8 @@ export type SidebarDTO = {
     name: string;
     color: string;
     icon: string | null;
-    lists: { id: string; name: string }[];
+    /** openTaskCount: open, live tasks shown in the list (home or linked, any depth). */
+    lists: { id: string; name: string; openTaskCount: number }[];
     /** firstPageId: the doc's first root page, so the sidebar can link straight to it. */
     docs: { id: string; title: string; firstPageId: string | null }[];
   }[];
@@ -107,6 +108,7 @@ export type TaskDetailDTO = TaskRowDTO & {
 /** Section 8.4 getListView: Visible(L) (6.7), completed included; the client renders and sorts. */
 export type ListViewDTO = {
   list: { id: string; name: string; subtaskDisplay: "NESTED" | "SEPARATE"; projectId: string };
+  project: { id: string; spaceId: string; name: string; color: string };
   statuses: StatusDTO[];
   tasks: TaskRowDTO[];
 };

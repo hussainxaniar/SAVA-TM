@@ -146,9 +146,11 @@ export async function getSidebar(ctx: Ctx, input: { spaceId: string }): Promise<
       },
     },
   });
+  const counts = await openTaskCounts(projects.flatMap((p) => p.lists.map((l) => l.id)));
   return {
-    projects: projects.map(({ docs, ...p }) => ({
+    projects: projects.map(({ docs, lists, ...p }) => ({
       ...p,
+      lists: lists.map((l) => ({ ...l, openTaskCount: counts.get(l.id) ?? 0 })),
       docs: docs.map(({ pages, ...d }) => ({ ...d, firstPageId: pages[0]?.id ?? null })),
     })),
   };
@@ -200,4 +202,18 @@ export async function getProjectSettings(ctx: Ctx, input: { projectId: string })
     })),
     lists: lists.map(({ _count, ...l }) => ({ ...l, taskCount: _count.homeTasks })),
   };
+}
+
+/** Open, live tasks per list: home tasks plus tasks linked in (any depth). */
+async function openTaskCounts(listIds: string[]): Promise<Map<string, number>> {
+  if (listIds.length === 0) return new Map();
+  const open = { deletedAt: null, completedAt: null };
+  const [home, linked] = await Promise.all([
+    db.task.groupBy({ by: ["homeListId"], where: { homeListId: { in: listIds }, ...open }, _count: { _all: true } }),
+    db.taskListLink.groupBy({ by: ["listId"], where: { listId: { in: listIds }, task: open }, _count: { _all: true } }),
+  ]);
+  const counts = new Map<string, number>();
+  for (const h of home) counts.set(h.homeListId, h._count._all);
+  for (const l of linked) counts.set(l.listId, (counts.get(l.listId) ?? 0) + l._count._all);
+  return counts;
 }

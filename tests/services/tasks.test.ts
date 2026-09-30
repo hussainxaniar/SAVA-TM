@@ -395,3 +395,25 @@ describe("getMyTasks", () => {
     ]);
   });
 });
+
+describe("sidebar open counts and list view project", () => {
+  it("counts open, live tasks per list, linked ones included", async () => {
+    const { getSidebar } = await import("@/server/services/projects");
+    const parent = await createTask(me, { listId: general, title: "Open" });
+    await createTask(me, { listId: general, parentId: parent.id, title: "Open child" });
+    await createTask(me, { listId: general, title: "Done", statusId: st.done });
+    const gone = await createTask(me, { listId: general, title: "Deleted" });
+    await deleteTask(me, { taskId: gone.id });
+    const visitor = await createTask(me, { listId: other, title: "Visitor" });
+    await link(visitor.id, general, "zz");
+
+    const lists = (await getSidebar(me, { spaceId: s.space.id })).projects.find((p) => p.id === projectId)!.lists;
+    expect(Object.fromEntries(lists.map((l) => [l.name, l.openTaskCount]))).toEqual({ General: 3, Other: 1 });
+    expect((await getListView(me, { listId: general })).project).toEqual({
+      id: projectId,
+      spaceId: s.space.id,
+      name: "P",
+      color: "#64748B",
+    });
+  });
+});
