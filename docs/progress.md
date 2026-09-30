@@ -14,7 +14,7 @@ Single-glance status for all 22 tickets. Update this file and the matching
 | T-07 | Statuses and lists settings | A + I | ✅ done | 4225c41 |
 | T-08 | Task services core | A | ✅ done | dd513d9 |
 | T-09 | List view | I | ✅ done | 93ba0f7 |
-| T-10 | Quick add and parser | I | ⬜ pending | — |
+| T-10 | Quick add and parser | I | ✅ done | — |
 | T-11 | Task panel shell | I | ⬜ pending | — |
 | T-12 | Subtasks and display modes | A + I | ⬜ pending | — |
 | T-13 | Move and add-to-list | A + I | ⬜ pending | — |

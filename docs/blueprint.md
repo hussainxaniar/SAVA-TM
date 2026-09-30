@@ -801,7 +801,14 @@ Pressing `q` anywhere (or the sidebar's **Add task**) opens a small centered qui
 | `@name` | assignee (autocomplete members) | `@ahmad` |
 | `#list` | list in current project (autocomplete) | `#design` |
 
-Parsed tokens are removed from the title. Parser lives in `src/lib/quick-add-parser.ts` with unit tests.
+Parsed tokens are removed from the title. Parser lives in `src/lib/quick-add-parser.ts` with unit tests. Rules:
+
+- Tokens count only at a word start and only when they resolve: `me@x.com`, an unknown `@bob` or `#123` stay in the title.
+- `@` handles are the member's first name (`@ada`), or the full name without spaces when first names clash (`@adalovelace`). `#` handles are the list name with dashes (`#design-review`). `@`/`#` open an autocomplete.
+- Date, priority and list take the first occurrence; later ones stay as text. Assignees accumulate.
+- A date must name a day, weekday or time (a bare "March" is not a due date; "now" never is). A preposition right before it (`by`, `on`, `at`, `due`, `before`) is removed with it.
+- Each parsed value shows as a chip; its × keeps that token as plain title text.
+- A footer picker shows the target list and can change it; a `#list` token wins over it.
 
 ### 9.4 Task dialog
 

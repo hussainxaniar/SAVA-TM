@@ -14,9 +14,8 @@ import {
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { comparePositions } from "@/lib/position";
 import { buildGroups, type DisplayMode, type SortMode } from "@/lib/list-view";
-import { QUICK_ADD_EVENT } from "@/lib/quick-add";
+import { rememberLastList } from "@/lib/last-list";
 import {
-  firstStatus,
   useCreateTask,
   useDeleteTask,
   useListView,
@@ -160,17 +159,10 @@ export function ListView({ initialData, spaceId, canDeleteLists }: ListViewProps
     [createTask, listId],
   );
 
-  // The sidebar's "Add task" button (and Q later): open the first TODO group's inline input.
+  // Remember the open list as the space's last used one (quick add's fallback target).
   useEffect(() => {
-    function onQuickAdd() {
-      const firstTodo = firstStatus(data.statuses, "TODO");
-      if (!firstTodo) return;
-      setGroupOverrides({ ...groupOverrides, [firstTodo.id]: true });
-      setAdd({ statusId: firstTodo.id });
-    }
-    window.addEventListener(QUICK_ADD_EVENT, onQuickAdd);
-    return () => window.removeEventListener(QUICK_ADD_EVENT, onQuickAdd);
-  }, [data.statuses, groupOverrides, setGroupOverrides]);
+    rememberLastList(spaceId, listId);
+  }, [spaceId, listId]);
 
   const onDragEnd = useCallback(
     ({ active, over }: DragEndEvent) => {
