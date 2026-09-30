@@ -38,8 +38,13 @@ export type TaskRowProps = {
   onAddChild: (task: TaskRowDTO) => void;
   onMakeSubtaskOf: (task: TaskRowDTO, parentId: string) => void;
   onConvertToTask: (task: TaskRowDTO) => void;
+  onMoveToList: (task: TaskRowDTO, listId: string) => void;
+  onAddToList: (task: TaskRowDTO, listId: string) => void;
+  onRemoveFromList: (task: TaskRowDTO) => void;
   /** Valid parents for a task id (parentCandidates); computed on demand by the menu. */
   candidatesFor: (taskId: string) => TaskRowDTO[];
+  /** The project's active lists in order (the row menu's Move to / Add to list pickers). */
+  lists: readonly { id: string; name: string }[];
 };
 
 function dueLabel(task: TaskRowDTO) {
@@ -72,7 +77,11 @@ export const TaskRow = memo(function TaskRow({
   onAddChild,
   onMakeSubtaskOf,
   onConvertToTask,
+  onMoveToList,
+  onAddToList,
+  onRemoveFromList,
   candidatesFor,
+  lists,
 }: TaskRowProps) {
   const { task } = row;
   const done = task.completedAt !== null;
@@ -125,7 +134,11 @@ export const TaskRow = memo(function TaskRow({
             onDeleteTask={onDeleteTask}
             onMakeSubtaskOf={onMakeSubtaskOf}
             onConvertToTask={onConvertToTask}
+            onMoveToList={onMoveToList}
+            onAddToList={onAddToList}
+            onRemoveFromList={onRemoveFromList}
             candidatesFor={candidatesFor}
+            lists={lists}
             statuses={statuses}
           />
         </span>

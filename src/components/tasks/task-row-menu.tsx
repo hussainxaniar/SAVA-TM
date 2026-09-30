@@ -1,7 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { IconCornerLeftUp, IconDots } from "@tabler/icons-react";
+import {
+  IconArrowRight,
+  IconCornerLeftUp,
+  IconDots,
+  IconList,
+  IconPlaylistAdd,
+  IconPlaylistX,
+} from "@tabler/icons-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,7 +42,11 @@ export function TaskRowMenu({
   onDeleteTask,
   onMakeSubtaskOf,
   onConvertToTask,
+  onMoveToList,
+  onAddToList,
+  onRemoveFromList,
   candidatesFor,
+  lists,
   statuses,
 }: {
   task: TaskRowDTO;
@@ -47,12 +58,23 @@ export function TaskRowMenu({
   onDeleteTask: (task: TaskRowDTO) => void;
   onMakeSubtaskOf: (task: TaskRowDTO, parentId: string) => void;
   onConvertToTask: (task: TaskRowDTO) => void;
+  onMoveToList: (task: TaskRowDTO, listId: string) => void;
+  onAddToList: (task: TaskRowDTO, listId: string) => void;
+  onRemoveFromList: (task: TaskRowDTO) => void;
   /** Valid parents for a task id (parentCandidates); computed on demand. */
   candidatesFor: (taskId: string) => TaskRowDTO[];
+  /** The project's active lists in order (the Move to / Add to list pickers). */
+  lists: readonly { id: string; name: string }[];
   statuses: readonly StatusDTO[];
 }) {
   const done = task.completedAt !== null;
   const [pickerOpen, setPickerOpen] = useState(false);
+  // Move to (6.5): top-level tasks only, and only when another list exists. Add to list (6.6):
+  // any task, except the home list and the lists it is already linked into.
+  const moveTargets = task.parentId === null ? lists.filter((l) => l.id !== task.homeListId) : [];
+  const addTargets = lists.filter(
+    (l) => l.id !== task.homeListId && !task.linkedListIds.includes(l.id),
+  );
   const candidates = useMemo(
     () => (open || pickerOpen ? candidatesFor(task.id) : []),
     [open, pickerOpen, candidatesFor, task.id],
@@ -112,6 +134,44 @@ export function TaskRowMenu({
               <DropdownMenuItem onClick={() => onConvertToTask(task)}>
                 <IconCornerLeftUp aria-hidden />
                 Convert to task
+              </DropdownMenuItem>
+            )}
+            {moveTargets.length > 0 && (
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <IconArrowRight aria-hidden />
+                  Move to
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  {moveTargets.map((list) => (
+                    <DropdownMenuItem key={list.id} onClick={() => onMoveToList(task, list.id)}>
+                      <IconList aria-hidden />
+                      {list.name}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+            )}
+            {addTargets.length > 0 && (
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <IconPlaylistAdd aria-hidden />
+                  Add to list
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  {addTargets.map((list) => (
+                    <DropdownMenuItem key={list.id} onClick={() => onAddToList(task, list.id)}>
+                      <IconList aria-hidden />
+                      {list.name}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+            )}
+            {task.isLinkedHere && (
+              <DropdownMenuItem onClick={() => onRemoveFromList(task)}>
+                <IconPlaylistX aria-hidden />
+                Remove from this list
               </DropdownMenuItem>
             )}
             <DropdownMenuItem variant="destructive" onClick={() => onDeleteTask(task)}>

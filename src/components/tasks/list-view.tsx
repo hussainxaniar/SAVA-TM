@@ -1,16 +1,20 @@
 "use client";
 
-import { useCallback, useEffect, useId, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   DndContext,
+  DragOverlay,
   KeyboardSensor,
   PointerSensor,
   closestCenter,
   useSensor,
   useSensors,
   type DragEndEvent,
+  type Modifier,
+  type DragStartEvent,
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { comparePositions } from "@/lib/position";
@@ -26,10 +30,17 @@ import {
   useSetStatus,
   useUpdateTask,
 } from "@/hooks/use-list-view";
-import { useSetParent } from "@/hooks/use-task";
+import {
+  useAddToList,
+  useMoveTask,
+  useRemoveFromList,
+  useSetParent,
+} from "@/hooks/use-task";
+import { useSidebarDrop } from "@/hooks/use-sidebar-drop";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { ListHeader } from "@/components/tasks/list-header";
 import { StatusGroup, type AddTarget } from "@/components/tasks/status-group";
+import { StatusGlyph } from "@/components/tasks/status-icon";
 import type { ListViewDTO, Priority, TaskRowDTO } from "@/server/services/types";
 
 export type ListViewProps = {
@@ -74,6 +85,10 @@ export function ListView({ initialData, spaceId, canDeleteLists }: ListViewProps
   const reorderTask = useReorderTask(listId);
   const deleteTask = useDeleteTask(listId);
   const setParent = useSetParent();
+  const moveTask = useMoveTask();
+  const addToListMutation = useAddToList();
+  const removeFromListMutation = useRemoveFromList();
+  const sidebarDrop = useSidebarDrop();
 
   const mode: DisplayMode = data.list.subtaskDisplay;
   const groups = useMemo(
@@ -162,6 +177,45 @@ export function ListView({ initialData, spaceId, canDeleteLists }: ListViewProps
     [setParent],
   );
 
+  // Move / link handlers (6.5, 6.6): failures toast inside the hooks; success here.
+  const moveToList = useCallback(
+    async (task: TaskRowDTO, targetId: string) => {
+      const list = data.project.lists.find((l) => l.id === targetId);
+      try {
+        await moveTask.mutateAsync({ taskId: task.id, fromListId: task.homeListId, toListId: targetId });
+        if (list) toast.success(`Moved to "${list.name}"`);
+      } catch {
+        // the hook toasted the failure
+      }
+    },
+    [moveTask, data.project.lists],
+  );
+
+  const addToList = useCallback(
+    async (task: TaskRowDTO, targetId: string) => {
+      const list = data.project.lists.find((l) => l.id === targetId);
+      try {
+        await addToListMutation.mutateAsync({ taskId: task.id, listId: targetId });
+        if (list) toast.success(`Added to "${list.name}"`);
+      } catch {
+        // the hook toasted the failure
+      }
+    },
+    [addToListMutation, data.project.lists],
+  );
+
+  const removeFromList = useCallback(
+    async (task: TaskRowDTO) => {
+      try {
+        await removeFromListMutation.mutateAsync({ taskId: task.id, listId });
+        toast.success(`Removed from "${data.list.name}"`);
+      } catch {
+        // the hook toasted the failure
+      }
+    },
+    [removeFromListMutation, listId, data.list.name],
+  );
+
   const toggleCollapsed = useCallback(
     (taskId: string) =>
       setCollapsedIds(
@@ -220,8 +274,45 @@ export function ListView({ initialData, spaceId, canDeleteLists }: ListViewProps
   }, [rowOrder]);
   useEffect(() => () => publishTaskOrder([]), []);
 
+  // Dropping a row on a sidebar list (6.5/6.6): only lists of this project, never the current
+  // one; a move needs a top-level task and a list that isn't its home, an add skips linked lists.
+  const isValidFor = useCallback(
+    (task: TaskRowDTO) => (targetId: string, dropMode: "move" | "add") =>
+      targetId !== listId &&
+      data.project.lists.some((l) => l.id === targetId) &&
+      targetId !== task.homeListId &&
+      (dropMode === "add" ? !task.linkedListIds.includes(targetId) : task.parentId === null),
+    [listId, data.project.lists],
+  );
+
+  // The row being dragged, shown as a DragOverlay card that follows the pointer: the list's
+  // scroll container clips the row itself once it leaves the list (e.g. towards the sidebar).
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const draggingTask = draggingId ? data.tasks.find((t) => t.id === draggingId) : undefined;
+  // The overlay portals into <body>, which only exists after hydration (false on the server).
+  const hydrated = useSyncExternalStore(noopSubscribe, () => true, () => false);
+
+  const onDragStart = useCallback(
+    ({ active }: DragStartEvent) => {
+      const task = data.tasks.find((t) => t.id === String(active.id));
+      setDraggingId(task?.id ?? null);
+      sidebarDrop.begin(task ? isValidFor(task) : () => false);
+    },
+    [sidebarDrop, data.tasks, isValidFor],
+  );
+
   const onDragEnd = useCallback(
     ({ active, over }: DragEndEvent) => {
+      setDraggingId(null);
+      const drop = sidebarDrop.end();
+      if (drop) {
+        const task = data.tasks.find((t) => t.id === String(active.id));
+        if (task) {
+          if (drop.mode === "move") void moveToList(task, drop.listId);
+          else void addToList(task, drop.listId);
+        }
+        return;
+      }
       const activeId = String(active.id);
       const overId = over ? String(over.id) : null;
       if (!overId || activeId === overId) return;
@@ -239,8 +330,13 @@ export function ListView({ initialData, spaceId, canDeleteLists }: ListViewProps
         return;
       }
     },
-    [rootIdsByStatus, reorderTask],
+    [sidebarDrop, data.tasks, moveToList, addToList, rootIdsByStatus, reorderTask],
   );
+
+  const onDragCancel = useCallback(() => {
+    setDraggingId(null);
+    sidebarDrop.end();
+  }, [sidebarDrop]);
 
   // Stable id: dnd-kit's global aria counter differs between server and client renders.
   const dndId = useId();
@@ -260,7 +356,11 @@ export function ListView({ initialData, spaceId, canDeleteLists }: ListViewProps
     onAddChild: addChild,
     onMakeSubtaskOf: makeSubtaskOf,
     onConvertToTask: convertToTask,
+    onMoveToList: moveToList,
+    onAddToList: addToList,
+    onRemoveFromList: removeFromList,
     candidatesFor,
+    lists: data.project.lists,
   };
 
   return (
@@ -284,7 +384,9 @@ export function ListView({ initialData, spaceId, canDeleteLists }: ListViewProps
           id={dndId}
           sensors={sensors}
           collisionDetection={closestCenter}
+          onDragStart={onDragStart}
           onDragEnd={onDragEnd}
+          onDragCancel={onDragCancel}
         >
           {groups.map((group, i) => (
             <StatusGroup
@@ -316,8 +418,36 @@ export function ListView({ initialData, spaceId, canDeleteLists }: ListViewProps
               className={i === 0 ? "mt-7" : "mt-6"}
             />
           ))}
+          {hydrated &&
+            createPortal(
+              <DragOverlay dropAnimation={null} modifiers={[besidePointer]}>
+                {draggingTask ? (
+                  <div className="flex h-9 w-[360px] cursor-grabbing items-center gap-2.5 rounded-md border bg-background px-3 text-sm shadow-lg">
+                    <StatusGlyph status={draggingTask.status} statuses={data.statuses} size={16} />
+                    <span className="truncate">{draggingTask.title}</span>
+                  </div>
+                ) : null}
+              </DragOverlay>,
+              document.body,
+            )}
         </DndContext>
       </div>
     </div>
   );
 }
+
+const noopSubscribe = () => () => {};
+
+/**
+ * Keeps the drag card just below and right of the pointer instead of where the row started, so
+ * it never covers the sidebar list (and its "Move here" label) under the pointer.
+ */
+const besidePointer: Modifier = ({ transform, activatorEvent, draggingNodeRect }) => {
+  if (!draggingNodeRect || !activatorEvent || !("clientX" in activatorEvent)) return transform;
+  const start = activatorEvent as PointerEvent;
+  return {
+    ...transform,
+    x: transform.x + start.clientX - draggingNodeRect.left + 12,
+    y: transform.y + start.clientY - draggingNodeRect.top + 14,
+  };
+};

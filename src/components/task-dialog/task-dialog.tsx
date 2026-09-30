@@ -5,15 +5,26 @@ import Link from "next/link";
 import { toast } from "sonner";
 import {
   IconAlignLeft,
+  IconArrowRight,
   IconChevronDown,
   IconChevronUp,
   IconCornerLeftUp,
   IconDots,
   IconLink,
+  IconList,
+  IconPlaylistAdd,
   IconTrash,
   IconX,
 } from "@tabler/icons-react";
-import { useDeleteTaskAnywhere, useEditTask, useSetParent, useTask } from "@/hooks/use-task";
+import {
+  useAddToList,
+  useDeleteTaskAnywhere,
+  useEditTask,
+  useMoveTask,
+  useRemoveFromList,
+  useSetParent,
+  useTask,
+} from "@/hooks/use-task";
 import { useTaskOrder } from "@/lib/task-nav";
 import { StatusControl } from "@/components/tasks/status-icon";
 import { Button } from "@/components/ui/button";
@@ -24,6 +35,9 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { TaskDetailDTO } from "@/server/services/types";
@@ -56,6 +70,9 @@ export function TaskDialog({ spaceId, taskId, open, onClose, onOpenTask }: TaskD
   const editTask = useEditTask();
   const deleteTask = useDeleteTaskAnywhere();
   const setParent = useSetParent();
+  const moveTask = useMoveTask();
+  const addToListMutation = useAddToList();
+  const removeFromListMutation = useRemoveFromList();
   // Opening focuses the dialog box itself, not its first button (no stray focus ring on ↑).
   const popupRef = useRef<HTMLDivElement>(null);
 
@@ -114,6 +131,50 @@ export function TaskDialog({ spaceId, taskId, open, onClose, onOpenTask }: TaskD
     }
   }, [setParent, task]);
 
+  // Move / link from the ⋯ menu and the Lists section (6.5, 6.6). The dialog stays open on
+  // the same task; breadcrumb and Lists section update when the task refetches.
+  const moveToList = useCallback(
+    async (listId: string) => {
+      if (!task) return;
+      const list = task.project.lists.find((l) => l.id === listId);
+      try {
+        await moveTask.mutateAsync({ taskId: task.id, fromListId: task.homeList.id, toListId: listId });
+        if (list) toast.success(`Moved to "${list.name}"`);
+      } catch {
+        // the hook toasted the failure
+      }
+    },
+    [moveTask, task],
+  );
+
+  const addToList = useCallback(
+    async (listId: string) => {
+      if (!task) return;
+      const list = task.project.lists.find((l) => l.id === listId);
+      try {
+        await addToListMutation.mutateAsync({ taskId: task.id, listId });
+        if (list) toast.success(`Added to "${list.name}"`);
+      } catch {
+        // the hook toasted the failure
+      }
+    },
+    [addToListMutation, task],
+  );
+
+  const removeFromList = useCallback(
+    async (listId: string) => {
+      if (!task) return;
+      const list = task.linkedLists.find((l) => l.id === listId);
+      try {
+        await removeFromListMutation.mutateAsync({ taskId: task.id, listId });
+        if (list) toast.success(`Removed from "${list.name}"`);
+      } catch {
+        // the hook toasted the failure
+      }
+    },
+    [removeFromListMutation, task],
+  );
+
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent
@@ -134,6 +195,8 @@ export function TaskDialog({ spaceId, taskId, open, onClose, onOpenTask }: TaskD
           onDelete={remove}
           canConvert={!!task?.parentId}
           onConvert={convert}
+          onMoveToList={moveToList}
+          onAddToList={addToList}
         />
         {error ? (
           <ErrorState onClose={onClose} />
@@ -162,7 +225,12 @@ export function TaskDialog({ spaceId, taskId, open, onClose, onOpenTask }: TaskD
               </div>
               <Subtasks task={task} onOpenTask={onOpenTask} />
             </div>
-            <PropertiesColumn task={task} onSetStatus={onSetStatus} />
+            <PropertiesColumn
+              task={task}
+              onSetStatus={onSetStatus}
+              onAddToList={addToList}
+              onRemoveFromList={removeFromList}
+            />
           </div>
         )}
       </DialogContent>
@@ -182,6 +250,8 @@ function Header({
   onDelete,
   canConvert,
   onConvert,
+  onMoveToList,
+  onAddToList,
 }: {
   task: TaskDetailDTO | undefined;
   prevId: string | null;
@@ -192,7 +262,19 @@ function Header({
   onDelete: () => void;
   canConvert: boolean;
   onConvert: () => void;
+  onMoveToList: (listId: string) => void;
+  onAddToList: (listId: string) => void;
 }) {
+  // Move to (6.5): top-level tasks only. Add to list (6.6): except home and linked lists.
+  const moveTargets =
+    task && task.parentId === null
+      ? task.project.lists.filter((l) => l.id !== task.homeList.id)
+      : [];
+  const addTargets = task
+    ? task.project.lists.filter(
+        (l) => l.id !== task.homeList.id && !task.linkedListIds.includes(l.id),
+      )
+    : [];
   return (
     <header className="flex h-14 shrink-0 items-center border-b border-divider pl-7 pr-4">
       <nav className="flex min-w-0 flex-1 items-center gap-1.5 text-[13px] text-muted-foreground">
@@ -267,6 +349,38 @@ function Header({
                 <IconLink aria-hidden />
                 Copy link
               </DropdownMenuItem>
+              {moveTargets.length > 0 && (
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <IconArrowRight aria-hidden />
+                    Move to
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    {moveTargets.map((list) => (
+                      <DropdownMenuItem key={list.id} onClick={() => onMoveToList(list.id)}>
+                        <IconList aria-hidden />
+                        {list.name}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              )}
+              {addTargets.length > 0 && (
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <IconPlaylistAdd aria-hidden />
+                    Add to list
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    {addTargets.map((list) => (
+                      <DropdownMenuItem key={list.id} onClick={() => onAddToList(list.id)}>
+                        <IconList aria-hidden />
+                        {list.name}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              )}
               {canConvert && (
                 <DropdownMenuItem onClick={onConvert}>
                   <IconCornerLeftUp aria-hidden />

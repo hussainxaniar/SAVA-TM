@@ -52,6 +52,7 @@ import {
   updateProjectAction,
 } from "@/server/actions/projects";
 import { updateProjectSchema } from "@/server/actions/projects.schema";
+import { useSidebarDropTarget } from "@/hooks/use-sidebar-drop";
 import type { SidebarDTO } from "@/server/services/types";
 
 export type ProjectTreeProps = {
@@ -125,6 +126,8 @@ function ProjectRow({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  // While a task row is dragged over a list of this project (list view), the row lights up.
+  const dropTarget = useSidebarDropTarget();
   const {
     attributes,
     listeners,
@@ -332,31 +335,41 @@ function ProjectRow({
           {project.lists.map((list) => {
             const href = `/s/${spaceId}/p/${project.id}/l/${list.id}`;
             const active = pathname.startsWith(href);
+            // A dragged row hovers this list: highlight instead of the count (6.5/6.6).
+            const targeted = dropTarget?.listId === list.id;
             return (
               <Link
                 key={list.id}
                 href={href}
+                data-drop-list-id={list.id}
                 className={cn(
                   listRow,
                   active && listRowActive,
+                  targeted && "bg-selected text-selected-foreground ring-1 ring-primary/40 hover:bg-selected",
                 )}
               >
                 <IconList
                   className={cn(
                     "size-4 shrink-0 text-muted-foreground",
-                    active && "text-selected-foreground",
+                    (active || targeted) && "text-selected-foreground",
                   )}
                 />
                 <span className="grow truncate">{list.name}</span>
-                {list.openTaskCount > 0 && (
-                  <span
-                    className={cn(
-                      "shrink-0 text-xs text-muted-foreground",
-                      active && "text-selected-foreground",
-                    )}
-                  >
-                    {list.openTaskCount}
+                {targeted ? (
+                  <span className="shrink-0 text-[11px] font-medium text-selected-foreground">
+                    {dropTarget?.mode === "add" ? "Add here" : "Move here"}
                   </span>
+                ) : (
+                  list.openTaskCount > 0 && (
+                    <span
+                      className={cn(
+                        "shrink-0 text-xs text-muted-foreground",
+                        active && "text-selected-foreground",
+                      )}
+                    >
+                      {list.openTaskCount}
+                    </span>
+                  )
                 )}
               </Link>
             );

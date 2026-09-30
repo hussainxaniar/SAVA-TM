@@ -1,11 +1,17 @@
 "use client";
 
-import { IconCalendar, IconClock } from "@tabler/icons-react";
+import { IconCalendar, IconClock, IconList, IconPlus, IconX } from "@tabler/icons-react";
 import { formatDue, type DueTone } from "@/lib/list-view";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/tasks/avatar-stack";
 import { PriorityFlag } from "@/components/tasks/priority-flag";
 import { StatusControl } from "@/components/tasks/status-icon";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { TaskDetailDTO } from "@/server/services/types";
 
 const TONE_CLASS: Record<DueTone, string> = {
@@ -21,9 +27,13 @@ const TONE_CLASS: Record<DueTone, string> = {
 export function PropertiesColumn({
   task,
   onSetStatus,
+  onAddToList,
+  onRemoveFromList,
 }: {
   task: TaskDetailDTO;
   onSetStatus: (task: { id: string }, statusId: string, completeSubtasks?: boolean) => void;
+  onAddToList: (listId: string) => void;
+  onRemoveFromList: (listId: string) => void;
 }) {
   const start = task.startDate
     ? formatDue(task.startDate, false)
@@ -31,6 +41,10 @@ export function PropertiesColumn({
   const due = task.dueDate
     ? formatDue(task.dueDate, task.dueHasTime, { completed: task.completedAt !== null })
     : null;
+  // Addable lists (6.6): the project's active lists except home and the linked ones.
+  const addTargets = task.project.lists.filter(
+    (l) => l.id !== task.homeList.id && !task.linkedListIds.includes(l.id),
+  );
 
   return (
     <aside className="flex w-80 shrink-0 flex-col overflow-y-auto border-l border-divider bg-panel px-6 pt-2">
@@ -90,15 +104,50 @@ export function PropertiesColumn({
         )}
       </Section>
 
-      <Section title="Lists">
+      <Section
+        title="Lists"
+        action={
+          addTargets.length > 0 ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <button
+                    type="button"
+                    aria-label="Add to list"
+                    className="-mr-1 flex size-6 items-center justify-center rounded-md text-muted-foreground hover:bg-sidebar-accent"
+                  />
+                }
+              >
+                <IconPlus className="size-4" aria-hidden />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {addTargets.map((list) => (
+                  <DropdownMenuItem key={list.id} onClick={() => onAddToList(list.id)}>
+                    <IconList aria-hidden />
+                    {list.name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : undefined
+        }
+      >
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="rounded-md bg-pill px-2.5 py-[3px] text-[13px]">{task.homeList.name}</span>
           {task.linkedLists.map((list) => (
             <span
               key={list.id}
-              className="rounded-md border px-2.5 py-[3px] text-[13px] text-muted-foreground"
+              className="flex items-center gap-1 rounded-md border px-2.5 py-[3px] text-[13px] text-muted-foreground"
             >
               {list.name}
+              <button
+                type="button"
+                aria-label={`Remove from ${list.name}`}
+                onClick={() => onRemoveFromList(list.id)}
+                className="-mr-0.5 flex items-center rounded-sm text-muted-foreground/70 hover:text-foreground"
+              >
+                <IconX className="size-3" aria-hidden />
+              </button>
             </span>
           ))}
         </div>
@@ -130,10 +179,22 @@ function blockLabel(start: string, end: string): string {
   return `${day} ${time(start)}–${time(end)}`;
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  title,
+  action,
+  children,
+}: {
+  title: string;
+  /** Small control at the right of the title row (e.g. Lists' `+`). */
+  action?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
     <section className="border-b border-border pb-3 pt-3.5">
-      <h3 className="mb-2.5 text-[13px] font-semibold leading-4 text-foreground/75">{title}</h3>
+      <div className="mb-2.5 flex items-center justify-between">
+        <h3 className="text-[13px] font-semibold leading-4 text-foreground/75">{title}</h3>
+        {action}
+      </div>
       {children}
     </section>
   );
