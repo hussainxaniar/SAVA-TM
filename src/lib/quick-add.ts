@@ -1,6 +1,6 @@
 /**
- * "Add task" requests (sidebar button now, the `q` shortcut in T-10). T-09's list view answers by
- * opening its inline add; T-10's quick-add dialog replaces that listener.
+ * "Add task" requests from the sidebar button. The quick-add dialog (T-10) listens for it and
+ * also handles the `q` shortcut itself.
  */
 export const QUICK_ADD_EVENT = "sava:quick-add";
 
