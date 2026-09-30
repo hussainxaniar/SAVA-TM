@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreHorizontal } from "lucide-react";
+import { IconDots } from "@tabler/icons-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,7 +50,7 @@ export function TaskRowMenu({
           />
         }
       >
-        <MoreHorizontal className="size-3.5" />
+        <IconDots className="size-3.5" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
         <DropdownMenuGroup>

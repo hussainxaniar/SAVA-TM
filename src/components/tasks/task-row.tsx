@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useState } from "react";
-import { Calendar, ChevronDown, ChevronRight, Link, Plus } from "lucide-react";
+import { IconCalendar, IconChevronDown, IconChevronRight, IconLink, IconPlus } from "@tabler/icons-react";
 import { AvatarStack } from "@/components/tasks/avatar-stack";
 import { StatusControl, SubtaskGlyph } from "@/components/tasks/status-icon";
 import { PriorityFlag } from "@/components/tasks/priority-flag";
@@ -79,7 +79,7 @@ export const TaskRow = memo(function TaskRow({
   );
 
   const linkIcon = task.isLinkedHere ? (
-    <Link className="size-[13px] shrink-0 text-muted-foreground/60" aria-hidden />
+    <IconLink className="size-[13px] shrink-0 text-muted-foreground/60" aria-hidden />
   ) : null;
 
   // Hover actions: + (add subtask, max three levels) and the ⋯ menu; stay while the menu is open.
@@ -96,7 +96,7 @@ export const TaskRow = memo(function TaskRow({
           }}
           className="flex size-[26px] items-center justify-center rounded-md border border-border bg-background text-muted-foreground hover:bg-sidebar disabled:pointer-events-none"
         >
-          <Plus className="size-3.5" aria-hidden />
+          <IconPlus className="size-3.5" aria-hidden />
         </button>
       )}
       {!temp && (
@@ -191,7 +191,7 @@ export const TaskRow = memo(function TaskRow({
             <span className="flex items-center gap-3 text-xs text-muted-foreground">
               {due && (
                 <span className="flex items-center gap-1">
-                  <Calendar className="size-3" />
+                  <IconCalendar className="size-3" />
                   <span className={due.className}>{due.label}</span>
                 </span>
               )}
@@ -226,9 +226,9 @@ export const TaskRow = memo(function TaskRow({
             className="flex items-center justify-center text-muted-foreground"
           >
             {collapsed ? (
-              <ChevronRight className="size-3" strokeWidth={3} />
+              <IconChevronRight className="size-3" strokeWidth={3} />
             ) : (
-              <ChevronDown className="size-3" strokeWidth={3} />
+              <IconChevronDown className="size-3" strokeWidth={3} />
             )}
           </button>
         )}

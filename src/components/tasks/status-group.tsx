@@ -2,7 +2,7 @@
 
 import { Fragment, useMemo, type ReactNode } from "react";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { ChevronDown, ChevronRight, Plus } from "lucide-react";
+import { IconChevronDown, IconChevronRight, IconPlus } from "@tabler/icons-react";
 import { InlineAdd } from "@/components/tasks/inline-add";
 import { StatusGlyph } from "@/components/tasks/status-icon";
 import { TaskRow, type DragHandle, type TaskRowProps } from "@/components/tasks/task-row";
@@ -147,9 +147,9 @@ export function StatusGroup({
       >
         <span className="flex w-5 shrink-0 justify-center text-muted-foreground">
           {open ? (
-            <ChevronDown className="size-3" strokeWidth={3} />
+            <IconChevronDown className="size-3" strokeWidth={3} />
           ) : (
-            <ChevronRight className="size-3" strokeWidth={3} />
+            <IconChevronRight className="size-3" strokeWidth={3} />
           )}
         </span>
         <span
@@ -158,7 +158,7 @@ export function StatusGroup({
             done && "bg-done",
           )}
         >
-          <StatusGlyph category={status.category} size={14} pill />
+          <StatusGlyph status={status} statuses={rowProps.statuses} size={14} pill />
           <span
             className={cn(
               "text-xs font-semibold uppercase tracking-[0.04em] text-foreground/80",
@@ -227,7 +227,7 @@ export function StatusGroup({
                 {Array.from({ length: mode === "NESTED" ? 2 : 1 }, (_, i) => (
                   <span key={i} className="w-5 shrink-0" />
                 ))}
-                <Plus className="mx-0.5 mr-2.5 size-4 shrink-0 text-primary" aria-hidden />
+                <IconPlus className="mx-0.5 mr-2.5 size-4 shrink-0 text-primary" aria-hidden />
                 <span className="text-sm text-muted-foreground">Add task</span>
               </button>
             ))}

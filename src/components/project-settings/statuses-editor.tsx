@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { Check, Trash2 } from "lucide-react";
+import { IconCheck, IconTrash } from "@tabler/icons-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -159,7 +159,7 @@ function StatusRowItem({ status, others }: { status: StatusRow; others: StatusRo
                   style={{ backgroundColor: c.value }}
                 />
                 {c.name}
-                {status.color === c.value && <Check className="ml-auto" />}
+                {status.color === c.value && <IconCheck className="ml-auto" />}
               </DropdownMenuItem>
             ))}
           </DropdownMenuGroup>
@@ -223,7 +223,7 @@ function StatusRowItem({ status, others }: { status: StatusRow; others: StatusRo
         className="text-muted-foreground"
         onClick={openDelete}
       >
-        <Trash2 />
+        <IconTrash />
       </Button>
 
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>

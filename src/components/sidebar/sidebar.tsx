@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Calendar, CircleCheck, Plus } from "lucide-react";
+import { IconCalendar, IconCircleCheck, IconPlus } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { requestQuickAdd } from "@/lib/quick-add";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -67,7 +67,7 @@ export function Sidebar({
         className="mt-2 flex h-9 items-center gap-2 rounded-md px-2 hover:bg-sidebar-accent"
       >
         <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary">
-          <Plus className="size-3 text-primary-foreground" strokeWidth={3} />
+          <IconPlus className="size-3 text-primary-foreground" strokeWidth={3} />
         </span>
         <span className="grow text-left text-sm font-semibold text-primary">
           Add task
@@ -79,12 +79,12 @@ export function Sidebar({
       <nav className="mt-1 flex flex-col">
         <NavLink
           href={`/s/${space.id}/my-tasks`}
-          icon={CircleCheck}
+          icon={IconCircleCheck}
           label="My Tasks"
         />
         <NavLink
           href={`/s/${space.id}/calendar`}
-          icon={Calendar}
+          icon={IconCalendar}
           label="Calendar"
         />
       </nav>
@@ -98,7 +98,7 @@ export function Sidebar({
           onClick={() => setNewProjectOpen(true)}
           className="flex size-4 items-center justify-center text-muted-foreground hover:text-foreground"
         >
-          <Plus className="size-4" />
+          <IconPlus className="size-4" />
         </button>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto">
@@ -112,7 +112,7 @@ export function Sidebar({
           onClick={() => setNewProjectOpen(true)}
           className="mt-1 flex h-8 w-full items-center gap-2 rounded-md px-2 text-sm text-muted-foreground hover:bg-sidebar-accent"
         >
-          <Plus className="size-4 shrink-0" />
+          <IconPlus className="size-4 shrink-0" />
           New project
         </button>
         <NewProjectDialog

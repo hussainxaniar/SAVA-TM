@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { IconLogout } from "@tabler/icons-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -59,7 +59,7 @@ export function UserMenu({ user }: UserMenuProps) {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={() => void onSignOut()}>
-            <LogOut />
+            <IconLogout />
             Sign out
           </DropdownMenuItem>
         </DropdownMenuGroup>

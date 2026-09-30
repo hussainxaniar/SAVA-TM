@@ -20,14 +20,7 @@ import {
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import {
-  Check,
-  ChevronDown,
-  ChevronRight,
-  FileText,
-  List,
-  MoreHorizontal,
-} from "lucide-react";
+import { IconCheck, IconChevronDown, IconChevronRight, IconDots, IconFileText, IconList } from "@tabler/icons-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -249,9 +242,9 @@ function ProjectRow({
               className="flex size-3.5 shrink-0 items-center justify-center text-muted-foreground"
             >
               {expanded ? (
-                <ChevronDown className="size-3.5" strokeWidth={2.4} />
+                <IconChevronDown className="size-3.5" strokeWidth={2.4} />
               ) : (
-                <ChevronRight className="size-3.5" strokeWidth={2.4} />
+                <IconChevronRight className="size-3.5" strokeWidth={2.4} />
               )}
             </button>
             <Link
@@ -282,7 +275,7 @@ function ProjectRow({
                   />
                 }
               >
-                <MoreHorizontal />
+                <IconDots />
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuGroup>
@@ -305,7 +298,7 @@ function ProjectRow({
                             />
                             {c.name}
                             {project.color === c.value && (
-                              <Check className="ml-auto" />
+                              <IconCheck className="ml-auto" />
                             )}
                           </DropdownMenuItem>
                         ))}
@@ -348,7 +341,7 @@ function ProjectRow({
                   active && listRowActive,
                 )}
               >
-                <List
+                <IconList
                   className={cn(
                     "size-4 shrink-0 text-muted-foreground",
                     active && "text-selected-foreground",
@@ -380,12 +373,12 @@ function ProjectRow({
                   ) && listRowActive,
                 )}
               >
-                <FileText className="size-4 shrink-0 text-muted-foreground" />
+                <IconFileText className="size-4 shrink-0 text-muted-foreground" />
                 <span className="grow truncate">{doc.title}</span>
               </Link>
             ) : (
               <p key={doc.id} className={listRow}>
-                <FileText className="size-4 shrink-0 text-muted-foreground" />
+                <IconFileText className="size-4 shrink-0 text-muted-foreground" />
                 <span className="grow truncate">{doc.title}</span>
               </p>
             ),

@@ -1,9 +1,7 @@
+import { IconFlagFilled } from "@tabler/icons-react";
 import type { Priority } from "@/server/services/types";
 
-/*
- * The design's small flag (docs/design/list-view-*.jpg), inlined as SVG using currentColor so
- * each priority keeps its token color in light and dark mode. P4 has no flag in rows.
- */
+/* Priority flags: Tabler's filled flag in each priority's color token (light and dark mode). */
 
 export const PRIORITY_META: { value: Priority; label: string; className: string }[] = [
   { value: 1, label: "Urgent P1", className: "text-priority-1" },
@@ -22,23 +20,5 @@ export function PriorityFlag({
   className?: string;
 }) {
   const meta = PRIORITY_META[priority - 1];
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      aria-hidden
-      fill="none"
-      className={`${meta.className} ${className ?? ""}`}
-    >
-      <path
-        d="M5 22V4M5 4h13l-2 4.5 2 4.5H5"
-        fill="currentColor"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
+  return <IconFlagFilled size={size} aria-hidden className={`shrink-0 ${meta.className} ${className ?? ""}`} />;
 }

@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Calendar, Check, ChevronDown, List as ListIcon, X } from "lucide-react";
+import { IconCalendar, IconCheck, IconChevronDown, IconList, IconX } from "@tabler/icons-react";
 import { toast } from "sonner";
 import {
   activeMention,
@@ -394,7 +394,7 @@ export function QuickAddDialog({ spaceId, projects, members }: QuickAddDialogPro
                     className="size-5 text-[9px]"
                   />
                 ) : (
-                  <ListIcon className="size-4 shrink-0 text-muted-foreground" />
+                  <IconList className="size-4 shrink-0 text-muted-foreground" />
                 )}
                 <span className="truncate">{item.name}</span>
                 <span className="ml-auto text-xs text-muted-foreground">
@@ -424,7 +424,7 @@ export function QuickAddDialog({ spaceId, projects, members }: QuickAddDialogPro
                 <span className="max-w-[280px] truncate">
                   {finalEntry.projectName} / {finalEntry.listName}
                 </span>
-                <ChevronDown className="size-3.5 opacity-60" />
+                <IconChevronDown className="size-3.5 opacity-60" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-64">
                 {projects.map((p) => (
@@ -432,9 +432,9 @@ export function QuickAddDialog({ spaceId, projects, members }: QuickAddDialogPro
                     <DropdownMenuLabel className="truncate">{p.name}</DropdownMenuLabel>
                     {p.lists.map((l) => (
                       <DropdownMenuItem key={l.id} onClick={() => setPickedListId(l.id)}>
-                        <ListIcon className="text-muted-foreground" />
+                        <IconList className="text-muted-foreground" />
                         <span className="grow truncate">{l.name}</span>
-                        {finalEntry.listId === l.id && <Check className="text-muted-foreground" />}
+                        {finalEntry.listId === l.id && <IconCheck className="text-muted-foreground" />}
                       </DropdownMenuItem>
                     ))}
                   </DropdownMenuGroup>
@@ -475,7 +475,7 @@ function TokenChip({
     const { label, tone } = formatDue(token.dueDate, token.dueHasTime);
     content = (
       <span className={cn("inline-flex items-center gap-1", TONE_CLASS[tone])}>
-        <Calendar className="size-3.5" />
+        <IconCalendar className="size-3.5" />
         {label}
       </span>
     );
@@ -498,7 +498,7 @@ function TokenChip({
     const list = lists.find((l) => l.id === token.listId);
     content = (
       <>
-        <ListIcon className="size-3.5" />
+        <IconList className="size-3.5" />
         {list?.name ?? "?"}
       </>
     );
@@ -512,7 +512,7 @@ function TokenChip({
         onClick={onDismiss}
         className="flex size-4 items-center justify-center rounded-sm text-muted-foreground hover:text-foreground"
       >
-        <X className="size-3" />
+        <IconX className="size-3" />
       </button>
     </span>
   );

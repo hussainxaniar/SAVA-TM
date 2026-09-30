@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { Hash, Trash2 } from "lucide-react";
+import { IconHash, IconTrash } from "@tabler/icons-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -113,7 +113,7 @@ function ListRowItem({
 
   return (
     <SortableRow id={list.id}>
-      <Hash className="size-4 shrink-0 text-muted-foreground" />
+      <IconHash className="size-4 shrink-0 text-muted-foreground" />
       {editing ? (
         <Input
           value={draft}
@@ -160,7 +160,7 @@ function ListRowItem({
             className="text-muted-foreground"
             onClick={openDelete}
           >
-            <Trash2 />
+            <IconTrash />
           </Button>
 
           <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>

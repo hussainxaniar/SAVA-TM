@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { MoreHorizontal } from "lucide-react";
+import { IconDots } from "@tabler/icons-react";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -154,7 +154,7 @@ export function ListHeader({
                 />
               }
             >
-              <MoreHorizontal className="size-4" />
+              <IconDots className="size-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuGroup>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Check, ChevronsUpDown, Settings } from "lucide-react";
+import { IconCheck, IconSelector, IconSettings } from "@tabler/icons-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,7 +48,7 @@ export function SpaceSwitcher({ current, spaces }: Props) {
         <span className="grow truncate text-sm font-semibold text-foreground">
           {current.name}
         </span>
-        <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
+        <IconSelector className="size-4 shrink-0 text-muted-foreground" />
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuGroup>
@@ -64,7 +64,7 @@ export function SpaceSwitcher({ current, spaces }: Props) {
               <SpaceAvatar space={space} size="xs" />
               <span className="grow truncate">{space.name}</span>
               <span className="text-xs text-muted-foreground">{roleLabel[space.role]}</span>
-              <Check className={cn("size-4", space.id !== current.id && "invisible")} />
+              <IconCheck className={cn("size-4", space.id !== current.id && "invisible")} />
             </DropdownMenuItem>
           ))}
         </DropdownMenuGroup>
@@ -72,7 +72,7 @@ export function SpaceSwitcher({ current, spaces }: Props) {
         <DropdownMenuItem
           onClick={() => router.push(`/s/${current.id}/settings`)}
         >
-          <Settings />
+          <IconSettings />
           Space settings
         </DropdownMenuItem>
       </DropdownMenuContent>

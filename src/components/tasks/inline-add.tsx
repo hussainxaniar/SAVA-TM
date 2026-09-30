@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Plus } from "lucide-react";
+import { IconPlus } from "@tabler/icons-react";
 
 /**
  * The inline "Add task" input (group footer and the row `+`). Enter creates and keeps the field
@@ -32,7 +32,7 @@ export function InlineAdd({
       {Array.from({ length: indentCells }, (_, i) => (
         <div key={i} className="w-5 shrink-0" />
       ))}
-      <Plus className="mx-0.5 mr-2.5 size-4 shrink-0 text-primary" aria-hidden />
+      <IconPlus className="mx-0.5 mr-2.5 size-4 shrink-0 text-primary" aria-hidden />
       <input
         autoFocus
         value={value}

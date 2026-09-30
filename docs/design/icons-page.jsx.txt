@@ -1,0 +1,52 @@
+######## 3N0-0
+{
+  "summary": "Frame \"Task Statuses\" (3N0-0) 124×36\n  SVG \"SVG\" (3NQ-0) 12×12\n    SVGVisualElement \"Circle\" (3NR-0) 11×11\n    SVGVisualElement \"Path\" (3NS-0) 6×6\n  SVG \"SVG\" (3MV-0) 12×12\n    SVGVisualElement \"Circle\" (3MW-0) 11×11\n    SVGVisualElement \"Path\" (3MX-0) 6×12\n  SVG \"SVG\" (3MY-0) 12×12\n    SVGVisualElement \"Path\" (3MZ-0) 12×12\n  SVG \"SVG\" (3N1-0) 12×12\n    SVGVisualElement \"Circle\" (3N2-0) 11×11\n    SVGVisualElement \"Path\" (3N3-0) 12×12\n  SVG \"SVG\" (3NT-0) 12×12\n    SVGVisualElement \"Circle\" (3NU-0) 11×11\n  SVG \"SVG\" (3NA-0) 12×12\n    SVGVisualElement \"Path\" (3NB-0) 12×12",
+  "nodeId": "3N0-0",
+  "depth": 3
+}
+(
+    <div style={{ backgroundColor: '#FFFFFF', boxSizing: 'border-box', overflow: 'clip', position: 'relative' }}>
+      <svg width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" style={{ left: 48, top: 12, position: 'absolute' }}>
+        <mask id="_8vtnim0" fill="#fff"><path d="M12 6C12 5.212 11.845 4.432 11.543 3.704C11.242 2.976 10.8 2.315 10.243 1.757C9.685 1.2 9.024 0.758 8.296 0.457C7.568 0.155 6.788 -3.444e-08 6 0L6 6H12Z"/></mask>
+        <circle cx="6" cy="6" r="5.5" fill="none" stroke="#000000" />
+        <path d="M12 6C12 5.212 11.845 4.432 11.543 3.704C11.242 2.976 10.8 2.315 10.243 1.757C9.685 1.2 9.024 0.758 8.296 0.457C7.568 0.155 6.788 -3.444e-08 6 0L6 6H12Z" mask="url(#_8vtnim0)" fill="#000000" stroke="#000000" strokeWidth="2" />
+      </svg>
+      <svg width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" style={{ left: 66, top: 12, position: 'absolute' }}>
+        <mask id="_ad4ghl0" fill="#fff"><path d="M6 12C7.591 12 9.117 11.368 10.243 10.243C11.368 9.117 12 7.591 12 6C12 4.409 11.368 2.883 10.243 1.757C9.117 0.632 7.591 3.098e-07 6 0L6 6L6 12Z"/></mask>
+        <circle cx="6" cy="6" r="5.5" fill="none" stroke="#000000" />
+        <path d="M6 12C7.591 12 9.117 11.368 10.243 10.243C11.368 9.117 12 7.591 12 6C12 4.409 11.368 2.883 10.243 1.757C9.117 0.632 7.591 3.098e-07 6 0L6 6L6 12Z" mask="url(#_ad4ghl0)" fill="#000000" stroke="#000000" strokeWidth="2" />
+      </svg>
+      <svg width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" style={{ left: 102, top: 12, position: 'absolute' }}>
+        <path d="M6 0C9.314 0 12 2.686 12 6C12 9.314 9.314 12 6 12C2.686 12 0 9.314 0 6C0 2.686 2.686 0 6 0ZM9.333 3.5C9.223 3.5 9.117 3.544 9.039 3.622L5.167 7.494L3.378 5.705C3.299 5.629 3.194 5.588 3.085 5.589C2.976 5.59 2.871 5.634 2.794 5.711C2.717 5.788 2.673 5.893 2.672 6.002C2.671 6.111 2.713 6.216 2.789 6.295L4.872 8.378C4.95 8.456 5.057 8.5 5.167 8.5C5.277 8.5 5.383 8.456 5.461 8.378L9.628 4.211C9.706 4.133 9.75 4.027 9.75 3.917C9.75 3.807 9.706 3.7 9.628 3.622C9.55 3.544 9.443 3.5 9.333 3.5Z" fill="#000000" />
+      </svg>
+      <svg width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" style={{ left: 84, top: 12, position: 'absolute' }}>
+        <mask id="_inlg8l0" fill="#fff"><path d="M0 6C-1.037e-07 7.187 0.352 8.347 1.011 9.333C1.67 10.32 2.608 11.089 3.704 11.543C4.8 11.997 6.007 12.116 7.171 11.885C8.334 11.653 9.404 11.082 10.243 10.243C11.082 9.404 11.653 8.334 11.885 7.171C12.116 6.007 11.997 4.8 11.543 3.704C11.089 2.608 10.32 1.67 9.333 1.011C8.347 0.352 7.187 8.959e-08 6 0L6 6L0 6Z"/></mask>
+        <circle cx="6" cy="6" r="5.5" fill="none" stroke="#000000" />
+        <path d="M0 6C-1.037e-07 7.187 0.352 8.347 1.011 9.333C1.67 10.32 2.608 11.089 3.704 11.543C4.8 11.997 6.007 12.116 7.171 11.885C8.334 11.653 9.404 11.082 10.243 10.243C11.082 9.404 11.653 8.334 11.885 7.171C12.116 6.007 11.997 4.8 11.543 3.704C11.089 2.608 10.32 1.67 9.333 1.011C8.347 0.352 7.187 8.959e-08 6 0L6 6L0 6Z" mask="url(#_inlg8l0)" fill="#000000" stroke="#000000" strokeWidth="2" />
+      </svg>
+      <svg width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" style={{ left: 30, top: 12, position: 'absolute' }}>
+        <circle cx="6" cy="6" r="5.5" fill="none" stroke="#000000" />
+      </svg>
+      <svg width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" style={{ left: 12, top: 12, position: 'absolute' }}>
+        <path d="M8.777 10.158C9.323 9.793 9.793 9.323 10.158 8.777L10.573 9.056L10.574 9.056L10.657 9.111L10.988 9.333C10.55 9.987 9.987 10.55 9.333 10.988L9.308 10.95L9.056 10.574L9.056 10.573L8.777 10.158ZM11.885 4.829C11.96 5.208 12 5.599 12 6C12 6.4 11.96 6.791 11.885 7.17L11.396 7.074L11.396 7.073L10.905 6.977C10.968 6.662 11 6.335 11 6C11 5.665 10.968 5.338 10.905 5.023L11.396 4.926L11.885 4.829ZM0.114 4.829L0.604 4.926L0.604 4.926L1.095 5.023C1.032 5.338 1 5.665 1 6C1 6.335 1.032 6.662 1.095 6.977L0.604 7.073L0.604 7.074L0.114 7.17C0.039 6.792 0 6.4 0 6C0 5.599 0.039 5.208 0.114 4.829ZM2.666 1.011L2.929 1.403L3.223 1.842C2.677 2.207 2.207 2.677 1.842 3.223L1.011 2.666C1.449 2.012 2.012 1.449 2.666 1.011ZM2.944 10.574L2.692 10.95L2.666 10.988C2.012 10.55 1.449 9.987 1.011 9.333L1.842 8.777C2.207 9.323 2.677 9.793 3.223 10.158L2.943 10.573L2.944 10.574ZM4.924 0.595L4.829 0.114C5.208 0.039 5.599 0 6 0C6.4 0 6.792 0.039 7.17 0.114L7.076 0.595L6.977 1.095C6.662 1.032 6.335 1 6 1C5.665 1 5.338 1.032 5.023 1.095L4.924 0.595ZM9.333 1.011C9.987 1.449 10.55 2.012 10.988 2.666L10.158 3.223C9.793 2.677 9.323 2.207 8.777 1.842L9.071 1.403L9.333 1.011ZM6.977 10.905L7.073 11.396L7.074 11.396L7.156 11.812L7.17 11.885C6.791 11.96 6.4 12 6 12C5.599 12 5.208 11.96 4.829 11.885L5.023 10.905C5.338 10.968 5.665 11 6 11C6.335 11 6.662 10.968 6.977 10.905Z" fill="#000000" />
+      </svg>
+    </div>
+  )
+######## 3NI-0
+{
+  "summary": "Frame \"Subtask\" (3NI-0) 124×31\n  SVG \"SVG\" (3NJ-0) 14×14\n    SVGVisualElement \"Group\" (3NK-0) 9×9\n      SVGVisualElement \"Path\" (3NL-0) 3×3\n      SVGVisualElement \"Path\" (3NM-0) 4×4\n      SVGVisualElement \"Path\" (3NN-0) 3×3",
+  "nodeId": "3NI-0",
+  "depth": 3
+}
+(
+    <div style={{ backgroundColor: '#FFFFFF', boxSizing: 'border-box', overflow: 'clip', position: 'relative' }}>
+      <svg width="14" height="14" viewBox="1 1 14 14" xmlns="http://www.w3.org/2000/svg" style={{ left: 8, top: 9, position: 'absolute' }}>
+        <mask id="_rcijqv0" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="2" y="2" width="12" height="12"><path d="M13.714 2.286H2.286V13.714H13.714V2.286Z" fill="#fff"/></mask>
+        <g mask="url(#_rcijqv0)">
+          <path d="M5 6.5C5.828 6.5 6.5 5.828 6.5 5 6.5 4.172 5.828 3.5 5 3.5 4.172 3.5 3.5 4.172 3.5 5 3.5 5.828 4.172 6.5 5 6.5Z" fill="none" stroke="#000000" />
+          <path d="M5 7V9C5 10.104 5.896 11 7 11H9" fill="none" stroke="#000000" strokeLinecap="square" />
+          <path d="M11 12.5C11.828 12.5 12.5 11.828 12.5 11 12.5 10.172 11.828 9.5 11 9.5 10.172 9.5 9.5 10.172 9.5 11 9.5 11.828 10.172 12.5 11 12.5Z" fill="none" stroke="#000000" />
+        </g>
+      </svg>
+    </div>
+  )

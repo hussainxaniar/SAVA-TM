@@ -1,6 +1,6 @@
 "use client";
 
-import { ListFilter } from "lucide-react";
+import { IconFilter2 } from "@tabler/icons-react";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -41,7 +41,7 @@ export function ViewMenu({
           />
         }
       >
-        <ListFilter className="size-4 text-muted-foreground" />
+        <IconFilter2 className="size-4 text-muted-foreground" />
         View
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-44">

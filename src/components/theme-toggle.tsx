@@ -1,7 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { Monitor, Moon, Sun } from "lucide-react";
+import { IconDeviceDesktop, IconMoon, IconSun } from "@tabler/icons-react";
 import { applyThemePreference, readThemePreference, type ThemePreference } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -31,7 +31,7 @@ const store = {
 /** Cycles system → light → dark (9.8: system by default). */
 export function ThemeToggle({ className }: { className?: string }) {
   const pref = useSyncExternalStore(store.subscribe, store.get, store.getServer);
-  const Icon = pref === "light" ? Sun : pref === "dark" ? Moon : Monitor;
+  const Icon = pref === "light" ? IconSun : pref === "dark" ? IconMoon : IconDeviceDesktop;
   return (
     <button
       type="button"
