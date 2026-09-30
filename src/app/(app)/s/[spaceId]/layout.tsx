@@ -28,7 +28,7 @@ export default async function SpaceLayout({
         space={current}
         spaces={spaces}
         projects={projects}
-        user={{ name: user.name, email: user.email, image: user.image }}
+        user={{ id: user.id, name: user.name, email: user.email, image: user.image }}
         canArchiveProjects={can(current.role, "archiveProject")}
       />
       <div className="min-w-0 flex-1 overflow-auto">{children}</div>
