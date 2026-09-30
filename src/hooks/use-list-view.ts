@@ -130,6 +130,31 @@ export function useUpdateTask(listId: string) {
 }
 
 /**
+ * The status menu (ClickUp-style): set any status of the project. Moving into a DONE status with
+ * `completeSubtasks` also completes open descendants into that status (6.2.4).
+ */
+export function useSetStatus(listId: string) {
+  return useListMutation(listId, {
+    run: (v: { taskId: string; statusId: string; completeSubtasks?: boolean }) => updateTaskAction(v),
+    patch: (data, v) => {
+      const status = data.statuses.find((s) => s.id === v.statusId);
+      const task = data.tasks.find((t) => t.id === v.taskId);
+      if (!status || !task) return data;
+      const intoDone = status.category === "DONE" && task.status.category !== "DONE";
+      const cascade = new Set(intoDone && v.completeSubtasks ? descendants(data.tasks, v.taskId) : []);
+      const now = new Date().toISOString();
+      return mapTasks(data, (t) => {
+        if (t.id === v.taskId) {
+          return { ...t, status, completedAt: status.category === "DONE" ? (t.completedAt ?? now) : null };
+        }
+        if (cascade.has(t.id) && !t.completedAt) return { ...t, status, completedAt: now };
+        return t;
+      });
+    },
+  });
+}
+
+/**
  * Inline add. The temporary row (id "temp-…") shows instantly and is swapped for the server's
  * row on success. Returns the created TaskRowDTO from mutateAsync.
  */

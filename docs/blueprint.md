@@ -28,9 +28,9 @@ Board/Gantt/timeline views, custom fields, time tracking, automations, recurring
 
 ### Product principles
 
-1. **One sidebar, one main view, one task panel.** Tasks open in a right slide-over panel, never a modal or a new page.
+1. **One sidebar, one main view, one task dialog.** Tasks open in a centered task dialog over the current view (linkable via `?task=<id>`), never a new page.
 2. **Fast by default.** Every mutation is optimistic. Quick add is always one keystroke away (`q`).
-3. **Show less.** A task row shows only checkbox, title, priority flag, due date, assignee avatars, subtask count. Everything else lives in the panel.
+3. **Show less.** A task row shows only the status control, title, subtask count, assignee avatars, due date and priority flag. Everything else lives in the task dialog.
 4. **Correct before clever.** Permissions and activity logging are never skipped to save time.
 
 ## 2. How AI agents use this blueprint
@@ -113,7 +113,7 @@ One Next.js app in one repo, deployed to Vercel with a hosted Postgres. No monor
 │  │     ├─ layout.tsx          # validates the session only (no sidebar)
 │  │     ├─ page.tsx            # last space, or "Create your space" onboarding
 │  │     └─ s/[spaceId]/
-│  │        ├─ layout.tsx                   # space shell: sidebar + task panel host; 404 for non-members
+│  │        ├─ layout.tsx                   # space shell: sidebar + task dialog host; 404 for non-members
 │  │        ├─ page.tsx                     # redirect to first project's first list
 │  │        ├─ settings/page.tsx            # members, invites
 │  │        ├─ my-tasks/page.tsx
@@ -177,7 +177,7 @@ export class AppError extends Error {
 ### Client
 
 - Reads in pages use Server Components calling services directly (with the session user) for first paint.
-- Interactive lists (task list, task panel, calendar) hydrate into TanStack Query with query keys `['tasks', listId]`, `['task', taskId]`, `['timeblocks', rangeStart, rangeEnd]`.
+- Interactive lists (task list, task dialog, calendar) hydrate into TanStack Query with query keys `['tasks', listId]`, `['task', taskId]`, `['timeblocks', rangeStart, rangeEnd]`.
 - Every task mutation uses `onMutate` optimistic update + rollback on error + invalidate on settle.
 - Toasts (sonner) for errors only. Success is silent.
 
@@ -494,10 +494,12 @@ Every rule here is enforced in the service layer and covered by a Vitest test. T
 
 ### 6.2 Completion
 
-1. Checking a task's checkbox sets its status to the project's first DONE status (lowest position) and sets `completedAt = now()`. Logs `TASK_COMPLETED`.
-2. Unchecking sets the first TODO status and clears `completedAt`. Logs `TASK_REOPENED`.
+Tasks have no checkbox: the circle on every task is its **status control**, which opens a menu of the project's statuses (ClickUp-style, 9.2). Choosing a status is an `updateTask` status change (logs `STATUS_CHANGED`).
+
+1. **Complete** (row menu, the `x` shortcut) sets the project's first DONE status (lowest position) and `completedAt = now()`. Logs `TASK_COMPLETED`.
+2. **Reopen** sets the first TODO status and clears `completedAt`. Logs `TASK_REOPENED`.
 3. Any status change into a DONE category sets `completedAt`; any change out of DONE clears it.
-4. Completing a parent with open subtasks asks "Also complete N open subtasks?" (default Yes). The service takes `includeSubtasks: boolean`.
+4. Moving a parent with open subtasks into DONE (Complete, or choosing a DONE status) asks "Also complete N open subtasks?" (default Yes). `setCompleted` takes `includeSubtasks`; `updateTask` takes `completeSubtasks` (descendants move to the chosen DONE status). Each completed subtask logs `TASK_COMPLETED`.
 
 ### 6.3 Lists
 
@@ -539,7 +541,7 @@ For list **L**:
 
 In **NESTED** mode, the view renders Roots(L) in order, each with its visible subtree indented beneath (collapsible). A root that has a parent (a subtask linked into L) shows its parent's title as a small muted line above its own title.
 
-In **SEPARATE** mode, every visible task renders as its own flat row. Any task with a parent shows the parent title as a small muted line above its title. Clicking the parent line opens the parent in the task panel.
+In **SEPARATE** mode, every visible task renders as its own flat row. Any task with a parent shows the parent title as a small muted line above its title. Clicking the parent line opens the parent in the task dialog.
 
 Ordering in both modes follows the list's sort: **Manual** (default; roots by `position` for home tasks or link `position` for linked tasks, then depth-first for children), **Due date** (nulls last), or **Priority**. Sort is a per-user preference stored in `localStorage`. Completed tasks are hidden by default behind a "N completed" toggle at the bottom.
 
@@ -695,7 +697,8 @@ createTask(ctx, {
 
 updateTask(ctx, {
   taskId, title?, description?, priority?, statusId?,
-  startDate?: string | null, dueDate?: string | null, dueHasTime?
+  startDate?: string | null, dueDate?: string | null, dueHasTime?,
+  completeSubtasks?                // with a status change into DONE: complete open descendants too (6.2.4)
 }): Promise<TaskRowDTO>          // one Activity row per changed field; completion rules 6.2
 
 setCompleted(ctx, { taskId, completed: boolean, includeSubtasks?: boolean }): Promise<void>
@@ -757,32 +760,39 @@ deletePage(ctx, { pageId }): Promise<void>                                   // 
 
 ## 9. UI/UX spec
 
-The app has one layout: sidebar left, main view center, task panel sliding in from the right. If a design choice isn't covered here, pick the option Todoist would pick.
+The app has one layout: sidebar left, main view center, and a **task dialog** that opens over the view. If a design choice isn't covered here, pick the option ClickUp or Todoist would pick.
+
+**Designs are the visual source of truth.** Paper file "SAVA TM" (https://app.paper.design/file/01M3QHGC3XJ75BKH8QP6BVSM3B), exported to `docs/design/` (screenshots + exact JSX): `list-view-nested`, `list-view-separate`, `task-dialog-empty`, `task-dialog-filled`. Where this section and a design disagree, the design wins. Icons: `lucide-react` everywhere, except the subtask icon, which is the custom glyph from the list-view designs (`docs/design/icon-subtask.md`).
 
 ### 9.1 Layout
 
 | Region | Width | Contents |
 | --- | --- | --- |
-| Sidebar | 260px, collapsible (`[`) | Space switcher; My Tasks; Calendar; **Projects** tree (project → its lists, then a "Docs" group with its docs); `+ New project`; footer: Space settings, user menu (profile, integrations, sign out) |
-| Main view | fluid, content max-width 880px | Header (title, view menu, actions) + the view |
-| Task panel | 480px slide-over, pushes nothing, closes with `Esc` | Full task detail (9.4). URL keeps `?task=<id>` so tasks are linkable |
+| Sidebar | 260px, collapsible (`[`) | Space switcher (its menu also holds **Space settings**); **Add task** (blue, with a `Q` key hint; opens quick add); My Tasks; Calendar; **Projects** header with `+`; project tree (project → its lists with open-task counts, then its docs, no group label); `+ New project`; footer: user menu (avatar, name → sign out, integrations) and a theme toggle |
+| Main view | fluid, content max-width 880px | Header band (breadcrumb, Share, title, View menu, `⋯`, counts) + the view |
+| Task dialog | 1080×780 centered modal over the dimmed view, radius 12px | Full task detail (9.4). Closes with `Esc`, `×` or a click outside. URL keeps `?task=<id>` so tasks are linkable |
 
-Below 768px: sidebar becomes a left drawer, task panel becomes full-screen. Desktop is the priority.
+Below 768px: sidebar becomes a left drawer, the task dialog becomes full-screen. Desktop is the priority.
+
+**Drag and drop everywhere** (list rows, sidebar projects, settings rows) starts from anywhere on the item after a small movement (4px), as in ClickUp and Todoist. There are no visible drag handles; a plain click still opens or activates the item.
 
 ### 9.2 List view
 
-- **Header:** list name (inline rename), project color dot, a **View** menu (Subtasks: Nested / Separate; Sort: Manual / Due date / Priority; Show completed), and a `⋯` menu (Rename, Delete list).
-- **Rows** (36px tall): drag handle on hover · round checkbox colored by priority (P1 red `#DC2626`, P2 orange `#EA580C`, P3 blue `#2563EB`, P4 gray) · title · right side: status pill (only if not the first TODO status), subtask count `2/5`, comment count, due date (red if overdue, green if today), up to 3 assignee avatars.
-- **Parent line:** subtasks rendered as roots or in SEPARATE mode show `↳ Parent title` in 11px muted text above the title, clickable.
-- **Linked task marker:** a small link icon beside the title when `isLinkedHere`, tooltip "Home: \<list name>".
-- **Nested:** 20px indent per depth, chevron to collapse, collapsed state kept per task in `localStorage`.
-- **Inline add:** `+ Add task` at the bottom of the list turns into an input; `Enter` creates and keeps the input open; `Esc` closes. Hovering a task shows `+` to add a subtask inline.
-- **Drag and drop:** reorder within the list (Manual sort only). Dropping a top-level task onto a list in the sidebar **moves** it; holding `Alt` while dropping **adds** it to that list instead.
-- **Row context menu** (right-click or `⋯`): Open, Complete, Set priority, Set due date, Move to…, Add to list…, Remove from this list (linked only), Convert to task / Make subtask of…, Delete.
+Design: `docs/design/list-view-nested.jpg` and `list-view-separate.jpg`.
+
+- **Header band:** project color square + project name (breadcrumb), **Share** (copies the list link); list name 28px semibold (click to rename); **View** menu (Subtasks: Nested / Separate, a shared per-list setting; Sort: Manual / Due date / Priority; Show completed) and `⋯` (Rename list, Project settings, Delete list… for Admins); "N tasks · M statuses".
+- **Status groups:** tasks are grouped by status in status order. Each group has a collapsible header with a status pill (uppercase name + status icon; DONE pills are filled green) and a count. DONE groups start collapsed; "Show completed" opens them. Each non-DONE group ends with `+ Add task` (creates in that status).
+- **Status control:** the circle at the start of every row is the task's **status**, not a checkbox. Its icon shows the category: `CircleDashed` (To do), `ChartPie` (Active, blue), `CircleCheck` filled green (Done). Clicking it opens a **status menu** listing the project's statuses (with their icons); choosing one sets it (6.2). Choosing a DONE status for a task with open subtasks asks "Also complete N open subtasks?" (6.2.4).
+- **Nested rows** (36px): chevron to collapse subtasks (20px indent per depth, collapsed state per task in `localStorage`) · status control · title (medium weight when it has subtasks) · link icon when `isLinkedHere` · columns **Subs** (subtask icon + done/total), **Assignee** (up to 3 avatars), **Due** (green "Today", red when overdue), **Pri** (`Flag`, colored P1 red / P2 orange / P3 blue; none for P4). The first group shows the column labels.
+- **Separate rows:** two lines: an optional `↳ Parent title` line (clickable, opens the parent), the title, then a meta line (due, subtasks, flag); assignees on the right.
+- **Hover:** row background tint and two buttons: `+` (add subtask inline, hidden at depth 2) and `⋯` (row menu).
+- **Inline add:** `Enter` creates and keeps the field open; `Esc` or blur-when-empty closes.
+- **Drag and drop:** grab a row anywhere to reorder within its group (Manual sort only; subtrees move with their root). Dropping a top-level task onto a list in the sidebar **moves** it; holding `Alt` while dropping **adds** it to that list instead.
+- **Row menu** (right-click or `⋯`): Open, Complete / Reopen, Set priority, Set due date, Move to…, Add to list…, Remove from this list (linked only), Convert to task / Make subtask of…, Delete (Undo toast).
 
 ### 9.3 Quick add
 
-Pressing `q` anywhere opens a small centered dialog (the only modal for tasks). One input line plus chips showing what was parsed. `Enter` saves into the current list (or the project's first list; or the last used list when on My Tasks/Calendar).
+Pressing `q` anywhere (or the sidebar's **Add task**) opens a small centered quick-add dialog. One input line plus chips showing what was parsed. `Enter` saves into the current list (or the project's first list; or the last used list when on My Tasks/Calendar).
 
 | Token | Meaning | Example |
 | --- | --- | --- |
@@ -793,24 +803,30 @@ Pressing `q` anywhere opens a small centered dialog (the only modal for tasks). 
 
 Parsed tokens are removed from the title. Parser lives in `src/lib/quick-add-parser.ts` with unit tests.
 
-### 9.4 Task panel
+### 9.4 Task dialog
 
-Top to bottom:
+Design: `docs/design/task-dialog-empty.jpg` (new task) and `task-dialog-filled.jpg`. A 1080×780 modal: a 56px header, then a main column and a 320px properties column (light gray background, left border).
 
-1. **Breadcrumb:** Project / List / ancestors (each clickable). Right side: `⋯` menu (Move to…, Add to list…, Copy link, Delete) and close.
-2. **Title:** large, inline-editable, checkbox at left.
-3. **Properties grid** (label + value rows): Status (dropdown of project statuses with colors) · Assignees (multi-select of members) · Start date · Due date (with optional time) · Priority · Lists (home list chip + linked list chips with ×, and `+ Add to list`) · Scheduled (time blocks with date/time, sync icon, `+ Schedule` opens a date-time picker).
-4. **Description:** Tiptap editor, placeholder "Add a description…", autosave debounced 800ms.
-5. **Subtasks:** compact rows, inline add, drag reorder, progress `2/5`.
-6. **Feed:** toggle "Comments / All activity" (default All). Oldest at top, newest at bottom, comment composer pinned at the bottom (`Ctrl/Cmd+Enter` sends).
+1. **Header:** breadcrumb Project / List / ancestors (project color square; each part clickable). Right side: `↑` `↓` (previous / next task in the current list order), `⋯` menu (Move to…, Add to list…, Copy link, Delete) and `×` close.
+2. **Title row:** the status control (as in 9.2) and the title, 24px semibold, inline-editable.
+3. **Description:** an `AlignLeft` icon row. Empty: the placeholder "Description". Otherwise the Tiptap editor (14px/22px), autosave debounced 800ms.
+4. **Subtasks:** "Subtasks" + `done/total` + a green progress bar; compact rows (status control, title, due, avatar); `+ Add subtask`; drag to reorder.
+5. **Activity** (below a divider): heading + a segmented toggle **All | Comments** (default All). Oldest at top. Activity lines: avatar + sentence + relative time. Comments: avatar, name · time, body. Composer at the bottom: the viewer's avatar + a rounded "Comment" field (`Ctrl/Cmd+Enter` sends). Attachments are **not** in v1 (the design's paperclip is not built).
+6. **Properties column** (section titles 13px semibold, separated by dividers):
+   - **Status:** the status pill; click → status menu.
+   - **Assignees** (`+`): avatar + name rows.
+   - **Dates:** Start and Due with calendar icons (due colored like the list); due supports an optional time.
+   - **Priority:** flag + P1–P4.
+   - **Lists** (`+`): the home list as a filled chip, linked lists as outlined chips with `×`.
+   - **Scheduled** (`+`): time blocks ("Today 10:45–12:00") with a sync-state icon.
 
 ### 9.5 My Tasks
 
-Open tasks assigned to me across the current space, grouped: **Overdue**, **Today**, **Next 7 days**, **Later**, **No date**. Each row shows its project/list as muted text. Same row component and panel.
+Open tasks assigned to me across the current space, grouped: **Overdue**, **Today**, **Next 7 days**, **Later**, **No date**. Each row shows its project/list as muted text. Same row component and task dialog.
 
 ### 9.6 Settings pages
 
-- **Space settings:** name; Members table (avatar, name, email, role dropdown, remove); Invite links (create, copy, revoke, uses, expiry).
+- **Space settings** (opened from the space switcher menu): name; Members table (avatar, name, email, role dropdown, remove); Invite links (create, copy, revoke, uses, expiry).
 - **Project settings:** name, color; Statuses (drag reorder, rename, color, category, delete with replacement picker); Lists (rename, reorder, delete with target picker).
 - **User → Integrations:** Google Calendar connect/disconnect, connected email, calendar used.
 
@@ -821,7 +837,7 @@ Open tasks assigned to me across the current space, grouped: **Overdue**, **Toda
 | `q` | Quick add |
 | `/` | Focus search (v2; reserve the key) |
 | `[` | Toggle sidebar |
-| `Esc` | Close panel / dialog |
+| `Esc` | Close the task dialog / any dialog |
 | `j` / `k` | Next / previous task in list |
 | `Enter` | Open selected task |
 | `x` | Complete selected task |
@@ -830,9 +846,10 @@ Open tasks assigned to me across the current space, grouped: **Overdue**, **Toda
 
 ### 9.8 Visual tokens
 
-- Font: Inter (UI), JetBrains Mono (code in docs). Base size 14px; task title in panel 20px semibold.
-- Neutrals: shadcn `slate`. One accent via CSS variable `--primary` (default `#2563EB`) so the brand can change later without touching components.
-- Spacing on a 4px grid; radius 6px (inputs, pills), 8px (panels, cards).
+- Font: Inter (UI), JetBrains Mono (code in docs). Base size 14px; list title 28px semibold; task title in the dialog 24px semibold.
+- Neutrals: zinc (`#18181B` text, `#71717A` muted, `#E8E8EA` borders, `#F6F6F7` sidebar). One accent via CSS variable `--primary` (`#2563EB`) so the brand can change later without touching components. All design colors are theme tokens in `globals.css` (e.g. `bg-sidebar`, `border-divider`, `bg-pill`, `bg-selected`, `text-overdue`, `text-priority-1…3`), never hex in components.
+- Spacing on a 4px grid; radius 6px (inputs, pills, rows), 12px (the task dialog).
+- Icons: `lucide-react`; the only custom icon is the subtask glyph (`docs/design/icon-subtask.md`).
 - Light and dark themes through shadcn CSS variables; follow system by default.
 - Empty states: one short line + one primary action (e.g. "No tasks yet — press Q to add one"). No illustrations in v1.
 - Loading: skeleton rows, never full-page spinners.
@@ -847,7 +864,7 @@ A task can be scheduled into any number of time slots (`TimeBlock`s). Each slot 
 - **Left rail "Unscheduled"**: open tasks assigned to me with no future time blocks, filterable by project. Rows are draggable into the grid via FullCalendar's `Draggable`.
 - **Drop** a task on the grid → `createTimeBlock` with a 60-minute default. Dropping the same task again creates another block, so one task can occupy several slots.
 - **Drag** a block to move it, **resize** its bottom edge to change duration (15-minute snap). Both call `updateTimeBlock`.
-- **Click** a block → opens the task panel. Block popover `⋯` → "Remove from calendar" (`deleteTimeBlock`).
+- **Click** a block → opens the task dialog. Block popover `⋯` → "Remove from calendar" (`deleteTimeBlock`).
 - **Rendering:** our blocks = solid, with a 3px left bar in the project color and the task title; completed tasks' blocks show strikethrough. Google events = light gray, not draggable, click opens `htmlLink` in a new tab. Tasks with a due date (and no time) show in the all-day row as small chips (local only, never synced).
 - **Sync status:** a small icon on each block — nothing when `SYNCED`, a clock when `PENDING`, a warning with "Retry" when `ERROR`.
 - Header shows "Connect Google Calendar" when not connected.
@@ -937,7 +954,7 @@ Each project can hold many docs; each doc is a tree of pages up to 3 levels deep
 | T-08 | Task services core | Sat afternoon | A | T-07 | 6, 8.4 |
 | T-09 | List view | Sat afternoon | I | T-08 | 6.7, 9.2 |
 | T-10 | Quick add and parser | Sat afternoon | I | T-09 | 9.3 |
-| T-11 | Task panel shell | Sat afternoon | I | T-09 | 9.4 |
+| T-11 | Task dialog shell | Sat afternoon | I | T-09 | 9.4 |
 | T-12 | Subtasks and display modes | Sat afternoon | A + I | T-11 | 6.4, 6.7 |
 | T-13 | Move and add-to-list | Sat afternoon | A + I | T-12 | 6.5, 6.6, 9.2 |
 | T-14 | Assignees, dates, priority | Sat evening | I | T-11 | 6.8, 9.4 |
@@ -1000,7 +1017,7 @@ Each project can hold many docs; each doc is a tree of pages up to 3 levels deep
 
 **T-09 List view**
 
-- [ ] Rows match 9.2; checkbox completes with optimistic update and rollback on failure.
+- [ ] Rows match 9.2 and the list-view designs; the status control's menu changes status with optimistic update and rollback on failure.
 - [ ] Inline add, drag reorder (Manual sort), View menu (sort, show completed) work; 200 tasks scroll smoothly.
 
 **T-10 Quick add and parser**
@@ -1008,14 +1025,14 @@ Each project can hold many docs; each doc is a tree of pages up to 3 levels deep
 - [ ] `q` opens quick add from any page; tokens in 9.3 parse into chips and are stripped from the title.
 - [ ] Parser has at least 15 unit tests (dates, priorities, assignee and list tokens, combinations, no tokens).
 
-**T-11 Task panel shell**
+**T-11 Task dialog shell**
 
-- [ ] Opens from any row; URL gains `?task=<id>`; reload keeps it open; `Esc` closes.
-- [ ] Breadcrumb, title edit, status dropdown, description editor with autosave.
+- [ ] Opens from any row as the centered task dialog (design `task-dialog-*`); URL gains `?task=<id>`; reload keeps it open; `Esc`, `×` and a click outside close it; `↑`/`↓` step through the list.
+- [ ] Breadcrumb, title edit, status control, description editor with autosave, properties column layout.
 
 **T-12 Subtasks and display modes**
 
-- [ ] Add subtasks inline from rows and panel; creating at depth 3 is blocked with a message.
+- [ ] Add subtasks inline from rows and the task dialog; creating at depth 3 is blocked with a message.
 - [ ] View menu switches Nested / Separate for the list; Separate shows the parent title above each subtask; clicking it opens the parent.
 - [ ] Convert to task / Make subtask of… works with cycle and depth checks.
 
@@ -1060,7 +1077,7 @@ Each project can hold many docs; each doc is a tree of pages up to 3 levels deep
 
 **T-21 Polish**
 
-- [ ] All shortcuts in 9.7 work; empty states and skeletons on every view; mobile drawer and full-screen panel below 768px; no console errors.
+- [ ] All shortcuts in 9.7 work; empty states and skeletons on every view; mobile drawer and full-screen task dialog below 768px; no console errors.
 
 **T-22 E2E tests and production release**
 
@@ -1089,7 +1106,7 @@ Run against a dedicated Neon test branch (or local Postgres in Docker), resettin
 - Invites: expiry, revocation, max uses, duplicate join, cannot invite as OWNER.
 - Last-owner rules for `changeRole`, `removeMember`, `leaveSpace`.
 - Statuses: min-one TODO/DONE rule, delete with replacement moves tasks and logs activity.
-- Completion: checkbox sets first DONE status + `completedAt`; status change out of DONE clears it; `includeSubtasks`.
+- Completion: Complete sets first DONE status + `completedAt`; status change out of DONE clears it; `includeSubtasks` / `completeSubtasks`.
 - Subtasks: depth limit, inheritance of project/list, `setParent` cycle and depth checks.
 - Move: cross-project rejected; subtask move rejected; subtree `homeListId` updated; existing link to target removed.
 - Link: duplicate and home-list links rejected; remove link keeps the task in its home list.

@@ -252,6 +252,11 @@ export type UpdateTaskInput = {
   startDate?: string | null;
   dueDate?: string | null;
   dueHasTime?: boolean;
+  /**
+   * With a status change into DONE: also move the task's open descendants to that status,
+   * each logging TASK_COMPLETED (6.2.4 — the status menu's "Also complete N open subtasks?").
+   */
+  completeSubtasks?: boolean;
 };
 
 /**
@@ -320,6 +325,19 @@ export async function updateTask(ctx: Ctx, input: UpdateTaskInput): Promise<Task
     }
 
     if (Object.keys(data).length > 0) await tx.task.update({ where: { id: task.id }, data });
+    if (input.completeSubtasks && data.statusId && data.completedAt instanceof Date) {
+      const open = await tx.task.findMany({
+        where: { id: { in: await descendantIds(tx, [task.id]) }, completedAt: null },
+        select: { id: true },
+      });
+      if (open.length > 0) {
+        await tx.task.updateMany({
+          where: { id: { in: open.map((t) => t.id) } },
+          data: { statusId: data.statusId as string, completedAt: data.completedAt },
+        });
+        for (const t of open) events.push({ spaceId, taskId: t.id, actorId: ctx.userId, type: "TASK_COMPLETED", payload: {} });
+      }
+    }
     await logActivities(tx, events);
     return (await loadTaskRows(tx, { id: task.id })).rows[0];
   });

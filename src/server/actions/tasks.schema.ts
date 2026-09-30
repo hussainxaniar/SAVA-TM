@@ -35,6 +35,7 @@ export const updateTaskSchema = z.object({
   startDate: date.optional(),
   dueDate: date.optional(),
   dueHasTime: z.boolean().optional(),
+  completeSubtasks: z.boolean().optional(),
 });
 
 export const setCompletedSchema = z.object({

@@ -191,6 +191,33 @@ describe("updateTask", () => {
   });
 });
 
+describe("updateTask status into DONE with completeSubtasks", () => {
+  it("moves open descendants to the chosen DONE status, each logging TASK_COMPLETED", async () => {
+    const shipped = await createStatus(as(s.users.owner.id), { projectId, name: "Shipped", color: "#16A34A", category: "DONE" });
+    const parent = await createTask(me, { listId: general, title: "Parent" });
+    const a = await createTask(me, { listId: general, parentId: parent.id, title: "A" });
+    const b = await createTask(me, { listId: general, parentId: a.id, title: "B" });
+    const alreadyDone = await createTask(me, { listId: general, parentId: parent.id, title: "Done already", statusId: st.done });
+
+    await updateTask(me, { taskId: parent.id, statusId: shipped.id, completeSubtasks: true });
+    for (const id of [a.id, b.id]) {
+      const t = await getTask(me, { taskId: id });
+      expect(t.status.id).toBe(shipped.id);
+      expect(t.completedAt).not.toBeNull();
+      expect((await types(id)).filter((x) => x === "TASK_COMPLETED")).toHaveLength(1);
+    }
+    expect((await getTask(me, { taskId: alreadyDone.id })).status.id).toBe(st.done); // untouched
+    expect(await types(parent.id)).toContain("STATUS_CHANGED");
+  });
+
+  it("ignores completeSubtasks when the status isn't moving into DONE", async () => {
+    const parent = await createTask(me, { listId: general, title: "Parent" });
+    const child = await createTask(me, { listId: general, parentId: parent.id, title: "Child" });
+    await updateTask(me, { taskId: parent.id, statusId: st.active, completeSubtasks: true });
+    expect((await getTask(me, { taskId: child.id })).completedAt).toBeNull();
+  });
+});
+
 describe("setCompleted", () => {
   it("completes into the first DONE status and reopens into the first TODO status", async () => {
     const shipped = await createStatus(as(s.users.owner.id), { projectId, name: "Shipped", color: "#16A34A", category: "DONE" });
