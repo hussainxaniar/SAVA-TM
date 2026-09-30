@@ -1,13 +1,17 @@
 # T-09 (part 3) · Review fixes from the human
 
-**Model:** I · **Spec:** blueprint 6.2, 9.1, 9.2, 9.8 (updated 2026-09-30) · **Designs:** `docs/design/list-view-*.jpg`,
-`docs/design/icon-subtask.md`
+**Model:** I · **Spec:** blueprint 6.2, 9.1, 9.2, 9.8 (updated 2026-09-30) · **Designs:** `docs/design/list-view-*.jsx.txt`
+(exact code export of the designs), `docs/design/icons.md`
+
+> **Do not open image files** (`.jpg`, `.png`): the implementer model can't read images and the session will
+> fail. Everything you need is in the `.jsx.txt` exports and this ticket.
 
 ## Implementer handoff
 
 ```
 Ticket: T-09 fixes — status menu, drag from anywhere, sidebar alignment, lucide icons
-Read: docs/blueprint.md 6.2, 9.1, 9.2, 9.8; this file; docs/design/list-view-nested.jpg; docs/design/icon-subtask.md
+Read: docs/blueprint.md 6.2, 9.1, 9.2, 9.8; this file; docs/design/icons.md; docs/design/list-view-nested.jsx.txt (sidebar block for positions)
+Never open .jpg/.png files.
 Files to touch: src/components/tasks/* (existing files; new files allowed there),
   src/components/sidebar/project-tree.tsx, src/components/project-settings/sortable-rows.tsx
   (and statuses-editor.tsx / lists-editor.tsx only if the SortableRow API changes)
@@ -55,7 +59,7 @@ because `PointerSensor`'s `activationConstraint: { distance: 4 }` only starts a 
 
 ### 3. Sidebar alignment: match the design exactly
 
-With the grip gone, the tree must line up with `docs/design/list-view-nested.jpg` (x from the sidebar's
+With the grip gone, the tree must line up with the design (`docs/design/list-view-nested.jsx.txt`; x from the sidebar's
 left edge; the sidebar has 8px horizontal padding):
 
 | Element | Design position |
@@ -70,11 +74,13 @@ left edge; the sidebar has 8px horizontal padding):
 Nothing may be absolutely positioned or offset to the left of the chevron. Verify it by measuring in the
 browser (DevTools) against these numbers.
 
-### 4. Icons: lucide everywhere, except the subtask glyph
+### 4. Icons: lucide everywhere, except the subtask glyph and the priority flag
 
 Replace **every hand-drawn `<svg>`** in `src/components/tasks/`, `src/components/sidebar/` and
-`src/components/project-settings/` with `lucide-react` icons. The **only** exception is `SubtaskGlyph` in
-`status-icon.tsx`, which is the design's subtask icon (`docs/design/icon-subtask.md`); keep it as is. Mapping:
+`src/components/project-settings/` with `lucide-react` icons. The **only** two exceptions (see
+`docs/design/icons.md`): `SubtaskGlyph` in `status-icon.tsx` (keep as is) and `PriorityFlag` in
+`priority-flag.tsx`, the design's **filled** flag (lucide's `Flag` is an outline, so don't use it). Make sure
+`PriorityFlag` draws exactly the `icons.md` path, filled and stroked with `currentColor`. Mapping:
 
 | Use | lucide icon | Classes |
 |---|---|---|
@@ -82,11 +88,11 @@ Replace **every hand-drawn `<svg>`** in `src/components/tasks/`, `src/components
 | Status Active | `ChartPie` | `text-status-active` |
 | Status Done (rows, menu) | `CircleCheck` | `fill-done text-white` (a green disc with a white check) |
 | Done group pill icon | `CircleCheck` | `fill-white text-done` |
-| Priority flag P1–P3 | `Flag` | `fill-current` + `text-priority-1/2/3` |
+| Priority flag P1–P3 | `PriorityFlag` (custom, see above) | `text-priority-1/2/3` |
 | Row hover "+" | `Plus` | as now |
 | Anything else | the obvious lucide icon | |
 
-Remove the old custom status and flag SVG components once nothing uses them.
+Remove the old custom status SVG components once nothing uses them (keep `SubtaskGlyph` and `PriorityFlag`).
 
 ## Acceptance
 
@@ -94,5 +100,5 @@ Remove the old custom status and flag SVG components once nothing uses them.
   to that status's group); Done with open subtasks asks first.
 - [ ] Rows, sidebar projects and settings rows drag from anywhere; clicks, menus and inline edits still work.
 - [ ] Sidebar matches the design positions above; no visible drag handles anywhere.
-- [ ] No hand-drawn SVGs except `SubtaskGlyph`.
+- [ ] No hand-drawn SVGs except `SubtaskGlyph` and `PriorityFlag`.
 - [ ] `pnpm typecheck && pnpm lint && pnpm test` pass with no lint warnings.
