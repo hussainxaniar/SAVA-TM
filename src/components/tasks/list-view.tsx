@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   DndContext,
   KeyboardSensor,
@@ -13,7 +14,7 @@ import {
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { comparePositions } from "@/lib/position";
-import { buildGroups, type DisplayMode, type SortMode } from "@/lib/list-view";
+import { buildGroups, parentCandidates, type DisplayMode, type SortMode } from "@/lib/list-view";
 import { rememberLastList } from "@/lib/last-list";
 import { publishTaskOrder } from "@/lib/task-nav";
 import {
@@ -25,6 +26,7 @@ import {
   useSetStatus,
   useUpdateTask,
 } from "@/hooks/use-list-view";
+import { useSetParent } from "@/hooks/use-task";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { ListHeader } from "@/components/tasks/list-header";
 import { StatusGroup, type AddTarget } from "@/components/tasks/status-group";
@@ -71,6 +73,7 @@ export function ListView({ initialData, spaceId, canDeleteLists }: ListViewProps
   const createTask = useCreateTask(listId);
   const reorderTask = useReorderTask(listId);
   const deleteTask = useDeleteTask(listId);
+  const setParent = useSetParent();
 
   const mode: DisplayMode = data.list.subtaskDisplay;
   const groups = useMemo(
@@ -126,6 +129,37 @@ export function ListView({ initialData, spaceId, canDeleteLists }: ListViewProps
   const removeTask = useCallback(
     (task: TaskRowDTO) => deleteTask.mutate({ taskId: task.id, title: task.title }),
     [deleteTask],
+  );
+
+  // Valid parents per task, computed on demand (row menu and its picker, 6.4.3).
+  const candidatesFor = useCallback(
+    (taskId: string) => parentCandidates(data.tasks, taskId),
+    [data.tasks],
+  );
+
+  const makeSubtaskOf = useCallback(
+    async (task: TaskRowDTO, parentId: string) => {
+      try {
+        await setParent.mutateAsync({ taskId: task.id, parentId });
+        const parent = data.tasks.find((t) => t.id === parentId);
+        if (parent) toast.success(`Moved under "${parent.title}"`);
+      } catch {
+        // the hook toasted the failure
+      }
+    },
+    [setParent, data.tasks],
+  );
+
+  const convertToTask = useCallback(
+    async (task: TaskRowDTO) => {
+      try {
+        await setParent.mutateAsync({ taskId: task.id, parentId: null });
+        toast.success("Converted to a task");
+      } catch {
+        // the hook toasted the failure
+      }
+    },
+    [setParent],
   );
 
   const toggleCollapsed = useCallback(
@@ -224,6 +258,9 @@ export function ListView({ initialData, spaceId, canDeleteLists }: ListViewProps
     onSetPriority: setPriority,
     onDeleteTask: removeTask,
     onAddChild: addChild,
+    onMakeSubtaskOf: makeSubtaskOf,
+    onConvertToTask: convertToTask,
+    candidatesFor,
   };
 
   return (

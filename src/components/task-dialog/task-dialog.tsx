@@ -7,17 +7,15 @@ import {
   IconAlignLeft,
   IconChevronDown,
   IconChevronUp,
+  IconCornerLeftUp,
   IconDots,
   IconLink,
   IconTrash,
   IconX,
 } from "@tabler/icons-react";
-import { useDeleteTaskAnywhere, useEditTask, useTask } from "@/hooks/use-task";
+import { useDeleteTaskAnywhere, useEditTask, useSetParent, useTask } from "@/hooks/use-task";
 import { useTaskOrder } from "@/lib/task-nav";
-import { formatDue, type DueTone } from "@/lib/list-view";
-import { cn } from "@/lib/utils";
-import { Avatar } from "@/components/tasks/avatar-stack";
-import { StatusControl, StatusGlyph } from "@/components/tasks/status-icon";
+import { StatusControl } from "@/components/tasks/status-icon";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
@@ -31,6 +29,7 @@ import {
 import type { TaskDetailDTO } from "@/server/services/types";
 import { DescriptionEditor } from "./description-editor";
 import { PropertiesColumn } from "./properties-column";
+import { Subtasks } from "./subtasks";
 
 export type TaskDialogProps = {
   spaceId: string;
@@ -47,12 +46,6 @@ const BOX_CLASS =
   "sm:max-w-[1080px] shadow-[0_24px_64px_rgb(24_24_27/0.28)] " +
   "max-md:h-dvh max-md:w-screen max-md:max-w-none max-md:rounded-none";
 
-const TONE_CLASS: Record<DueTone, string> = {
-  overdue: "text-overdue",
-  today: "text-success",
-  default: "",
-};
-
 /**
  * Section 9.4 task dialog shell (T-11): header, title, description, subtasks and the read-only
  * properties column. Editing the other properties, and the Activity section, come in T-12–T-15.
@@ -62,6 +55,7 @@ export function TaskDialog({ spaceId, taskId, open, onClose, onOpenTask }: TaskD
   const order = useTaskOrder();
   const editTask = useEditTask();
   const deleteTask = useDeleteTaskAnywhere();
+  const setParent = useSetParent();
   // Opening focuses the dialog box itself, not its first button (no stray focus ring on ↑).
   const popupRef = useRef<HTMLDivElement>(null);
 
@@ -109,6 +103,17 @@ export function TaskDialog({ spaceId, taskId, open, onClose, onOpenTask }: TaskD
     onClose();
   }, [deleteTask, onClose, task]);
 
+  // Promote to a top-level task; the dialog stays open and the breadcrumb refetches (6.4.3).
+  const convert = useCallback(async () => {
+    if (!task) return;
+    try {
+      await setParent.mutateAsync({ taskId: task.id, parentId: null });
+      toast.success("Converted to a task");
+    } catch {
+      // the hook toasted the failure
+    }
+  }, [setParent, task]);
+
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent
@@ -127,6 +132,8 @@ export function TaskDialog({ spaceId, taskId, open, onClose, onOpenTask }: TaskD
           onClose={onClose}
           onCopyLink={copyLink}
           onDelete={remove}
+          canConvert={!!task?.parentId}
+          onConvert={convert}
         />
         {error ? (
           <ErrorState onClose={onClose} />
@@ -153,9 +160,7 @@ export function TaskDialog({ spaceId, taskId, open, onClose, onOpenTask }: TaskD
                   onSave={(description) => editTask.mutate({ taskId: task.id, description })}
                 />
               </div>
-              {task.subtaskCount > 0 && (
-                <Subtasks task={task} statuses={task.statuses} onOpenTask={onOpenTask} />
-              )}
+              <Subtasks task={task} onOpenTask={onOpenTask} />
             </div>
             <PropertiesColumn task={task} onSetStatus={onSetStatus} />
           </div>
@@ -175,6 +180,8 @@ function Header({
   onClose,
   onCopyLink,
   onDelete,
+  canConvert,
+  onConvert,
 }: {
   task: TaskDetailDTO | undefined;
   prevId: string | null;
@@ -183,6 +190,8 @@ function Header({
   onClose: () => void;
   onCopyLink: () => void;
   onDelete: () => void;
+  canConvert: boolean;
+  onConvert: () => void;
 }) {
   return (
     <header className="flex h-14 shrink-0 items-center border-b border-divider pl-7 pr-4">
@@ -258,6 +267,12 @@ function Header({
                 <IconLink aria-hidden />
                 Copy link
               </DropdownMenuItem>
+              {canConvert && (
+                <DropdownMenuItem onClick={onConvert}>
+                  <IconCornerLeftUp aria-hidden />
+                  Convert to task
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem variant="destructive" onClick={onDelete}>
                 <IconTrash aria-hidden />
                 Delete
@@ -333,72 +348,6 @@ function TitleEditor({
       onBlur={commit}
       className="min-w-0 flex-1 resize-none field-sizing-content bg-transparent text-2xl font-semibold leading-8 tracking-[-0.015em] outline-none"
     />
-  );
-}
-
-// ---------- Subtasks (9.4.4, read-only rows in T-11) ----------
-
-function Subtasks({
-  task,
-  statuses,
-  onOpenTask,
-}: {
-  task: TaskDetailDTO;
-  statuses: TaskDetailDTO["statuses"];
-  onOpenTask: (taskId: string) => void;
-}) {
-  const total = task.subtasks.length;
-  const done = task.subtasks.filter((s) => s.completedAt !== null).length;
-  const pct = total === 0 ? 0 : Math.round((done / total) * 100);
-
-  return (
-    <section className="ml-10 mt-7">
-      <div className="flex h-8 items-center gap-2.5">
-        <h3 className="text-sm font-semibold">Subtasks</h3>
-        <span className="text-[13px] text-muted-foreground">
-          {done}/{total}
-        </span>
-        <div aria-hidden className="ml-1.5 h-1 w-[120px] rounded-[2px] bg-pill">
-          <div
-            className="h-1 rounded-[2px] bg-success transition-width"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-      </div>
-      <ul>
-        {task.subtasks.map((sub) => {
-          const due = sub.dueDate ? formatDue(sub.dueDate, sub.dueHasTime, { completed: sub.completedAt !== null }) : null;
-          const isDone = sub.completedAt !== null;
-          return (
-            <li key={sub.id}>
-              <button
-                type="button"
-                onClick={() => onOpenTask(sub.id)}
-                className="flex h-10 w-full items-center gap-3 border-b border-divider text-left"
-              >
-                <StatusGlyph status={sub.status} statuses={statuses} size={16} className="shrink-0" />
-                <span
-                  className={cn(
-                    "min-w-0 flex-1 truncate text-sm",
-                    isDone && "text-muted-foreground line-through",
-                  )}
-                >
-                  {sub.title}
-                </span>
-                {due && (
-                  <span className={cn("shrink-0 text-xs", TONE_CLASS[due.tone])}>{due.label}</span>
-                )}
-                <span className="flex shrink-0">
-                  {sub.assignees.slice(0, 3).map((user, i) => (
-                    <Avatar key={user.id} user={user} className={cn("size-5", i > 0 && "-ml-1.5")} />
-                  ))}
-                </span>
-              </button>
-            </li>
-          );
-        })}
-      </ul>
-    </section>
   );
 }
 

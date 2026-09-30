@@ -36,6 +36,10 @@ export type TaskRowProps = {
   onSetPriority: (taskId: string, priority: Priority) => void;
   onDeleteTask: (task: TaskRowDTO) => void;
   onAddChild: (task: TaskRowDTO) => void;
+  onMakeSubtaskOf: (task: TaskRowDTO, parentId: string) => void;
+  onConvertToTask: (task: TaskRowDTO) => void;
+  /** Valid parents for a task id (parentCandidates); computed on demand by the menu. */
+  candidatesFor: (taskId: string) => TaskRowDTO[];
 };
 
 function dueLabel(task: TaskRowDTO) {
@@ -66,6 +70,9 @@ export const TaskRow = memo(function TaskRow({
   onSetPriority,
   onDeleteTask,
   onAddChild,
+  onMakeSubtaskOf,
+  onConvertToTask,
+  candidatesFor,
 }: TaskRowProps) {
   const { task } = row;
   const done = task.completedAt !== null;
@@ -100,7 +107,14 @@ export const TaskRow = memo(function TaskRow({
         </button>
       )}
       {!temp && (
-        <span onClick={(e) => e.stopPropagation()} onContextMenu={(e) => e.stopPropagation()}>
+        // Portaled menus and the picker still bubble React events to the row: keep clicks (open),
+        // pointer-downs (drag) and keys (keyboard drag on Space/Enter) from reaching it.
+        <span
+          onClick={(e) => e.stopPropagation()}
+          onContextMenu={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
           <TaskRowMenu
             task={task}
             open={menuOpen}
@@ -109,6 +123,10 @@ export const TaskRow = memo(function TaskRow({
             onComplete={onComplete}
             onSetPriority={onSetPriority}
             onDeleteTask={onDeleteTask}
+            onMakeSubtaskOf={onMakeSubtaskOf}
+            onConvertToTask={onConvertToTask}
+            candidatesFor={candidatesFor}
+            statuses={statuses}
           />
         </span>
       )}
@@ -119,6 +137,7 @@ export const TaskRow = memo(function TaskRow({
     <span
       onClick={(e) => e.stopPropagation()}
       onContextMenu={(e) => e.stopPropagation()}
+      onKeyDown={(e) => e.stopPropagation()}
     >
       <StatusControl task={task} statuses={statuses} disabled={temp} onSetStatus={onSetStatus} />
     </span>
