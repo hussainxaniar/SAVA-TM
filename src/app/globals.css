@@ -41,6 +41,7 @@
   --color-card: var(--card);
   /* Sava TM design tokens (Paper design "List view", 2026-09-29) */
   --color-divider: var(--divider);
+  --color-panel: var(--panel);
   --color-pill: var(--pill);
   --color-selected: var(--selected);
   --color-selected-foreground: var(--selected-foreground);
@@ -94,6 +95,7 @@
   --sidebar-border: #e8e8ea;
   --sidebar-ring: oklch(0.708 0 0);
   --divider: #f0f0f1;
+  --panel: #fafafa; /* task dialog properties column */
   --pill: #f0f0f2;
   --selected: #e9effe;
   --selected-foreground: #1d4ed8;
@@ -139,6 +141,7 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
   --divider: oklch(1 0 0 / 7%);
+  --panel: oklch(0.175 0 0);
   --pill: oklch(0.269 0 0);
   --selected: oklch(0.3 0.08 264);
   --selected-foreground: #93c5fd;
@@ -161,4 +164,29 @@
   html {
     @apply font-sans;
   }
+}
+/* Tiptap rich text (task descriptions now, docs in T-20). Scoped to .rich-text. */
+@layer components {
+  .rich-text {
+    @apply text-sm leading-[22px] text-foreground outline-none;
+  }
+  .rich-text > * + * {
+    @apply mt-2;
+  }
+  .rich-text p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    @apply pointer-events-none float-left h-0 text-muted-foreground;
+  }
+  .rich-text h1 { @apply text-xl font-semibold; }
+  .rich-text h2 { @apply text-lg font-semibold; }
+  .rich-text h3 { @apply text-base font-semibold; }
+  .rich-text ul { @apply list-disc pl-5; }
+  .rich-text ol { @apply list-decimal pl-5; }
+  .rich-text li > p { @apply m-0; }
+  .rich-text a { @apply text-primary underline underline-offset-2; }
+  .rich-text code { @apply rounded bg-muted px-1 py-0.5 font-mono text-[13px]; }
+  .rich-text pre { @apply rounded-md bg-muted p-3 font-mono text-[13px]; }
+  .rich-text pre code { @apply bg-transparent p-0; }
+  .rich-text blockquote { @apply border-l-2 border-border pl-3 text-muted-foreground; }
+  .rich-text hr { @apply my-3 border-border; }
 }

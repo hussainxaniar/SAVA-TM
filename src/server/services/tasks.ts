@@ -81,10 +81,14 @@ export async function getTask(ctx: Ctx, input: { taskId: string }): Promise<Task
   });
   if (!task) throw notFound();
 
-  const [{ rows: subtasks }, open, createdBy] = await Promise.all([
+  const [{ rows: subtasks }, open, createdBy, project] = await Promise.all([
     loadTaskRows(db, { parentId: task.id }),
     db.task.count({ where: { parentId: task.id, deletedAt: null, completedAt: null } }),
     db.user.findUnique({ where: { id: task.createdById }, select: { id: true, name: true, image: true } }),
+    db.project.findUniqueOrThrow({
+      where: { id: task.projectId },
+      select: { id: true, name: true, color: true, statuses: { orderBy: { position: "asc" } } },
+    }),
   ]);
 
   const breadcrumb: { id: string; title: string }[] = [];
@@ -96,6 +100,8 @@ export async function getTask(ctx: Ctx, input: { taskId: string }): Promise<Task
     description: task.description,
     projectId: task.projectId,
     spaceId: task.spaceId,
+    project: { id: project.id, name: project.name, color: project.color },
+    statuses: project.statuses.map(toStatusDTO),
     homeList: task.homeList,
     linkedLists: task.links.map((l) => l.list),
     breadcrumb,

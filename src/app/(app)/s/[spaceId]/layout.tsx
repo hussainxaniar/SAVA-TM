@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { QuickAddDialog } from "@/components/quick-add/quick-add-dialog";
 import { Sidebar } from "@/components/sidebar/sidebar";
+import { TaskDialogHost } from "@/components/task-dialog/task-dialog-host";
 import { can } from "@/server/guards";
 import { getSessionUser } from "@/server/auth";
 import { getSidebar } from "@/server/services/projects";
@@ -33,7 +35,10 @@ export default async function SpaceLayout({
         canArchiveProjects={can(current.role, "archiveProject")}
       />
       <div className="min-w-0 flex-1 overflow-auto">{children}</div>
-      {/* TODO (T-11): Task dialog host */}
+      {/* Reads ?task= (useSearchParams), so it sits in its own Suspense boundary. */}
+      <Suspense fallback={null}>
+        <TaskDialogHost spaceId={spaceId} />
+      </Suspense>
       <QuickAddDialog
         spaceId={spaceId}
         projects={projects}

@@ -93,6 +93,10 @@ export type TaskDetailDTO = TaskRowDTO & {
   description: unknown | null; // Tiptap JSON
   projectId: string;
   spaceId: string;
+  /** For the task dialog's breadcrumb. */
+  project: { id: string; name: string; color: string };
+  /** The project's statuses in position order (the dialog's status menu). */
+  statuses: StatusDTO[];
   homeList: { id: string; name: string };
   linkedLists: { id: string; name: string }[];
   /** Ancestors, root first. */

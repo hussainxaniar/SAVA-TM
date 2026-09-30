@@ -444,3 +444,15 @@ describe("sidebar open counts and list view project", () => {
     });
   });
 });
+
+describe("getTask dialog context", () => {
+  it("returns the project and its statuses in position order", async () => {
+    const t = await createTask(me, { listId: general, title: "T" });
+    const extra = await createStatus(as(s.users.owner.id), { projectId, name: "Review", color: "#F59E0B", category: "ACTIVE" });
+    const detail = await getTask(me, { taskId: t.id });
+    expect(detail.project).toEqual({ id: projectId, name: "P", color: expect.any(String) });
+    const ordered = await db.status.findMany({ where: { projectId }, orderBy: { position: "asc" }, select: { id: true } });
+    expect(detail.statuses.map((x) => x.id)).toEqual(ordered.map((x) => x.id));
+    expect(detail.statuses.map((x) => x.id)).toContain(extra.id);
+  });
+});

@@ -21,7 +21,7 @@ import type { ListViewDTO, StatusDTO, TaskRowDTO } from "@/server/services/types
  * TanStack Query for the list view (Section 4): the page renders with server data
  * (`initialData`), then every mutation here patches the cache immediately (optimistic),
  * rolls back with an error toast if the server refuses, and re-syncs on settle.
- * Query keys: ['tasks', listId] for a list, ['task', taskId] for the panel (T-11).
+ * Query keys: ['tasks', listId] for a list, ['task', taskId] for the task dialog (use-task.ts).
  */
 
 export const listViewKey = (listId: string) => ["tasks", listId] as const;
@@ -107,25 +107,7 @@ export function useSetCompleted(listId: string) {
 export function useUpdateTask(listId: string) {
   return useListMutation(listId, {
     run: (v: UpdateTaskInput) => updateTaskAction(v as Parameters<typeof updateTaskAction>[0]),
-    patch: (data, v) =>
-      mapTasks(data, (t) => {
-        if (t.id !== v.taskId) return t;
-        const next = { ...t };
-        if (v.title !== undefined) next.title = v.title.trim();
-        if (v.priority !== undefined) next.priority = v.priority as TaskRowDTO["priority"];
-        if (v.startDate !== undefined) next.startDate = v.startDate;
-        if (v.dueDate !== undefined) next.dueDate = v.dueDate;
-        if (v.dueHasTime !== undefined || v.dueDate === null) next.dueHasTime = next.dueDate ? (v.dueHasTime ?? t.dueHasTime) : false;
-        if (v.statusId !== undefined) {
-          const status = data.statuses.find((s) => s.id === v.statusId);
-          if (status) {
-            next.status = status;
-            if (status.category === "DONE" && t.status.category !== "DONE") next.completedAt = new Date().toISOString();
-            if (status.category !== "DONE") next.completedAt = null;
-          }
-        }
-        return next;
-      }),
+    patch: patchTaskFields,
   });
 }
 
@@ -135,22 +117,8 @@ export function useUpdateTask(listId: string) {
  */
 export function useSetStatus(listId: string) {
   return useListMutation(listId, {
-    run: (v: { taskId: string; statusId: string; completeSubtasks?: boolean }) => updateTaskAction(v),
-    patch: (data, v) => {
-      const status = data.statuses.find((s) => s.id === v.statusId);
-      const task = data.tasks.find((t) => t.id === v.taskId);
-      if (!status || !task) return data;
-      const intoDone = status.category === "DONE" && task.status.category !== "DONE";
-      const cascade = new Set(intoDone && v.completeSubtasks ? descendants(data.tasks, v.taskId) : []);
-      const now = new Date().toISOString();
-      return mapTasks(data, (t) => {
-        if (t.id === v.taskId) {
-          return { ...t, status, completedAt: status.category === "DONE" ? (t.completedAt ?? now) : null };
-        }
-        if (cascade.has(t.id) && !t.completedAt) return { ...t, status, completedAt: now };
-        return t;
-      });
-    },
+    run: (v: StatusChange) => updateTaskAction(v),
+    patch: patchStatus,
   });
 }
 
@@ -262,6 +230,49 @@ export function useRenameList(listId: string) {
   });
 }
 
+// ---------- cache patches (shared with use-task.ts) ----------
+
+export type StatusChange = { taskId: string; statusId: string; completeSubtasks?: boolean };
+
+/** Applies an updateTask input to a list view's rows (title, priority, dates, status). */
+export function patchTaskFields(data: ListViewDTO, v: UpdateTaskInput): ListViewDTO {
+  return mapTasks(data, (t) => {
+    if (t.id !== v.taskId) return t;
+    const next = { ...t };
+    if (v.title !== undefined) next.title = v.title.trim();
+    if (v.priority !== undefined) next.priority = v.priority as TaskRowDTO["priority"];
+    if (v.startDate !== undefined) next.startDate = v.startDate;
+    if (v.dueDate !== undefined) next.dueDate = v.dueDate;
+    if (v.dueHasTime !== undefined || v.dueDate === null) next.dueHasTime = next.dueDate ? (v.dueHasTime ?? t.dueHasTime) : false;
+    if (v.statusId !== undefined) {
+      const status = data.statuses.find((s) => s.id === v.statusId);
+      if (status) {
+        next.status = status;
+        if (status.category === "DONE" && t.status.category !== "DONE") next.completedAt = new Date().toISOString();
+        if (status.category !== "DONE") next.completedAt = null;
+      }
+    }
+    return next;
+  });
+}
+
+/** Applies a status change to a list view, cascading into open descendants when asked (6.2.4). */
+export function patchStatus(data: ListViewDTO, v: StatusChange): ListViewDTO {
+  const status = data.statuses.find((s) => s.id === v.statusId);
+  const task = data.tasks.find((t) => t.id === v.taskId);
+  if (!status || !task) return data;
+  const intoDone = status.category === "DONE" && task.status.category !== "DONE";
+  const cascade = new Set(intoDone && v.completeSubtasks ? descendants(data.tasks, v.taskId) : []);
+  const now = new Date().toISOString();
+  return mapTasks(data, (t) => {
+    if (t.id === v.taskId) {
+      return { ...t, status, completedAt: status.category === "DONE" ? (t.completedAt ?? now) : null };
+    }
+    if (cascade.has(t.id) && !t.completedAt) return { ...t, status, completedAt: now };
+    return t;
+  });
+}
+
 // ---------- cache helpers ----------
 
 function mapTasks(data: ListViewDTO, fn: (t: TaskRowDTO) => TaskRowDTO): ListViewDTO {
@@ -285,7 +296,7 @@ export function descendants(tasks: readonly TaskRowDTO[], id: string): string[] 
 }
 
 /** Recomputes subtask counts for rows whose children are all in view (always true in Visible(L)). */
-function recount(data: ListViewDTO): ListViewDTO {
+export function recount(data: ListViewDTO): ListViewDTO {
   const kids = new Map<string, TaskRowDTO[]>();
   for (const t of data.tasks) {
     if (!t.parentId) continue;
