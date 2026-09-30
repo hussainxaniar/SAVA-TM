@@ -16,7 +16,7 @@ Single-glance status for all 22 tickets. Update this file and the matching
 | T-09 | List view | I | ✅ done | 93ba0f7 |
 | T-10 | Quick add and parser | I | ✅ done | b967520 |
 | T-11 | Task dialog shell | I | ✅ done | c3beaf7 |
-| T-12 | Subtasks and display modes | A + I | ⬜ pending | — |
+| T-12 | Subtasks and display modes | A + I | ✅ done | ccbc509 |
 | T-13 | Move and add-to-list | A + I | ⬜ pending | — |
 | T-14 | Assignees, dates, priority | I | ⬜ pending | — |
 | T-15 | Comments and activity feed | A + I | ⬜ pending | — |
