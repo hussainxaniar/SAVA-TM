@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,7 +10,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,16 +29,19 @@ export type NewProjectDialogProps = {
   spaceId: string;
   /** Existing projects, for "Copy statuses from…". */
   projects: { id: string; name: string }[];
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 };
-
-const triggerRow =
-  "flex h-8 w-full items-center gap-2 rounded-md px-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground";
 
 const DEFAULT_STATUSES = "Default (To do, In progress, Done)";
 
-export function NewProjectDialog({ spaceId, projects }: NewProjectDialogProps) {
+export function NewProjectDialog({
+  spaceId,
+  projects,
+  open,
+  onOpenChange,
+}: NewProjectDialogProps) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [color, setColor] = useState<string>(DEFAULT_PROJECT_COLOR);
   const [copyFrom, setCopyFrom] = useState("default");
@@ -79,7 +80,7 @@ export function NewProjectDialog({ spaceId, projects }: NewProjectDialogProps) {
       setError(res.error.message);
       return;
     }
-    setOpen(false);
+    onOpenChange(false);
     reset();
     router.push(
       `/s/${spaceId}/p/${res.data.projectId}/l/${res.data.firstListId}`,
@@ -87,11 +88,7 @@ export function NewProjectDialog({ spaceId, projects }: NewProjectDialogProps) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<button type="button" className={triggerRow} />}>
-        <Plus className="size-4" />
-        New project
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>New project</DialogTitle>

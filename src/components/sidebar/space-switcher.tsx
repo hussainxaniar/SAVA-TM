@@ -1,13 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Settings } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
@@ -22,8 +23,8 @@ function SpaceAvatar({ space, size }: { space: SpaceSummaryDTO; size: "sm" | "xs
   return (
     <span
       className={cn(
-        "flex shrink-0 items-center justify-center rounded-md bg-primary text-xs font-semibold text-primary-foreground",
-        size === "sm" ? "size-6" : "size-5",
+        "flex shrink-0 items-center justify-center rounded-md bg-foreground text-xs font-semibold text-background",
+        size === "sm" ? "size-6 text-xs" : "size-5 text-[10px]",
       )}
     >
       {space.icon ?? space.name.charAt(0).toUpperCase()}
@@ -42,9 +43,11 @@ export function SpaceSwitcher({ current, spaces }: Props) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="flex h-9 w-full items-center gap-2 rounded-md px-2 text-left hover:bg-accent">
+      <DropdownMenuTrigger className="flex h-9 w-full items-center gap-2 rounded-md px-2 text-left hover:bg-sidebar-accent">
         <SpaceAvatar space={current} size="sm" />
-        <span className="grow truncate text-sm font-medium">{current.name}</span>
+        <span className="grow truncate text-sm font-semibold text-foreground">
+          {current.name}
+        </span>
         <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
       </DropdownMenuTrigger>
       <DropdownMenuContent>
@@ -65,6 +68,13 @@ export function SpaceSwitcher({ current, spaces }: Props) {
             </DropdownMenuItem>
           ))}
         </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={() => router.push(`/s/${current.id}/settings`)}
+        >
+          <Settings />
+          Space settings
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

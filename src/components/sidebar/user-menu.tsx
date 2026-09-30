@@ -12,25 +12,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { avatarColors, initials } from "@/lib/list-view";
 import { authClient } from "@/lib/auth-client";
 
 export type UserMenuProps = {
-  user: { name: string; email: string; image: string | null };
+  user: { id: string; name: string; email: string; image: string | null };
 };
-
-function initials(name: string) {
-  return (
-    name
-      .trim()
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((word) => word.charAt(0).toUpperCase())
-      .join("") || "?"
-  );
-}
 
 export function UserMenu({ user }: UserMenuProps) {
   const router = useRouter();
+  const { bg, fg } = avatarColors(user.id);
 
   async function onSignOut() {
     await authClient.signOut();
@@ -40,12 +31,19 @@ export function UserMenu({ user }: UserMenuProps) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-muted-foreground hover:bg-accent hover:text-foreground">
-        <Avatar size="sm" className="size-6">
+      <DropdownMenuTrigger className="flex h-10 w-full items-center gap-2 rounded-md px-2 text-left hover:bg-sidebar-accent">
+        <Avatar size="sm" className="size-6 shrink-0">
           {user.image && <AvatarImage src={user.image} />}
-          <AvatarFallback>{initials(user.name)}</AvatarFallback>
+          <AvatarFallback
+            className="text-[11px] font-semibold"
+            style={{ backgroundColor: bg, color: fg }}
+          >
+            {initials(user.name)}
+          </AvatarFallback>
         </Avatar>
-        <span className="grow truncate text-sm">{user.name}</span>
+        <span className="grow truncate text-sm font-medium text-foreground">
+          {user.name}
+        </span>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="top" align="start">
         <DropdownMenuGroup>

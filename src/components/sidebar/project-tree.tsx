@@ -22,10 +22,11 @@ import {
 } from "@dnd-kit/sortable";
 import {
   Check,
+  ChevronDown,
   ChevronRight,
   FileText,
   GripVertical,
-  Hash,
+  List,
   MoreHorizontal,
 } from "lucide-react";
 import {
@@ -108,9 +109,10 @@ const collapsedStore = (() => {
   };
 })();
 
-const childRow =
-  "flex h-8 items-center gap-2 rounded-md px-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground";
-const childRowActive = "bg-accent font-medium text-foreground";
+const listRow =
+  "flex h-8 items-center gap-2 rounded-md pl-9 pr-2 text-sm text-foreground/80 hover:bg-sidebar-accent";
+const listRowActive =
+  "bg-selected font-medium text-selected-foreground hover:bg-selected";
 
 type SidebarProject = SidebarDTO["projects"][number];
 
@@ -120,12 +122,14 @@ function ProjectRow({
   expanded,
   onToggle,
   canArchiveProjects,
+  isFirst,
 }: {
   spaceId: string;
   project: SidebarProject;
   expanded: boolean;
   onToggle: (id: string) => void;
   canArchiveProjects: boolean;
+  isFirst: boolean;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -146,7 +150,6 @@ function ProjectRow({
   const [archivePending, setArchivePending] = useState(false);
 
   const projectHref = `/s/${spaceId}/p/${project.id}`;
-  const projectActive = pathname.startsWith(projectHref);
 
   function startRename() {
     cancelled.current = false;
@@ -200,9 +203,13 @@ function ProjectRow({
           : undefined,
         transition,
       }}
-      className={cn(isDragging && "relative z-10 opacity-50")}
+      className={cn(isDragging && "relative z-10 opacity-50", !isFirst && "mt-1")}
     >
-      <div className="group relative flex items-center gap-1">
+      <div
+        className={cn(
+          "group relative flex h-8 items-center gap-1.5 rounded-md pl-1 pr-2 hover:bg-sidebar-accent",
+        )}
+      >
         {editing ? (
           <Input
             value={draft}
@@ -231,40 +238,34 @@ function ProjectRow({
             <button
               type="button"
               aria-label={`Reorder ${project.name}`}
-              className="flex size-6 shrink-0 cursor-grab items-center justify-center rounded-md text-muted-foreground opacity-0 hover:bg-accent group-hover:opacity-100 active:cursor-grabbing"
+              className="absolute -left-2 top-1/2 z-10 flex -translate-y-1/2 cursor-grab items-center justify-center rounded-md bg-sidebar text-muted-foreground opacity-0 group-hover:opacity-100 active:cursor-grabbing"
               {...attributes}
               {...listeners}
             >
-              <GripVertical className="size-3.5" />
+              <GripVertical className="size-3" />
             </button>
             <button
               type="button"
               aria-expanded={expanded}
               aria-label={`Toggle ${project.name}`}
               onClick={() => onToggle(project.id)}
-              className="flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-accent"
+              className="flex size-3.5 shrink-0 items-center justify-center text-muted-foreground"
             >
-              <ChevronRight
-                className={cn(
-                  "size-4 transition-transform",
-                  expanded && "rotate-90",
-                )}
-              />
+              {expanded ? (
+                <ChevronDown className="size-3.5" strokeWidth={2.4} />
+              ) : (
+                <ChevronRight className="size-3.5" strokeWidth={2.4} />
+              )}
             </button>
             <Link
               href={projectHref}
-              className={cn(
-                "flex h-8 min-w-0 grow items-center gap-2 rounded-md px-2 text-sm hover:bg-accent",
-                projectActive
-                  ? "bg-accent font-medium text-foreground"
-                  : "text-muted-foreground",
-              )}
+              className="flex h-8 min-w-0 grow items-center gap-1.5 text-sm font-medium text-foreground"
             >
               {project.icon ? (
-                <span className="shrink-0 text-sm">{project.icon}</span>
+                <span className="mx-1 shrink-0 text-sm">{project.icon}</span>
               ) : (
                 <span
-                  className="size-2.5 shrink-0 rounded-full"
+                  className="mx-1 size-2 shrink-0 rounded-[2px]"
                   style={{ backgroundColor: project.color }}
                 />
               )}
@@ -337,49 +338,62 @@ function ProjectRow({
         )}
       </div>
       {expanded && !editing && (
-        <div className="pl-7">
+        <>
           {project.lists.map((list) => {
             const href = `/s/${spaceId}/p/${project.id}/l/${list.id}`;
+            const active = pathname.startsWith(href);
             return (
               <Link
                 key={list.id}
                 href={href}
                 className={cn(
-                  childRow,
-                  pathname.startsWith(href) && childRowActive,
+                  listRow,
+                  active && listRowActive,
                 )}
               >
-                <Hash className="size-4 shrink-0" />
-                <span className="truncate">{list.name}</span>
+                <List
+                  className={cn(
+                    "size-4 shrink-0 text-muted-foreground",
+                    active && "text-selected-foreground",
+                  )}
+                />
+                <span className="grow truncate">{list.name}</span>
+                {list.openTaskCount > 0 && (
+                  <span
+                    className={cn(
+                      "shrink-0 text-xs text-muted-foreground",
+                      active && "text-selected-foreground",
+                    )}
+                  >
+                    {list.openTaskCount}
+                  </span>
+                )}
               </Link>
             );
           })}
-          {project.docs.length > 0 && (
-            <p className="pl-2 mt-1 text-xs text-muted-foreground">Docs</p>
-          )}
           {project.docs.map((doc) =>
             doc.firstPageId ? (
               <Link
                 key={doc.id}
                 href={`/s/${spaceId}/p/${project.id}/d/${doc.id}/${doc.firstPageId}`}
                 className={cn(
-                  childRow,
+                  listRow,
                   pathname.startsWith(
                     `/s/${spaceId}/p/${project.id}/d/${doc.id}`,
-                  ) && childRowActive,
+                  ) && listRowActive,
                 )}
               >
-                <FileText className="size-4 shrink-0" />
-                <span className="truncate">{doc.title}</span>
+                <FileText className="size-4 shrink-0 text-muted-foreground" />
+                <span className="grow truncate">{doc.title}</span>
               </Link>
             ) : (
-              <p key={doc.id} className={childRow}>
-                <FileText className="size-4 shrink-0" />
-                <span className="truncate">{doc.title}</span>
+              <p key={doc.id} className={listRow}>
+                <FileText className="size-4 shrink-0 text-muted-foreground" />
+                <span className="grow truncate">{doc.title}</span>
               </p>
             ),
           )}
-        </div>
+        </>
       )}
       <AlertDialog open={archiveOpen} onOpenChange={setArchiveOpen}>
         <AlertDialogContent>
@@ -478,7 +492,7 @@ export function ProjectTree({
   }
 
   return (
-    <div className="space-y-0.5">
+    <div className="flex flex-col gap-px">
       <DndContext
         id={dndId}
         sensors={sensors}
@@ -489,7 +503,7 @@ export function ProjectTree({
           items={items.map((p) => p.id)}
           strategy={verticalListSortingStrategy}
         >
-          {items.map((project) => (
+          {items.map((project, index) => (
             <ProjectRow
               key={project.id}
               spaceId={spaceId}
@@ -497,6 +511,7 @@ export function ProjectTree({
               expanded={!collapsed.has(project.id)}
               onToggle={onToggle}
               canArchiveProjects={canArchiveProjects}
+              isFirst={index === 0}
             />
           ))}
         </SortableContext>
