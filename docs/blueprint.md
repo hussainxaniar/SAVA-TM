@@ -762,7 +762,7 @@ deletePage(ctx, { pageId }): Promise<void>                                   // 
 
 The app has one layout: sidebar left, main view center, and a **task dialog** that opens over the view. If a design choice isn't covered here, pick the option ClickUp or Todoist would pick.
 
-**Designs are the visual source of truth.** Paper file "SAVA TM" (https://app.paper.design/file/01M3QHGC3XJ75BKH8QP6BVSM3B), exported to `docs/design/` (screenshots + exact JSX): `list-view-nested`, `list-view-separate`, `task-dialog-empty`, `task-dialog-filled`. Where this section and a design disagree, the design wins. Icons: `lucide-react` everywhere, except the subtask icon, which is the custom glyph from the list-view designs (`docs/design/icon-subtask.md`).
+**Designs are the visual source of truth.** Paper file "SAVA TM" (https://app.paper.design/file/01M3QHGC3XJ75BKH8QP6BVSM3B), exported to `docs/design/` (screenshots + exact JSX): `list-view-nested`, `list-view-separate`, `task-dialog-empty`, `task-dialog-filled`. Where this section and a design disagree, the design wins. Icons: `lucide-react` everywhere, except two custom glyphs from the list-view designs: the subtask icon and the filled priority flag (`docs/design/icons.md`).
 
 ### 9.1 Layout
 
@@ -783,7 +783,7 @@ Design: `docs/design/list-view-nested.jpg` and `list-view-separate.jpg`.
 - **Header band:** project color square + project name (breadcrumb), **Share** (copies the list link); list name 28px semibold (click to rename); **View** menu (Subtasks: Nested / Separate, a shared per-list setting; Sort: Manual / Due date / Priority; Show completed) and `⋯` (Rename list, Project settings, Delete list… for Admins); "N tasks · M statuses".
 - **Status groups:** tasks are grouped by status in status order. Each group has a collapsible header with a status pill (uppercase name + status icon; DONE pills are filled green) and a count. DONE groups start collapsed; "Show completed" opens them. Each non-DONE group ends with `+ Add task` (creates in that status).
 - **Status control:** the circle at the start of every row is the task's **status**, not a checkbox. Its icon shows the category: `CircleDashed` (To do), `ChartPie` (Active, blue), `CircleCheck` filled green (Done). Clicking it opens a **status menu** listing the project's statuses (with their icons); choosing one sets it (6.2). Choosing a DONE status for a task with open subtasks asks "Also complete N open subtasks?" (6.2.4).
-- **Nested rows** (36px): chevron to collapse subtasks (20px indent per depth, collapsed state per task in `localStorage`) · status control · title (medium weight when it has subtasks) · link icon when `isLinkedHere` · columns **Subs** (subtask icon + done/total), **Assignee** (up to 3 avatars), **Due** (green "Today", red when overdue), **Pri** (`Flag`, colored P1 red / P2 orange / P3 blue; none for P4). The first group shows the column labels.
+- **Nested rows** (36px): chevron to collapse subtasks (20px indent per depth, collapsed state per task in `localStorage`) · status control · title (medium weight when it has subtasks) · link icon when `isLinkedHere` · columns **Subs** (subtask icon + done/total), **Assignee** (up to 3 avatars), **Due** (green "Today", red when overdue), **Pri** (the filled design flag, colored P1 red / P2 orange / P3 blue; none for P4). The first group shows the column labels.
 - **Separate rows:** two lines: an optional `↳ Parent title` line (clickable, opens the parent), the title, then a meta line (due, subtasks, flag); assignees on the right.
 - **Hover:** row background tint and two buttons: `+` (add subtask inline, hidden at depth 2) and `⋯` (row menu).
 - **Inline add:** `Enter` creates and keeps the field open; `Esc` or blur-when-empty closes.
@@ -849,7 +849,7 @@ Open tasks assigned to me across the current space, grouped: **Overdue**, **Toda
 - Font: Inter (UI), JetBrains Mono (code in docs). Base size 14px; list title 28px semibold; task title in the dialog 24px semibold.
 - Neutrals: zinc (`#18181B` text, `#71717A` muted, `#E8E8EA` borders, `#F6F6F7` sidebar). One accent via CSS variable `--primary` (`#2563EB`) so the brand can change later without touching components. All design colors are theme tokens in `globals.css` (e.g. `bg-sidebar`, `border-divider`, `bg-pill`, `bg-selected`, `text-overdue`, `text-priority-1…3`), never hex in components.
 - Spacing on a 4px grid; radius 6px (inputs, pills, rows), 12px (the task dialog).
-- Icons: `lucide-react`; the only custom icon is the subtask glyph (`docs/design/icon-subtask.md`).
+- Icons: `lucide-react`; the only custom icons are the subtask glyph and the filled priority flag (`docs/design/icons.md`).
 - Light and dark themes through shadcn CSS variables; follow system by default.
 - Empty states: one short line + one primary action (e.g. "No tasks yet — press Q to add one"). No illustrations in v1.
 - Loading: skeleton rows, never full-page spinners.
