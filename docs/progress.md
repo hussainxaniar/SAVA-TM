@@ -15,7 +15,7 @@ Single-glance status for all 22 tickets. Update this file and the matching
 | T-08 | Task services core | A | ✅ done | dd513d9 |
 | T-09 | List view | I | ✅ done | 93ba0f7 |
 | T-10 | Quick add and parser | I | ✅ done | b967520 |
-| T-11 | Task dialog shell | I | ✅ done | — |
+| T-11 | Task dialog shell | I | ✅ done | c3beaf7 |
 | T-12 | Subtasks and display modes | A + I | ⬜ pending | — |
 | T-13 | Move and add-to-list | A + I | ⬜ pending | — |
 | T-14 | Assignees, dates, priority | I | ⬜ pending | — |
