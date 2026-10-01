@@ -18,7 +18,7 @@ import {
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { comparePositions } from "@/lib/position";
-import { buildGroups, parentCandidates, type DisplayMode, type SortMode } from "@/lib/list-view";
+import { buildGroups, dateOnlyFromLocal, parentCandidates, type DisplayMode, type SortMode } from "@/lib/list-view";
 import { rememberLastList } from "@/lib/last-list";
 import { publishTaskOrder } from "@/lib/task-nav";
 import {
@@ -138,6 +138,17 @@ export function ListView({ initialData, spaceId, canDeleteLists }: ListViewProps
 
   const setPriority = useCallback(
     (taskId: string, priority: Priority) => updateTask.mutate({ taskId, priority }),
+    [updateTask],
+  );
+
+  // Row menu Due date quick picks (9.2): date-only values; null clears it.
+  const setDue = useCallback(
+    (task: TaskRowDTO, day: Date | null) =>
+      updateTask.mutate(
+        day
+          ? { taskId: task.id, dueDate: dateOnlyFromLocal(day), dueHasTime: false }
+          : { taskId: task.id, dueDate: null },
+      ),
     [updateTask],
   );
 
@@ -352,6 +363,7 @@ export function ListView({ initialData, spaceId, canDeleteLists }: ListViewProps
     onComplete: complete,
     onSetStatus: changeStatus,
     onSetPriority: setPriority,
+    onSetDue: setDue,
     onDeleteTask: removeTask,
     onAddChild: addChild,
     onMakeSubtaskOf: makeSubtaskOf,

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import {
   IconArrowRight,
+  IconCalendar,
   IconCornerLeftUp,
   IconDots,
   IconList,
@@ -23,14 +24,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { PRIORITY_META, PriorityFlag } from "@/components/tasks/priority-flag";
+import { quickDays } from "@/lib/list-view";
 import { MakeSubtaskDialog } from "@/components/tasks/make-subtask-dialog";
 import { SubtaskGlyph } from "@/components/tasks/status-icon";
 import type { Priority, StatusDTO, TaskRowDTO } from "@/server/services/types";
 
+const WEEKDAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
 /**
- * The row's `⋯` menu (hover button and right-click share it). Priority is a radio submenu; the
- * current value shows a check via the radio item's indicator. The re-parenting items (6.4.3)
- * open the "Make subtask of…" picker; candidates are computed only while a menu or picker is open.
+ * The row's `⋯` menu (hover button and right-click share it). Priority is a radio submenu and
+ * Due date holds the quick picks (9.2); the current values show a check via the radio item's
+ * indicator. The re-parenting items (6.4.3) open the "Make subtask of…" picker; candidates are
+ * computed only while a menu or picker is open.
  */
 export function TaskRowMenu({
   task,
@@ -39,6 +44,7 @@ export function TaskRowMenu({
   onOpenTask,
   onComplete,
   onSetPriority,
+  onSetDue,
   onDeleteTask,
   onMakeSubtaskOf,
   onConvertToTask,
@@ -55,6 +61,8 @@ export function TaskRowMenu({
   onOpenTask: (taskId: string) => void;
   onComplete: (task: TaskRowDTO, opts: { completed: boolean; includeSubtasks?: boolean }) => void;
   onSetPriority: (taskId: string, priority: Priority) => void;
+  /** A quick day (date-only) or null to clear the due date. */
+  onSetDue: (task: TaskRowDTO, day: Date | null) => void;
   onDeleteTask: (task: TaskRowDTO) => void;
   onMakeSubtaskOf: (task: TaskRowDTO, parentId: string) => void;
   onConvertToTask: (task: TaskRowDTO) => void;
@@ -116,6 +124,28 @@ export function TaskRowMenu({
                     </DropdownMenuRadioItem>
                   ))}
                 </DropdownMenuRadioGroup>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <IconCalendar aria-hidden />
+                Due date
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                {quickDays().map(({ label, day }) => (
+                  <DropdownMenuItem key={label} onClick={() => onSetDue(task, day)}>
+                    {label}
+                    <span className="ml-auto text-xs text-muted-foreground">
+                      {WEEKDAY_SHORT[day.getDay()]}
+                    </span>
+                  </DropdownMenuItem>
+                ))}
+                {task.dueDate && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => onSetDue(task, null)}>No date</DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuSubContent>
             </DropdownMenuSub>
             <DropdownMenuSeparator />

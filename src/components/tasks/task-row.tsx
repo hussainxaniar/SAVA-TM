@@ -34,6 +34,8 @@ export type TaskRowProps = {
   onComplete: (task: TaskRowDTO, opts: CompleteOpts) => void;
   onSetStatus: (task: TaskRowDTO, statusId: string, completeSubtasks?: boolean) => void;
   onSetPriority: (taskId: string, priority: Priority) => void;
+  /** A quick day (date-only) or null to clear the due date. */
+  onSetDue: (task: TaskRowDTO, day: Date | null) => void;
   onDeleteTask: (task: TaskRowDTO) => void;
   onAddChild: (task: TaskRowDTO) => void;
   onMakeSubtaskOf: (task: TaskRowDTO, parentId: string) => void;
@@ -73,6 +75,7 @@ export const TaskRow = memo(function TaskRow({
   onComplete,
   onSetStatus,
   onSetPriority,
+  onSetDue,
   onDeleteTask,
   onAddChild,
   onMakeSubtaskOf,
@@ -131,6 +134,7 @@ export const TaskRow = memo(function TaskRow({
             onOpenTask={onOpenTask}
             onComplete={onComplete}
             onSetPriority={onSetPriority}
+            onSetDue={onSetDue}
             onDeleteTask={onDeleteTask}
             onMakeSubtaskOf={onMakeSubtaskOf}
             onConvertToTask={onConvertToTask}

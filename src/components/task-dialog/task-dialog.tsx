@@ -22,8 +22,10 @@ import {
   useEditTask,
   useMoveTask,
   useRemoveFromList,
+  useSetAssignees,
   useSetParent,
   useTask,
+  type TaskEdit,
 } from "@/hooks/use-task";
 import { useTaskOrder } from "@/lib/task-nav";
 import { StatusControl } from "@/components/tasks/status-icon";
@@ -66,10 +68,11 @@ const BOX_CLASS =
  * Section 9.4 task dialog shell (T-11): header, title, description, subtasks and the read-only
  * properties column. Editing the other properties, and the Activity section, come in T-12–T-15.
  */
-export function TaskDialog({ spaceId, taskId, open, onClose, onOpenTask }: TaskDialogProps) {
+export function TaskDialog({ spaceId, members, taskId, open, onClose, onOpenTask }: TaskDialogProps) {
   const { data: task, error } = useTask(open ? taskId : null);
   const order = useTaskOrder();
   const editTask = useEditTask();
+  const setAssigneesMutation = useSetAssignees();
   const deleteTask = useDeleteTaskAnywhere();
   const setParent = useSetParent();
   const moveTask = useMoveTask();
@@ -107,6 +110,23 @@ export function TaskDialog({ spaceId, taskId, open, onClose, onOpenTask }: TaskD
     (t: { id: string }, statusId: string, completeSubtasks?: boolean) =>
       editTask.mutate({ taskId: t.id, statusId, completeSubtasks }),
     [editTask],
+  );
+
+  // Field edits (dates, priority) and assignee changes for the properties column (6.8, 9.4.6).
+  const onEditTask = useCallback(
+    (edit: Omit<TaskEdit, "taskId">) => {
+      if (!task) return;
+      editTask.mutate({ taskId: task.id, ...edit });
+    },
+    [editTask, task],
+  );
+
+  const onSetAssignees = useCallback(
+    (assignees: UserLite[]) => {
+      if (!task) return;
+      setAssigneesMutation.mutate({ taskId: task.id, assignees });
+    },
+    [setAssigneesMutation, task],
   );
 
   const copyLink = useCallback(() => {
@@ -229,7 +249,10 @@ export function TaskDialog({ spaceId, taskId, open, onClose, onOpenTask }: TaskD
             </div>
             <PropertiesColumn
               task={task}
+              members={members}
               onSetStatus={onSetStatus}
+              onSetAssignees={onSetAssignees}
+              onEditTask={onEditTask}
               onAddToList={addToList}
               onRemoveFromList={removeFromList}
             />

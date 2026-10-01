@@ -1,18 +1,31 @@
 "use client";
 
 import { IconCalendar, IconClock, IconList, IconPlus, IconX } from "@tabler/icons-react";
-import { formatDue, type DueTone } from "@/lib/list-view";
+import {
+  dateOnlyFromLocal,
+  formatDue,
+  localDayOf,
+  localTimeOf,
+  withLocalTime,
+  type DueTone,
+} from "@/lib/list-view";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/tasks/avatar-stack";
-import { PriorityFlag } from "@/components/tasks/priority-flag";
+import { PRIORITY_META, PriorityFlag } from "@/components/tasks/priority-flag";
 import { StatusControl } from "@/components/tasks/status-icon";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { TaskDetailDTO } from "@/server/services/types";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import type { TaskEdit } from "@/hooks/use-task";
+import type { Priority, TaskDetailDTO, UserLite } from "@/server/services/types";
+import { AssigneePicker } from "./assignee-picker";
+import { DatePicker } from "./date-picker";
 
 const TONE_CLASS: Record<DueTone, string> = {
   overdue: "text-overdue",
@@ -20,18 +33,30 @@ const TONE_CLASS: Record<DueTone, string> = {
   default: "",
 };
 
+const DATE_TRIGGER_CLASS = "-mx-1 rounded-md px-1 text-left text-sm hover:bg-sidebar-accent";
+
 /**
  * The dialog's right column (9.4.6): 320px, panel background, sections under 13px semibold
- * titles. Read-only in T-11 except Status — editing arrives in T-13/T-14/T-17.
+ * titles. Assignees toggle through the member picker, Start/Due open the date picker and
+ * priority is a radio menu; edits are optimistic via the dialog's hooks.
  */
 export function PropertiesColumn({
   task,
+  members,
   onSetStatus,
+  onSetAssignees,
+  onEditTask,
   onAddToList,
   onRemoveFromList,
 }: {
   task: TaskDetailDTO;
+  /** Current space members, for the Assignees picker (6.8). */
+  members: UserLite[];
   onSetStatus: (task: { id: string }, statusId: string, completeSubtasks?: boolean) => void;
+  /** Replaces the assignees with the full new list (6.8). */
+  onSetAssignees: (assignees: UserLite[]) => void;
+  /** Field edits without the taskId (dates, priority). */
+  onEditTask: (edit: Omit<TaskEdit, "taskId">) => void;
   onAddToList: (listId: string) => void;
   onRemoveFromList: (listId: string) => void;
 }) {
@@ -46,6 +71,14 @@ export function PropertiesColumn({
     (l) => l.id !== task.homeList.id && !task.linkedListIds.includes(l.id),
   );
 
+  // Toggling keeps the current order; a newly assigned member goes to the end (6.8).
+  const toggleAssignee = (member: UserLite) =>
+    onSetAssignees(
+      task.assignees.some((a) => a.id === member.id)
+        ? task.assignees.filter((a) => a.id !== member.id)
+        : [...task.assignees, member],
+    );
+
   return (
     <aside className="flex w-80 shrink-0 flex-col overflow-y-auto border-l border-divider bg-panel px-6 pt-2">
       <Section title="Status">
@@ -57,15 +90,47 @@ export function PropertiesColumn({
         />
       </Section>
 
-      <Section title="Assignees">
+      <Section
+        title="Assignees"
+        action={
+          <Popover>
+            <PopoverTrigger
+              render={
+                <button
+                  type="button"
+                  aria-label="Edit assignees"
+                  className="-mr-1 flex size-6 items-center justify-center rounded-md text-muted-foreground hover:bg-sidebar-accent"
+                />
+              }
+            >
+              <IconPlus className="size-4" aria-hidden />
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-64">
+              <AssigneePicker
+                members={members}
+                assignees={task.assignees}
+                onToggle={toggleAssignee}
+              />
+            </PopoverContent>
+          </Popover>
+        }
+      >
         {task.assignees.length === 0 ? (
           <Empty>No one</Empty>
         ) : (
           <div className="flex flex-col gap-2">
             {task.assignees.map((user) => (
-              <div key={user.id} className="flex items-center gap-2.5">
+              <div key={user.id} className="group/assignee flex items-center gap-2.5">
                 <Avatar user={user} className="size-5" />
-                <span className="text-sm">{user.name}</span>
+                <span className="min-w-0 flex-1 truncate text-sm">{user.name}</span>
+                <button
+                  type="button"
+                  aria-label={`Unassign ${user.name}`}
+                  onClick={() => onSetAssignees(task.assignees.filter((a) => a.id !== user.id))}
+                  className="-mr-1 flex size-5 items-center justify-center rounded-sm text-muted-foreground/70 opacity-0 hover:text-foreground focus-visible:opacity-100 group-hover/assignee:opacity-100"
+                >
+                  <IconX className="size-3.5" aria-hidden />
+                </button>
               </div>
             ))}
           </div>
@@ -77,31 +142,93 @@ export function PropertiesColumn({
           <DateRow
             icon={<IconCalendar aria-hidden className="size-4 shrink-0 text-muted-foreground" />}
             label="Start"
-            value={start ? start.label : undefined}
-          />
+          >
+            <Popover>
+              <PopoverTrigger render={<button type="button" className={DATE_TRIGGER_CLASS} />}>
+                {start ? start.label : <span className="text-muted-foreground">None</span>}
+              </PopoverTrigger>
+              <PopoverContent className="w-[264px] p-2">
+                <DatePicker
+                  day={task.startDate ? localDayOf(task.startDate, false) : null}
+                  time={null}
+                  allowTime={false}
+                  onChange={(day) =>
+                    onEditTask({ startDate: day ? dateOnlyFromLocal(day) : null })
+                  }
+                />
+              </PopoverContent>
+            </Popover>
+          </DateRow>
           <DateRow
             icon={
               <IconCalendar
                 aria-hidden
-                className={cn("size-4 shrink-0", due ? TONE_CLASS[due.tone] : "text-muted-foreground")}
+                className={cn("size-4 shrink-0", due && due.tone !== "default" ? TONE_CLASS[due.tone] : "text-muted-foreground")}
               />
             }
             label="Due"
-            value={due?.label}
-            tone={due?.tone}
-          />
+          >
+            <Popover>
+              <PopoverTrigger render={<button type="button" className={DATE_TRIGGER_CLASS} />}>
+                {due ? (
+                  <span className={cn(TONE_CLASS[due.tone], due.tone !== "default" && "font-medium")}>
+                    {due.label}
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground">None</span>
+                )}
+              </PopoverTrigger>
+              <PopoverContent className="w-[264px] p-2">
+                <DatePicker
+                  day={task.dueDate ? localDayOf(task.dueDate, task.dueHasTime) : null}
+                  time={task.dueDate && task.dueHasTime ? localTimeOf(task.dueDate) : null}
+                  allowTime
+                  onChange={(day, time) => {
+                    if (!day) onEditTask({ dueDate: null });
+                    else if (time)
+                      onEditTask({ dueDate: withLocalTime(day, time), dueHasTime: true });
+                    else onEditTask({ dueDate: dateOnlyFromLocal(day), dueHasTime: false });
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
+          </DateRow>
         </div>
       </Section>
 
       <Section title="Priority">
-        {task.priority === 4 ? (
-          <Empty>None</Empty>
-        ) : (
-          <div className="flex items-center gap-2.5">
-            <PriorityFlag priority={task.priority} size={16} />
-            <span className="text-sm">P{task.priority}</span>
-          </div>
-        )}
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <button
+                type="button"
+                className="-mx-1 flex items-center gap-2.5 rounded-md px-1 hover:bg-sidebar-accent"
+              />
+            }
+          >
+            {task.priority === 4 ? (
+              <span className="text-sm text-muted-foreground">None</span>
+            ) : (
+              <>
+                <PriorityFlag priority={task.priority} size={16} />
+                <span className="text-sm">P{task.priority}</span>
+              </>
+            )}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="min-w-32">
+            <DropdownMenuRadioGroup
+              value={String(task.priority)}
+              onValueChange={(v) => onEditTask({ priority: Number(v) as Priority })}
+            >
+              {PRIORITY_META.map((p) => (
+                <DropdownMenuRadioItem key={p.value} value={String(p.value)} closeOnClick>
+                  <PriorityFlag priority={p.value} />
+                  {p.label}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </Section>
 
       <Section
@@ -207,25 +334,17 @@ function Empty({ children }: { children: React.ReactNode }) {
 function DateRow({
   icon,
   label,
-  value,
-  tone,
+  children,
 }: {
   icon: React.ReactNode;
   label: string;
-  value: string | undefined;
-  tone?: DueTone;
+  children: React.ReactNode;
 }) {
   return (
     <div className="flex items-center gap-2.5">
       {icon}
       <span className="w-14 shrink-0 text-sm text-muted-foreground">{label}</span>
-      {value ? (
-        <span className={cn("text-sm", tone && TONE_CLASS[tone], tone && tone !== "default" && "font-medium")}>
-          {value}
-        </span>
-      ) : (
-        <Empty>None</Empty>
-      )}
+      {children}
     </div>
   );
 }
