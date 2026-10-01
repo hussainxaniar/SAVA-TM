@@ -19,7 +19,7 @@ Single-glance status for all 22 tickets. Update this file and the matching
 | T-12 | Subtasks and display modes | A + I | ✅ done | ccbc509 |
 | T-13 | Move and add-to-list | A + I | ✅ done | 07df9a0 |
 | T-14 | Assignees, dates, priority | I | ✅ done | 48e7deb |
-| T-15 | Comments and activity feed | A + I | ⬜ pending | — |
+| T-15 | Comments and activity feed | A + I | ✅ done | bf7cb9e |
 | T-16 | My Tasks | I | ⬜ pending | — |
 | T-17 | Calendar and time blocks (local) | A + I | ⬜ pending | — |
 | T-18 | Google connect and push | A | ⬜ pending | — |
