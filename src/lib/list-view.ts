@@ -215,6 +215,60 @@ export function dateOnlyISO(year: number, monthIndex: number, day: number): stri
   return new Date(Date.UTC(year, monthIndex, day)).toISOString();
 }
 
+// ---------- Date pickers (T-14) ----------
+// Storage (as formatDue reads it): a date-only value is UTC midnight of the calendar day
+// (dateOnlyISO); a value with a time is the real instant, shown in local time.
+
+/** The calendar day of `d` in local time, stored date-only. */
+export function dateOnlyFromLocal(d: Date): string {
+  return dateOnlyISO(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+/** A stored value back to a local Date at 00:00 of its calendar day. */
+export function localDayOf(iso: string, hasTime: boolean): Date {
+  const d = new Date(iso);
+  return hasTime
+    ? new Date(d.getFullYear(), d.getMonth(), d.getDate())
+    : new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+}
+
+/** `day` (any time) at local "HH:mm", as an instant. */
+export function withLocalTime(day: Date, hhmm: string): string {
+  const [h, m] = hhmm.split(":").map(Number);
+  return new Date(day.getFullYear(), day.getMonth(), day.getDate(), h || 0, m || 0).toISOString();
+}
+
+/** Local "HH:mm" of an instant. */
+export function localTimeOf(iso: string): string {
+  const d = new Date(iso);
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+/** Todoist-style shortcuts, as local days: Today, Tomorrow, Next week (next Monday), Next weekend (next Saturday). */
+export function quickDays(now = new Date()): { label: string; day: Date }[] {
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const plus = (n: number) => new Date(today.getFullYear(), today.getMonth(), today.getDate() + n);
+  const nextWeekday = (weekday: number) => plus(((weekday - today.getDay() + 7) % 7) || 7);
+  return [
+    { label: "Today", day: today },
+    { label: "Tomorrow", day: plus(1) },
+    { label: "Next week", day: nextWeekday(1) },
+    { label: "Next weekend", day: nextWeekday(6) },
+  ];
+}
+
+/** The 42 local days (6 weeks, Monday first) shown for `month` (0-based) of `year`. */
+export function monthGrid(year: number, month: number): Date[] {
+  const first = new Date(year, month, 1);
+  const offset = (first.getDay() + 6) % 7; // Monday = 0
+  return Array.from({ length: 42 }, (_, i) => new Date(year, month, 1 - offset + i));
+}
+
+/** Same local calendar day. */
+export function sameDay(a: Date, b: Date): boolean {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
 // ---------- Avatars ----------
 
 const AVATAR_COLORS = [

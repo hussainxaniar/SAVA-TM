@@ -24,6 +24,8 @@ export default async function SpaceLayout({
   const current = spaces.find((s) => s.id === spaceId);
   if (!current) notFound(); // not a member, or no such space — indistinguishable (7.4)
   const [{ projects }, members] = await Promise.all([getSidebar(ctx, { spaceId }), listMembers(ctx, { spaceId })]);
+  // Quick add's @ autocomplete and the task dialog's assignee picker (current members only, 6.8).
+  const memberList = members.map(({ id, name, image }) => ({ id, name, image }));
 
   return (
     <div className="flex h-full">
@@ -37,13 +39,9 @@ export default async function SpaceLayout({
       <div className="min-w-0 flex-1 overflow-auto">{children}</div>
       {/* Reads ?task= (useSearchParams), so it sits in its own Suspense boundary. */}
       <Suspense fallback={null}>
-        <TaskDialogHost spaceId={spaceId} />
+        <TaskDialogHost spaceId={spaceId} members={memberList} />
       </Suspense>
-      <QuickAddDialog
-        spaceId={spaceId}
-        projects={projects}
-        members={members.map(({ id, name, image }) => ({ id, name, image }))}
-      />
+      <QuickAddDialog spaceId={spaceId} projects={projects} members={memberList} />
     </div>
   );
 }

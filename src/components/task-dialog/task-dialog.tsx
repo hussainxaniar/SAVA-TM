@@ -40,13 +40,15 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { TaskDetailDTO } from "@/server/services/types";
+import type { TaskDetailDTO, UserLite } from "@/server/services/types";
 import { DescriptionEditor } from "./description-editor";
 import { PropertiesColumn } from "./properties-column";
 import { Subtasks } from "./subtasks";
 
 export type TaskDialogProps = {
   spaceId: string;
+  /** Current space members, for the Assignees picker (T-14 wires it into the properties column). */
+  members: UserLite[];
   taskId: string | null;
   open: boolean;
   onClose: () => void;

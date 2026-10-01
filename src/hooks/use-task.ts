@@ -13,10 +13,11 @@ import {
   removeTaskFromListAction,
   reorderTaskAction,
   restoreTaskAction,
+  setAssigneesAction,
   setParentAction,
   updateTaskAction,
 } from "@/server/actions/tasks";
-import type { ListViewDTO, TaskDetailDTO, TaskRowDTO } from "@/server/services/types";
+import type { ListViewDTO, TaskDetailDTO, TaskRowDTO, UserLite } from "@/server/services/types";
 import {
   ActionError,
   descendants,
@@ -56,16 +57,23 @@ export type TaskEdit = {
   statusId?: string;
   /** With a DONE statusId: also complete open descendants (6.2.4). */
   completeSubtasks?: boolean;
+  priority?: 1 | 2 | 3 | 4;
+  /** Date-only ISO (dateOnlyFromLocal) or null to clear. */
+  startDate?: string | null;
+  /** Date-only ISO, or an instant with dueHasTime: true; null clears both. */
+  dueDate?: string | null;
+  dueHasTime?: boolean;
 };
 
-/** Title, description and status edits from the task dialog. */
+/** Field edits from the task dialog: title, description, status, priority, start and due dates. */
 export function useEditTask() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (v: TaskEdit) => unwrap(await updateTaskAction(v)),
     onMutate: async (v) => {
       const key = taskKey(v.taskId);
-      const touchesLists = v.title !== undefined || v.statusId !== undefined;
+      // Everything but the description shows in rows (lists, the parent's subtask list).
+      const touchesLists = Object.keys(v).some((k) => k !== "taskId" && k !== "description");
       await qc.cancelQueries({ queryKey: key });
       if (touchesLists) await qc.cancelQueries({ queryKey: ALL_LISTS });
 
@@ -79,7 +87,7 @@ export function useEditTask() {
         if (!data?.tasks.some((t) => t.id === v.taskId)) continue;
         const next = v.statusId
           ? patchStatus(data, { taskId: v.taskId, statusId: v.statusId, completeSubtasks: v.completeSubtasks })
-          : patchTaskFields(data, { taskId: v.taskId, title: v.title });
+          : patchTaskFields(data, rowFields(v));
         qc.setQueryData(listKey, recount(next));
       }
       return { prevTask, prevLists, prevParents };
@@ -93,7 +101,7 @@ export function useEditTask() {
     onSettled: (_r, _e, v) => {
       // Description-only saves don't refetch the task: the editor is the source of truth while
       // it's open, and a refetch mid-typing would be wasted.
-      if (v.title !== undefined || v.statusId !== undefined) {
+      if (Object.keys(v).some((k) => k !== "taskId" && k !== "description")) {
         void qc.invalidateQueries({ queryKey: ALL_TASKS }); // this task and any parent showing it
         void qc.invalidateQueries({ queryKey: ALL_LISTS });
       }
@@ -261,6 +269,46 @@ export function useSetParent() {
   });
 }
 
+/**
+ * The Assignees picker (6.8): replaces the task's assignees with `assignees` (current members
+ * only; the server re-checks). Optimistic in the dialog, every list row and the parent's
+ * subtask list; the server logs ASSIGNEE_ADDED / ASSIGNEE_REMOVED for the difference.
+ */
+export function useSetAssignees() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: { taskId: string; assignees: UserLite[] }) =>
+      unwrap(await setAssigneesAction({ taskId: v.taskId, userIds: v.assignees.map((u) => u.id) })),
+    onMutate: async (v) => {
+      await qc.cancelQueries({ queryKey: ALL_TASKS });
+      await qc.cancelQueries({ queryKey: ALL_LISTS });
+      const touched: [QueryKey, unknown][] = [];
+      const set = <T>(key: QueryKey, data: T) => {
+        touched.push([key, qc.getQueryData(key)]);
+        qc.setQueryData(key, data);
+      };
+      const detail = qc.getQueryData<TaskDetailDTO>(taskKey(v.taskId));
+      if (detail) set(taskKey(v.taskId), { ...detail, assignees: v.assignees });
+      for (const [key, parent] of parentsShowing(qc, v.taskId)) {
+        set(key, { ...parent, subtasks: parent.subtasks.map((t) => (t.id === v.taskId ? { ...t, assignees: v.assignees } : t)) });
+      }
+      for (const [key, data] of qc.getQueriesData<ListViewDTO>({ queryKey: ALL_LISTS })) {
+        if (!data?.tasks.some((t) => t.id === v.taskId)) continue;
+        set(key, { ...data, tasks: data.tasks.map((t) => (t.id === v.taskId ? { ...t, assignees: v.assignees } : t)) });
+      }
+      return { touched };
+    },
+    onError: (error, _v, context) => {
+      for (const [key, data] of context?.touched ?? []) qc.setQueryData(key, data);
+      toast.error(error instanceof Error ? error.message : "Something went wrong. Try again.");
+    },
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: ALL_TASKS });
+      void qc.invalidateQueries({ queryKey: ALL_LISTS });
+    },
+  });
+}
+
 // ---------- Move / link (6.5, 6.6) ----------
 
 /**
@@ -367,7 +415,7 @@ function patchSubtaskRow(parent: TaskDetailDTO, v: TaskEdit): TaskDetailDTO {
   const status = v.statusId ? parent.statuses.find((x) => x.id === v.statusId) : undefined;
   const subtasks = parent.subtasks.map((t) => {
     if (t.id !== v.taskId) return t;
-    const next = { ...t };
+    const next = patchRowFields(t, v);
     if (v.title !== undefined) next.title = v.title.trim();
     if (status) {
       next.status = status;
@@ -378,8 +426,34 @@ function patchSubtaskRow(parent: TaskDetailDTO, v: TaskEdit): TaskDetailDTO {
   return { ...parent, subtasks, openSubtaskCount: subtasks.filter((t) => !t.completedAt).length };
 }
 
+/** The row-visible part of an edit (what patchTaskFields understands). */
+function rowFields(v: TaskEdit) {
+  return {
+    taskId: v.taskId,
+    title: v.title,
+    priority: v.priority,
+    startDate: v.startDate,
+    dueDate: v.dueDate,
+    dueHasTime: v.dueHasTime,
+  };
+}
+
+/** Priority and dates on any row-shaped object. */
+function patchRowFields<T extends TaskRowDTO>(t: T, v: TaskEdit): T {
+  const next = { ...t };
+  if (v.priority !== undefined) next.priority = v.priority;
+  if (v.startDate !== undefined) next.startDate = v.startDate;
+  if (v.dueDate !== undefined) {
+    next.dueDate = v.dueDate;
+    next.dueHasTime = v.dueDate ? (v.dueHasTime ?? false) : false;
+  } else if (v.dueHasTime !== undefined && t.dueDate) {
+    next.dueHasTime = v.dueHasTime;
+  }
+  return next;
+}
+
 function patchDetail(task: TaskDetailDTO, v: TaskEdit): TaskDetailDTO {
-  const next: TaskDetailDTO = { ...task };
+  const next: TaskDetailDTO = patchRowFields(task, v);
   if (v.title !== undefined) next.title = v.title.trim();
   if (v.description !== undefined) next.description = v.description;
   if (v.statusId !== undefined) {

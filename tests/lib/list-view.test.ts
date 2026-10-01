@@ -1,5 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { avatarColors, buildGroups, dateOnlyISO, formatDue, initials, parentCandidates } from "@/lib/list-view";
+import {
+  avatarColors,
+  buildGroups,
+  dateOnlyFromLocal,
+  dateOnlyISO,
+  formatDue,
+  initials,
+  localDayOf,
+  localTimeOf,
+  monthGrid,
+  parentCandidates,
+  quickDays,
+  sameDay,
+  withLocalTime,
+} from "@/lib/list-view";
 import type { StatusDTO, TaskRowDTO } from "@/server/services/types";
 
 const statuses: StatusDTO[] = [
@@ -150,5 +164,34 @@ describe("parentCandidates", () => {
     expect(ids("B")).toEqual(["D", "F"]); // B has one level below: only roots fit; not A (parent), not C (descendant)
     expect(ids("A")).toEqual([]); // two levels below: nothing fits
     expect(ids("missing")).toEqual([]);
+  });
+});
+
+describe("date picker helpers", () => {
+  it("round-trips date-only and timed values through local days", () => {
+    const day = new Date(2026, 9, 3); // Sat 3 Oct 2026, local
+    const stored = dateOnlyFromLocal(day);
+    expect(stored).toBe(dateOnlyISO(2026, 9, 3));
+    expect(sameDay(localDayOf(stored, false), day)).toBe(true);
+    expect(formatDue(stored, false, { now: new Date(2026, 9, 2, 9) }).label).toBe("Tomorrow");
+
+    const timed = withLocalTime(day, "15:30");
+    expect(localTimeOf(timed)).toBe("15:30");
+    expect(sameDay(localDayOf(timed, true), day)).toBe(true);
+  });
+
+  it("offers Today, Tomorrow, next Monday and next Saturday", () => {
+    const wed = new Date(2026, 8, 30, 18, 0); // Wednesday
+    const [today, tomorrow, nextWeek, weekend] = quickDays(wed).map((q) => q.day);
+    expect([today, tomorrow, nextWeek, weekend].map((d) => d.getDate())).toEqual([30, 1, 5, 3]);
+    // On a Monday "Next week" is the following Monday, not today.
+    expect(quickDays(new Date(2026, 9, 5))[2].day.getDate()).toBe(12);
+  });
+
+  it("builds a Monday-first 6-week grid", () => {
+    const grid = monthGrid(2026, 9); // October 2026 starts on a Thursday
+    expect(grid).toHaveLength(42);
+    expect(grid[0].getDay()).toBe(1);
+    expect(sameDay(grid[3], new Date(2026, 9, 1))).toBe(true);
   });
 });
