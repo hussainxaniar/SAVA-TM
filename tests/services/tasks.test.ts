@@ -421,10 +421,12 @@ describe("getMyTasks", () => {
     await createTask(me, { listId: q.firstListId, title: "In archived project", assigneeIds: [me.userId] });
     await db.project.update({ where: { id: q.projectId }, data: { archivedAt: new Date() } });
 
-    const rows = await getMyTasks(me, { spaceId: s.space.id });
-    expect(rows).toEqual([
+    const { tasks, statusesByProject } = await getMyTasks(me, { spaceId: s.space.id });
+    expect(tasks).toEqual([
       expect.objectContaining({ id: mine.id, projectId, projectName: "P", projectColor: "#64748B", listName: "General" }),
     ]);
+    expect(Object.keys(statusesByProject)).toEqual([projectId]);
+    expect(statusesByProject[projectId].map((x) => x.id)).toEqual([st.todo, st.active, st.done]);
   });
 });
 

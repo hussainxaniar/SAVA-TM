@@ -690,7 +690,7 @@ deleteList(ctx, { listId, targetListId }): Promise<void>                        
 getListView(ctx, { listId }): Promise<{ list: { id; name; subtaskDisplay }; statuses: StatusDTO[]; tasks: TaskRowDTO[] }>
   // returns Visible(L) incl. completed; client applies NESTED/SEPARATE rendering and sort (Section 6.7)
 getTask(ctx, { taskId }): Promise<TaskDetailDTO>
-getMyTasks(ctx, { spaceId }): Promise<TaskRowDTO[]>                                  // assigned to me, open only
+getMyTasks(ctx, { spaceId }): Promise<{ tasks: MyTaskDTO[]; statusesByProject }>     // assigned to me, open only; + each project's statuses
 
 createTask(ctx, {
   listId, title, parentId?, description?, priority?, statusId?,

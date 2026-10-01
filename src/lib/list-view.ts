@@ -194,6 +194,15 @@ export function formatDue(
   return { label, tone };
 }
 
+/**
+ * Calendar days from today to the due day (negative = past), read the way formatDue reads it:
+ * date-only values as their UTC calendar day, timed values in local time.
+ */
+export function daysUntilDue(dueDate: string, dueHasTime: boolean, now = new Date()): number {
+  const due = new Date(dueDate);
+  return dayDiff(localDay(now), dueHasTime ? localDay(due) : utcDay(due));
+}
+
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 type Day = { y: number; m: number; d: number };

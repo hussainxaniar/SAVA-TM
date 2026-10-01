@@ -38,6 +38,8 @@ import {
 
 const ALL_LISTS: QueryKey = ["tasks"];
 const ALL_TASKS: QueryKey = ["task"];
+/** My Tasks (use-my-tasks.ts): refreshed after every task change so its groups stay right. */
+const MY_TASKS: QueryKey = ["my-tasks"];
 
 /** The open task. Not-found (deleted, or no access) is not retried: the dialog shows it. */
 export function useTask(taskId: string | null) {
@@ -104,6 +106,7 @@ export function useEditTask() {
       if (Object.keys(v).some((k) => k !== "taskId" && k !== "description")) {
         void qc.invalidateQueries({ queryKey: ALL_TASKS }); // this task, its feed, any parent showing it
         void qc.invalidateQueries({ queryKey: ALL_LISTS });
+      void qc.invalidateQueries({ queryKey: MY_TASKS });
       } else {
         // A description save adds an activity line ("updated the description").
         void qc.invalidateQueries({ queryKey: [...taskKey(v.taskId), "feed"] });
@@ -144,11 +147,15 @@ export function useDeleteTaskAnywhere() {
             const res = await restoreTaskAction({ taskId: v.taskId });
             if (!res.ok) toast.error(res.error.message);
             void qc.invalidateQueries({ queryKey: ALL_LISTS });
+      void qc.invalidateQueries({ queryKey: MY_TASKS });
           },
         },
       });
     },
-    onSettled: () => void qc.invalidateQueries({ queryKey: ALL_LISTS }),
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: ALL_LISTS });
+      void qc.invalidateQueries({ queryKey: MY_TASKS });
+    },
   });
 }
 
@@ -211,6 +218,7 @@ export function useAddSubtask() {
     onSettled: (_r, _e, v) => {
       void qc.invalidateQueries({ queryKey: taskKey(v.parentId) });
       void qc.invalidateQueries({ queryKey: ALL_LISTS });
+      void qc.invalidateQueries({ queryKey: MY_TASKS });
     },
   });
 }
@@ -249,6 +257,7 @@ export function useReorderSubtask() {
     onSettled: (_r, _e, v) => {
       void qc.invalidateQueries({ queryKey: taskKey(v.parentId) });
       void qc.invalidateQueries({ queryKey: ALL_LISTS });
+      void qc.invalidateQueries({ queryKey: MY_TASKS });
     },
   });
 }
@@ -267,6 +276,7 @@ export function useSetParent() {
       await Promise.all([
         qc.invalidateQueries({ queryKey: ALL_LISTS }),
         qc.invalidateQueries({ queryKey: ALL_TASKS }),
+        qc.invalidateQueries({ queryKey: MY_TASKS }),
       ]);
     },
   });
@@ -308,6 +318,7 @@ export function useSetAssignees() {
     onSettled: () => {
       void qc.invalidateQueries({ queryKey: ALL_TASKS });
       void qc.invalidateQueries({ queryKey: ALL_LISTS });
+      void qc.invalidateQueries({ queryKey: MY_TASKS });
     },
   });
 }
@@ -341,6 +352,7 @@ export function useMoveTask() {
     onSuccess: () => router.refresh(),
     onSettled: () => {
       void qc.invalidateQueries({ queryKey: ALL_LISTS });
+      void qc.invalidateQueries({ queryKey: MY_TASKS });
       void qc.invalidateQueries({ queryKey: ALL_TASKS });
     },
   });
@@ -356,6 +368,7 @@ export function useAddToList() {
     onSuccess: () => router.refresh(),
     onSettled: () => {
       void qc.invalidateQueries({ queryKey: ALL_LISTS });
+      void qc.invalidateQueries({ queryKey: MY_TASKS });
       void qc.invalidateQueries({ queryKey: ALL_TASKS });
     },
   });
@@ -394,6 +407,7 @@ export function useRemoveFromList() {
     onSuccess: () => router.refresh(),
     onSettled: () => {
       void qc.invalidateQueries({ queryKey: ALL_LISTS });
+      void qc.invalidateQueries({ queryKey: MY_TASKS });
       void qc.invalidateQueries({ queryKey: ALL_TASKS });
     },
   });

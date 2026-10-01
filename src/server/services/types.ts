@@ -128,6 +128,13 @@ export type MyTaskDTO = TaskRowDTO & {
   listName: string;
 };
 
+/** Section 9.5. The client groups by due date (groupMyTasks in src/lib/my-tasks.ts). */
+export type MyTasksDTO = {
+  tasks: MyTaskDTO[];
+  /** projectId → that project's statuses in position order (each row's status menu). */
+  statusesByProject: Record<string, StatusDTO[]>;
+};
+
 // ---------- Comments and activity (Section 8.5) ----------
 
 /**

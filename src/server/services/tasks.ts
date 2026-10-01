@@ -7,7 +7,7 @@ import { logActivities, logActivity, type ActivityInput } from "./activity";
 import { positionForMove, type MoveTarget } from "./ordering";
 import { toStatusDTO } from "./statuses";
 import { loadTaskRows, taskRowSelect, toTaskRow, type DbClient } from "./task-rows";
-import type { Ctx, ListViewDTO, MyTaskDTO, TaskDetailDTO, TaskRowDTO } from "./types";
+import type { Ctx, ListViewDTO, MyTasksDTO, TaskDetailDTO, TaskRowDTO } from "./types";
 import { cleanName, serializableTransaction } from "./util";
 
 /*
@@ -133,8 +133,11 @@ export async function getTask(ctx: Ctx, input: { taskId: string }): Promise<Task
   };
 }
 
-/** Section 8.4 / 9.5. Open tasks assigned to the caller in a space, outside archived projects and lists. */
-export async function getMyTasks(ctx: Ctx, input: { spaceId: string }): Promise<MyTaskDTO[]> {
+/**
+ * Section 8.4 / 9.5. Open tasks assigned to the caller in a space, outside archived projects and
+ * lists, plus each of their projects' statuses (every row has a status menu).
+ */
+export async function getMyTasks(ctx: Ctx, input: { spaceId: string }): Promise<MyTasksDTO> {
   await requireMember(ctx.userId, input.spaceId);
   const { rows, records } = await loadTaskRows(db, {
     spaceId: input.spaceId,
@@ -143,26 +146,30 @@ export async function getMyTasks(ctx: Ctx, input: { spaceId: string }): Promise<
     project: { archivedAt: null },
     homeList: { archivedAt: null },
   });
+  const projectIds = [...new Set(records.map((r) => r.projectId))];
   const [projects, lists] = await Promise.all([
     db.project.findMany({
-      where: { id: { in: [...new Set(records.map((r) => r.projectId))] } },
-      select: { id: true, name: true, color: true },
+      where: { id: { in: projectIds } },
+      select: { id: true, name: true, color: true, statuses: { orderBy: { position: "asc" } } },
     }),
     db.list.findMany({ where: { id: { in: [...new Set(records.map((r) => r.homeListId))] } }, select: { id: true, name: true } }),
   ]);
   const projectById = new Map(projects.map((p) => [p.id, p]));
   const listById = new Map(lists.map((l) => [l.id, l]));
   const projectOf = new Map(records.map((r) => [r.id, r.projectId]));
-  return rows.map((row) => {
-    const project = projectById.get(projectOf.get(row.id)!)!;
-    return {
-      ...row,
-      projectId: project.id,
-      projectName: project.name,
-      projectColor: project.color,
-      listName: listById.get(row.homeListId)!.name,
-    };
-  });
+  return {
+    tasks: rows.map((row) => {
+      const project = projectById.get(projectOf.get(row.id)!)!;
+      return {
+        ...row,
+        projectId: project.id,
+        projectName: project.name,
+        projectColor: project.color,
+        listName: listById.get(row.homeListId)!.name,
+      };
+    }),
+    statusesByProject: Object.fromEntries(projects.map((p) => [p.id, p.statuses.map(toStatusDTO)])),
+  };
 }
 
 // ---------- Create / update ----------
