@@ -27,18 +27,24 @@ const MONTHS_LONG = [
  * The calendar inside a PopoverContent (9.4.6 dates): quick picks, a Monday-first month grid
  * and, for due dates, an optional local time. `day` is a local day at 00:00 (or null); `time`
  * is "HH:mm" (or null). Picking a day closes the popover unless a time can still be added
- * next (allowTime).
+ * next (allowTime) or the caller keeps it open (closeOnPick={false}).
  */
 export function DatePicker({
   day,
   time,
   allowTime,
   onChange,
+  closeOnPick = !allowTime,
+  showClear = true,
 }: {
   day: Date | null;
   time: string | null;
   allowTime: boolean;
   onChange: (day: Date | null, time: string | null) => void;
+  /** Close the surrounding popover when a day is picked (default: when there's no time step). */
+  closeOnPick?: boolean;
+  /** The "Clear" button (off when the picker is one field of a larger form). */
+  showClear?: boolean;
 }) {
   // The month starts at the selected day's month, else today's.
   const [view, setView] = useState(() => {
@@ -52,7 +58,7 @@ export function DatePicker({
 
   // Without a time step to follow, picking a day also closes the popover.
   const pick = (key: string, className: string, onClick: () => void, children: ReactNode) =>
-    allowTime ? (
+    !closeOnPick ? (
       <button key={key} type="button" className={className} onClick={onClick}>
         {children}
       </button>
@@ -167,17 +173,19 @@ export function DatePicker({
           </button>
         ))}
 
-      <PopoverClose
-        render={
-          <button
-            type="button"
-            className="mt-1.5 flex h-8 items-center rounded-md px-1.5 text-sm text-muted-foreground hover:bg-accent"
-          />
-        }
-        onClick={() => onChange(null, null)}
-      >
-        Clear
-      </PopoverClose>
+      {showClear && (
+        <PopoverClose
+          render={
+            <button
+              type="button"
+              className="mt-1.5 flex h-8 items-center rounded-md px-1.5 text-sm text-muted-foreground hover:bg-accent"
+            />
+          }
+          onClick={() => onChange(null, null)}
+        >
+          Clear
+        </PopoverClose>
+      )}
     </div>
   );
 }

@@ -22,10 +22,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useDeleteTimeBlock } from "@/hooks/use-calendar";
 import type { TaskEdit } from "@/hooks/use-task";
 import type { Priority, TaskDetailDTO, UserLite } from "@/server/services/types";
 import { AssigneePicker } from "./assignee-picker";
 import { DatePicker } from "./date-picker";
+import { SchedulePopover } from "./schedule-popover";
 
 const TONE_CLASS: Record<DueTone, string> = {
   overdue: "text-overdue",
@@ -43,6 +45,7 @@ const DATE_TRIGGER_CLASS = "-mx-1 rounded-md px-1 text-left text-sm hover:bg-sid
 export function PropertiesColumn({
   task,
   members,
+  me,
   onSetStatus,
   onSetAssignees,
   onEditTask,
@@ -52,6 +55,8 @@ export function PropertiesColumn({
   task: TaskDetailDTO;
   /** Current space members, for the Assignees picker (6.8). */
   members: UserLite[];
+  /** The signed-in user: only own time blocks can be removed (10.1). */
+  me: UserLite;
   onSetStatus: (task: { id: string }, statusId: string, completeSubtasks?: boolean) => void;
   /** Replaces the assignees with the full new list (6.8). */
   onSetAssignees: (assignees: UserLite[]) => void;
@@ -70,6 +75,7 @@ export function PropertiesColumn({
   const addTargets = task.project.lists.filter(
     (l) => l.id !== task.homeList.id && !task.linkedListIds.includes(l.id),
   );
+  const deleteTimeBlock = useDeleteTimeBlock(task.spaceId);
 
   // Toggling keeps the current order; a newly assigned member goes to the end (6.8).
   const toggleAssignee = (member: UserLite) =>
@@ -280,15 +286,25 @@ export function PropertiesColumn({
         </div>
       </Section>
 
-      <Section title="Scheduled">
+      <Section title="Scheduled" action={<SchedulePopover task={task} />}>
         {task.timeBlocks.length === 0 ? (
           <Empty>Nothing scheduled</Empty>
         ) : (
           <div className="flex flex-col gap-2">
             {task.timeBlocks.map((block) => (
-              <div key={block.id} className="flex items-center gap-2.5">
+              <div key={block.id} className="group/block flex items-center gap-2.5">
                 <IconClock aria-hidden className="size-4 shrink-0 text-muted-foreground" />
-                <span className="text-sm">{blockLabel(block.start, block.end)}</span>
+                <span className="min-w-0 flex-1 truncate text-sm">{blockLabel(block.start, block.end)}</span>
+                {block.userId === me.id && (
+                  <button
+                    type="button"
+                    aria-label="Remove from calendar"
+                    onClick={() => deleteTimeBlock.mutate({ timeBlockId: block.id, taskId: task.id })}
+                    className="-mr-1 flex size-5 items-center justify-center rounded-sm text-muted-foreground/70 opacity-0 hover:text-foreground focus-visible:opacity-100 group-hover/block:opacity-100"
+                  >
+                    <IconX className="size-3.5" aria-hidden />
+                  </button>
+                )}
               </div>
             ))}
           </div>

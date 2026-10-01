@@ -254,6 +254,7 @@ export function TaskDialog({ spaceId, members, me, taskId, open, onClose, onOpen
             <PropertiesColumn
               task={task}
               members={members}
+              me={me}
               onSetStatus={onSetStatus}
               onSetAssignees={onSetAssignees}
               onEditTask={onEditTask}
