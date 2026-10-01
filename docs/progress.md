@@ -21,7 +21,7 @@ Single-glance status for all 22 tickets. Update this file and the matching
 | T-14 | Assignees, dates, priority | I | ✅ done | 48e7deb |
 | T-15 | Comments and activity feed | A + I | ✅ done | bf7cb9e |
 | T-16 | My Tasks | I | ✅ done | 7a9b5a2 |
-| T-17 | Calendar and time blocks (local) | A + I | ⬜ pending | — |
+| T-17 | Calendar and time blocks (local) | A + I | ✅ done | fb9fd9e |
 | T-18 | Google connect and push | A | ⬜ pending | — |
 | T-19 | Google pull and reconciliation | A | ⬜ pending | — |
 | T-20 | Docs and pages | A + I | ⬜ pending | — |
