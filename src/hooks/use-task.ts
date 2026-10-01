@@ -102,8 +102,11 @@ export function useEditTask() {
       // Description-only saves don't refetch the task: the editor is the source of truth while
       // it's open, and a refetch mid-typing would be wasted.
       if (Object.keys(v).some((k) => k !== "taskId" && k !== "description")) {
-        void qc.invalidateQueries({ queryKey: ALL_TASKS }); // this task and any parent showing it
+        void qc.invalidateQueries({ queryKey: ALL_TASKS }); // this task, its feed, any parent showing it
         void qc.invalidateQueries({ queryKey: ALL_LISTS });
+      } else {
+        // A description save adds an activity line ("updated the description").
+        void qc.invalidateQueries({ queryKey: [...taskKey(v.taskId), "feed"] });
       }
     },
   });

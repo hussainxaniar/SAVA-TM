@@ -1,4 +1,4 @@
-import type { SpaceRole } from "@prisma/client";
+import type { ActivityType, SpaceRole } from "@prisma/client";
 
 // Section 8: every service takes `ctx` first.
 export type Ctx = { userId: string };
@@ -127,3 +127,36 @@ export type MyTaskDTO = TaskRowDTO & {
   projectColor: string;
   listName: string;
 };
+
+// ---------- Comments and activity (Section 8.5) ----------
+
+/**
+ * One entry of a task's feed, oldest first. Activity is sent structured (type + payload) with
+ * the names its ids refer to in `labels` (status, list, user and task ids → names/titles); the
+ * browser turns it into a sentence with formatActivity (src/lib/activity-format.ts) so dates and
+ * times show in the viewer's time zone. COMMENT_ADDED rows are left out: the comment is the entry.
+ */
+export type FeedItemDTO =
+  | {
+      kind: "comment";
+      id: string;
+      author: UserLite;
+      /** Tiptap JSON; null once deleted ("Comment deleted"). */
+      body: unknown | null;
+      createdAt: string;
+      editedAt: string | null;
+      deleted: boolean;
+      /** The viewer wrote it (6.10). */
+      canEdit: boolean;
+      /** The viewer wrote it, or is Admin/Owner (6.10). */
+      canDelete: boolean;
+    }
+  | {
+      kind: "activity";
+      id: string;
+      actor: UserLite;
+      type: ActivityType;
+      payload: Record<string, unknown>;
+      labels: Record<string, string>;
+      createdAt: string;
+    };

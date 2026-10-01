@@ -157,7 +157,7 @@ describe("updateTask", () => {
       { type: "START_DATE_CHANGED", payload: { from: null, to: "2026-09-30T00:00:00.000Z" }, actorId: me.userId },
       {
         type: "DUE_DATE_CHANGED",
-        payload: { from: "2026-10-01T00:00:00.000Z", to: "2026-10-02T09:00:00.000Z" },
+        payload: { from: "2026-10-01T00:00:00.000Z", to: "2026-10-02T09:00:00.000Z", fromHasTime: false, toHasTime: true },
         actorId: me.userId,
       },
     ]);

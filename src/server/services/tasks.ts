@@ -15,7 +15,8 @@ import { cleanName, serializableTransaction } from "./util";
  * its Activity rows inside the same transaction. Payload shapes (6.9.3):
  *   TASK_CREATED {} · SUBTASK_ADDED { subtaskId } (on the parent) · TASK_RENAMED { from, to }
  *   TASK_DESCRIPTION_CHANGED {} · STATUS_CHANGED { from, to } (status ids)
- *   PRIORITY_CHANGED { from, to } · START_DATE_CHANGED / DUE_DATE_CHANGED { from, to } (ISO | null)
+ *   PRIORITY_CHANGED { from, to } · START_DATE_CHANGED { from, to } (ISO | null)
+ *   DUE_DATE_CHANGED { from, to, fromHasTime, toHasTime } (so the feed can show times in the viewer's zone)
  *   ASSIGNEE_ADDED / ASSIGNEE_REMOVED { userId } · TASK_COMPLETED / TASK_REOPENED {}
  *   TASK_DELETED / TASK_RESTORED {} · PARENT_CHANGED { from, to } (parent ids | null)
  *   MOVED_TO_LIST { fromListId, toListId } · ADDED_TO_LIST / REMOVED_FROM_LIST { listId }
@@ -341,7 +342,12 @@ export async function updateTask(ctx: Ctx, input: UpdateTaskInput): Promise<Task
     if (!sameInstant(nextDue, task.dueDate) || nextHasTime !== task.dueHasTime) {
       data.dueDate = nextDue;
       data.dueHasTime = nextHasTime;
-      log("DUE_DATE_CHANGED", { from: iso(task.dueDate), to: iso(nextDue) });
+      log("DUE_DATE_CHANGED", {
+        from: iso(task.dueDate),
+        to: iso(nextDue),
+        fromHasTime: task.dueHasTime,
+        toHasTime: nextDue ? nextHasTime : false,
+      });
     }
 
     if (Object.keys(data).length > 0) await tx.task.update({ where: { id: task.id }, data });

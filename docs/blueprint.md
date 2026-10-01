@@ -641,8 +641,10 @@ type TaskDetailDTO = TaskRowDTO & {
 }
 
 type FeedItemDTO =
-  | { kind: 'comment'; id: string; author: UserLite; body: unknown; createdAt: string; editedAt: string | null; deleted: boolean }
-  | { kind: 'activity'; id: string; actor: UserLite; text: string; createdAt: string }
+  | { kind: 'comment'; id: string; author: UserLite; body: unknown | null; createdAt: string; editedAt: string | null; deleted: boolean; canEdit: boolean; canDelete: boolean }
+  | { kind: 'activity'; id: string; actor: UserLite; type: ActivityType; payload: object; labels: Record<string, string>; createdAt: string }
+// Activity is sent structured with `labels` (ids → names resolved at read time); the browser renders the
+// sentence with formatActivity (src/lib/activity-format.ts) so dates and times use the viewer's time zone.
 ```
 
 ### 8.2 Spaces and members — `spaces.ts`
@@ -722,7 +724,7 @@ getFeed(ctx, { taskId, filter: 'all' | 'comments' }): Promise<FeedItemDTO[]>   /
 
 // internal, [A]
 logActivity(tx, { spaceId, taskId, actorId, type, payload }): Promise<void>
-formatActivity(row, lookups): string
+formatActivity({ type, payload, labels }): string   // src/lib/activity-format.ts, runs client-side
 ```
 
 ### 8.6 Calendar — `timeblocks.ts`, `google-calendar.ts` (all \[A\])

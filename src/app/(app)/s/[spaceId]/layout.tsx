@@ -39,7 +39,11 @@ export default async function SpaceLayout({
       <div className="min-w-0 flex-1 overflow-auto">{children}</div>
       {/* Reads ?task= (useSearchParams), so it sits in its own Suspense boundary. */}
       <Suspense fallback={null}>
-        <TaskDialogHost spaceId={spaceId} members={memberList} />
+        <TaskDialogHost
+          spaceId={spaceId}
+          members={memberList}
+          me={{ id: user.id, name: user.name, image: user.image }}
+        />
       </Suspense>
       <QuickAddDialog spaceId={spaceId} projects={projects} members={memberList} />
     </div>

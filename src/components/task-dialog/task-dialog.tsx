@@ -49,8 +49,10 @@ import { Subtasks } from "./subtasks";
 
 export type TaskDialogProps = {
   spaceId: string;
-  /** Current space members, for the Assignees picker (T-14 wires it into the properties column). */
+  /** Current space members, for the Assignees picker. */
   members: UserLite[];
+  /** The signed-in user, for the comment composer (T-15 wires it into the Activity section). */
+  me: UserLite;
   taskId: string | null;
   open: boolean;
   onClose: () => void;
