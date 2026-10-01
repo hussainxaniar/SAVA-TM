@@ -43,6 +43,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { TaskDetailDTO, UserLite } from "@/server/services/types";
+import { ActivitySection } from "./activity";
 import { DescriptionEditor } from "./description-editor";
 import { PropertiesColumn } from "./properties-column";
 import { Subtasks } from "./subtasks";
@@ -67,10 +68,10 @@ const BOX_CLASS =
   "max-md:h-dvh max-md:w-screen max-md:max-w-none max-md:rounded-none";
 
 /**
- * Section 9.4 task dialog shell (T-11): header, title, description, subtasks and the read-only
- * properties column. Editing the other properties, and the Activity section, come in T-12–T-15.
+ * Section 9.4 task dialog shell: header, title, description, subtasks, the Activity section and
+ * the properties column (property editing and the feed came in T-12–T-15).
  */
-export function TaskDialog({ spaceId, members, taskId, open, onClose, onOpenTask }: TaskDialogProps) {
+export function TaskDialog({ spaceId, members, me, taskId, open, onClose, onOpenTask }: TaskDialogProps) {
   const { data: task, error } = useTask(open ? taskId : null);
   const order = useTaskOrder();
   const editTask = useEditTask();
@@ -248,6 +249,7 @@ export function TaskDialog({ spaceId, members, taskId, open, onClose, onOpenTask
                 />
               </div>
               <Subtasks task={task} onOpenTask={onOpenTask} />
+              <ActivitySection taskId={task.id} me={me} />
             </div>
             <PropertiesColumn
               task={task}
