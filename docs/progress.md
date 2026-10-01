@@ -22,14 +22,14 @@ Single-glance status for all 22 tickets. Update this file and the matching
 | T-15 | Comments and activity feed | A + I | ✅ done | bf7cb9e |
 | T-16 | My Tasks | I | ✅ done | 7a9b5a2 |
 | T-17 | Calendar and time blocks (local) | A + I | ✅ done | fb9fd9e |
-| T-18 | Google connect and push | A | ⬜ pending | — |
+| T-18 | Google connect and push | A | 🔄 built, awaiting a real Google test | 470304e |
 | T-19 | Google pull and reconciliation | A | ⬜ pending | — |
 | T-20 | Docs and pages | A + I | ⬜ pending | — |
 | T-21 | Polish: shortcuts, empty states, responsive | I | ⬜ pending | — |
 | T-22 | E2E tests and production release | A + I | ⬜ pending | — |
 
 Notes:
-- Google OAuth (sign-in and Calendar) is **on hold** until the calendar work (T-17/T-18); T-03's Google sign-in is wired but untested.
+- Google OAuth client configured locally (2026-10-01); T-18 built and tested with Google faked; a real consent test by the human is pending.
 - Local development and tests use Postgres in Docker (`pnpm db:up`, docker-compose.yml); the full test suite runs in ~10 s.
 - Deploys: Vercel builds `main` with `pnpm build:vercel` (vercel.json) = `prisma migrate deploy && next build`.
 
