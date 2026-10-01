@@ -837,7 +837,7 @@ Open tasks assigned to me across the current space, grouped: **Overdue**, **Toda
 
 - **Space settings** (opened from the space switcher menu): name; Members table (avatar, name, email, role dropdown, remove); Invite links (create, copy, revoke, uses, expiry).
 - **Project settings:** name, color; Statuses (drag reorder, rename, color, category, delete with replacement picker); Lists (rename, reorder, delete with target picker).
-- **User → Integrations:** Google Calendar connect/disconnect, connected email, calendar used.
+- **User → Integrations** (`/s/[spaceId]/integrations`, from the user menu): Google Calendar connect/disconnect, connected email, calendar used.
 
 ### 9.7 Keyboard shortcuts
 

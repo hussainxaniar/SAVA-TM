@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { IconLogout } from "@tabler/icons-react";
+import { IconLogout, IconPlug } from "@tabler/icons-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -17,9 +17,11 @@ import { authClient } from "@/lib/auth-client";
 
 export type UserMenuProps = {
   user: { id: string; name: string; email: string; image: string | null };
+  /** The current space: Integrations opens inside its shell. */
+  spaceId: string;
 };
 
-export function UserMenu({ user }: UserMenuProps) {
+export function UserMenu({ user, spaceId }: UserMenuProps) {
   const router = useRouter();
   const { bg, fg } = avatarColors(user.id);
 
@@ -58,6 +60,10 @@ export function UserMenu({ user }: UserMenuProps) {
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
+          <DropdownMenuItem onClick={() => router.push(`/s/${spaceId}/integrations`)}>
+            <IconPlug />
+            Integrations
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={() => void onSignOut()}>
             <IconLogout />
             Sign out

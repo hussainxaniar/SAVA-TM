@@ -1,6 +1,6 @@
 "use client";
 
-import { IconCalendar, IconClock, IconList, IconPlus, IconX } from "@tabler/icons-react";
+import { IconAlertTriangle, IconCalendar, IconClock, IconRefresh, IconList, IconPlus, IconX } from "@tabler/icons-react";
 import {
   dateOnlyFromLocal,
   formatDue,
@@ -22,7 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useDeleteTimeBlock } from "@/hooks/use-calendar";
+import { useDeleteTimeBlock, useGoogleConnection, useRetrySync } from "@/hooks/use-calendar";
 import type { TaskEdit } from "@/hooks/use-task";
 import type { Priority, TaskDetailDTO, UserLite } from "@/server/services/types";
 import { AssigneePicker } from "./assignee-picker";
@@ -76,6 +76,8 @@ export function PropertiesColumn({
     (l) => l.id !== task.homeList.id && !task.linkedListIds.includes(l.id),
   );
   const deleteTimeBlock = useDeleteTimeBlock(task.spaceId);
+  const retrySync = useRetrySync(task.spaceId);
+  const google = useGoogleConnection().data ?? { connected: false };
 
   // Toggling keeps the current order; a newly assigned member goes to the end (6.8).
   const toggleAssignee = (member: UserLite) =>
@@ -295,6 +297,12 @@ export function PropertiesColumn({
               <div key={block.id} className="group/block flex items-center gap-2.5">
                 <IconClock aria-hidden className="size-4 shrink-0 text-muted-foreground" />
                 <span className="min-w-0 flex-1 truncate text-sm">{blockLabel(block.start, block.end)}</span>
+                {google.connected && block.userId === me.id && (
+                  <BlockSync
+                    state={block.syncState}
+                    onRetry={() => retrySync.mutate({ timeBlockId: block.id, taskId: task.id })}
+                  />
+                )}
                 {block.userId === me.id && (
                   <button
                     type="button"
@@ -363,4 +371,22 @@ function DateRow({
       {children}
     </div>
   );
+}
+
+/** Google sync state of one of my blocks (the design's ↻): synced, pending, or failed with Retry. */
+function BlockSync({ state, onRetry }: { state: string; onRetry: () => void }) {
+  if (state === "ERROR")
+    return (
+      <button
+        type="button"
+        onClick={onRetry}
+        title="Google Calendar sync failed. Retry"
+        aria-label="Retry Google Calendar sync"
+        className="flex size-5 items-center justify-center rounded-sm text-overdue hover:bg-sidebar-accent"
+      >
+        <IconAlertTriangle className="size-3.5" aria-hidden />
+      </button>
+    );
+  if (state === "PENDING") return <IconClock aria-label="Syncing to Google Calendar" className="size-3.5 shrink-0 text-muted-foreground" />;
+  return <IconRefresh aria-label="Synced to Google Calendar" className="size-3.5 shrink-0 text-muted-foreground" />;
 }

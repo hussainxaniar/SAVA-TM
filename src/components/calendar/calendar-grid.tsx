@@ -16,6 +16,8 @@ import {
   useCreateTimeBlock,
   useDeleteTimeBlock,
   useDueChips,
+  useGoogleConnection,
+  useRetrySync,
   useTimeBlocks,
   useUpdateTimeBlock,
   type Range,
@@ -40,6 +42,8 @@ export function CalendarGrid({ spaceId, range, calendarRef, onDatesSet, onOpenTa
   const createTimeBlock = useCreateTimeBlock(spaceId);
   const updateTimeBlock = useUpdateTimeBlock(spaceId);
   const deleteTimeBlock = useDeleteTimeBlock(spaceId);
+  const retrySync = useRetrySync(spaceId);
+  const connected = useGoogleConnection().data?.connected ?? false;
 
   const events = useMemo<EventInput[]>(() => {
     const list: EventInput[] = [];
@@ -55,6 +59,8 @@ export function CalendarGrid({ spaceId, range, calendarRef, onDatesSet, onOpenTa
           taskId: block.taskId,
           color: block.projectColor,
           completed: block.completed,
+          syncState: block.syncState,
+          lastSyncError: block.lastSyncError,
         },
       });
     }
@@ -75,6 +81,10 @@ export function CalendarGrid({ spaceId, range, calendarRef, onDatesSet, onOpenTa
   const removeBlock = useCallback<RemoveBlockFn>(
     (timeBlockId, taskId) => deleteTimeBlock.mutate({ timeBlockId, taskId }),
     [deleteTimeBlock],
+  );
+  const retryBlock = useCallback<RemoveBlockFn>(
+    (timeBlockId, taskId) => retrySync.mutate({ timeBlockId, taskId }),
+    [retrySync],
   );
 
   const onEventClick = useCallback(
@@ -153,7 +163,7 @@ export function CalendarGrid({ spaceId, range, calendarRef, onDatesSet, onOpenTa
       height="100%"
       events={events}
       datesSet={onDatesSet}
-      eventContent={(arg) => <EventContent arg={arg} onRemove={removeBlock} />}
+      eventContent={(arg) => <EventContent arg={arg} onRemove={removeBlock} onRetry={retryBlock} connected={connected} />}
       eventClick={onEventClick}
       eventDrop={onEventChange}
       eventResize={onEventChange}

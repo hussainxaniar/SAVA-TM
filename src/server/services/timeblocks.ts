@@ -2,6 +2,7 @@ import { db } from "../db";
 import { AppError } from "../errors";
 import { requireMember, spaceIdOfTask } from "../guards";
 import { logActivity } from "./activity";
+import { pushTimeBlock, removeGoogleEvent } from "./google-calendar";
 import { loadTaskRows } from "./task-rows";
 import type { Ctx, DueChipDTO, MyTaskDTO, TimeBlockDTO } from "./types";
 
@@ -9,7 +10,8 @@ import type { Ctx, DueChipDTO, MyTaskDTO, TimeBlockDTO } from "./types";
  * Section 8.6 / 10.1, local half (T-17). A task can be scheduled into any number of slots; each
  * slot belongs to the user whose calendar it's on, and only that user moves or removes it.
  * Writes log SCHEDULED { timeBlockId, start, end } / UNSCHEDULED { timeBlockId }. Blocks are saved
- * PENDING; pushing them to Google (and SYNCED / ERROR) arrives with T-18.
+ * PENDING, then (after the transaction commits) pushed to the owner's Google Calendar when it's
+ * connected (T-18, google-calendar.ts), which sets SYNCED or ERROR.
  */
 
 const MIN_MINUTES = 15;
@@ -138,7 +140,7 @@ export async function createTimeBlock(
   await requireMember(ctx.userId, spaceId);
   const { start, end } = checkSlot(input.start, input.end, input.timeZone);
 
-  return db.$transaction(async (tx) => {
+  const created = await db.$transaction(async (tx) => {
     const task = await tx.task.findFirst({ where: { id: input.taskId, deletedAt: null }, select: { id: true } });
     if (!task) throw new AppError("NOT_FOUND", "Task not found");
     const block = await tx.timeBlock.create({
@@ -152,8 +154,9 @@ export async function createTimeBlock(
       type: "SCHEDULED",
       payload: { timeBlockId: block.id, start: block.start.toISOString(), end: block.end.toISOString() },
     });
-    return toBlock(block);
+    return block.id;
   });
+  return pushAndLoad(created, input.timeZone);
 }
 
 /** Moves or resizes one of the caller's own blocks. Logs SCHEDULED with the new slot. */
@@ -163,7 +166,7 @@ export async function updateTimeBlock(
 ): Promise<TimeBlockDTO> {
   const owned = await ownBlock(ctx, input.timeBlockId);
   const { start, end } = checkSlot(input.start, input.end, input.timeZone);
-  return db.$transaction(async (tx) => {
+  await db.$transaction(async (tx) => {
     const block = await tx.timeBlock.update({
       where: { id: owned.id },
       // A moved block needs pushing again (T-18).
@@ -177,13 +180,14 @@ export async function updateTimeBlock(
       type: "SCHEDULED",
       payload: { timeBlockId: block.id, start: block.start.toISOString(), end: block.end.toISOString() },
     });
-    return toBlock(block);
   });
+  return pushAndLoad(owned.id, input.timeZone);
 }
 
 /** Removes one of the caller's own blocks ("Remove from calendar"). Logs UNSCHEDULED. */
 export async function deleteTimeBlock(ctx: Ctx, input: { timeBlockId: string }): Promise<void> {
   const owned = await ownBlock(ctx, input.timeBlockId);
+  const { googleEventId } = await db.timeBlock.findUniqueOrThrow({ where: { id: owned.id }, select: { googleEventId: true } });
   await db.$transaction(async (tx) => {
     await tx.timeBlock.delete({ where: { id: owned.id } });
     await logActivity(tx, {
@@ -194,9 +198,22 @@ export async function deleteTimeBlock(ctx: Ctx, input: { timeBlockId: string }):
       payload: { timeBlockId: owned.id },
     });
   });
+  await removeGoogleEvent(owned.userId, googleEventId);
+}
+
+/** The block's Retry (10.1, an ERROR block): push it to Google again. Owner only. */
+export async function retrySync(ctx: Ctx, input: { timeBlockId: string; timeZone?: string }): Promise<TimeBlockDTO> {
+  const owned = await ownBlock(ctx, input.timeBlockId);
+  return pushAndLoad(owned.id, input.timeZone);
 }
 
 // ---------- helpers ----------
+
+/** Pushes the block to Google (no-op when not connected) and returns it with its sync state. */
+async function pushAndLoad(timeBlockId: string, timeZone?: string): Promise<TimeBlockDTO> {
+  await pushTimeBlock(timeBlockId, timeZone);
+  return toBlock(await db.timeBlock.findUniqueOrThrow({ where: { id: timeBlockId }, select: blockSelect }));
+}
 
 /** The block, if it exists and the caller is a member of its space; someone else's is FORBIDDEN. */
 async function ownBlock(ctx: Ctx, timeBlockId: string) {

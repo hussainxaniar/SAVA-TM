@@ -6,12 +6,14 @@ import {
   listDueChips,
   listTimeBlocks,
   listUnscheduled,
+  retrySync,
   updateTimeBlock,
 } from "../services/timeblocks";
 import { action } from "./action";
 import {
   createTimeBlockSchema,
   rangeSchema,
+  retrySyncSchema,
   timeBlockSchema,
   unscheduledSchema,
   updateTimeBlockSchema,
@@ -26,3 +28,5 @@ export const listUnscheduledAction = action(unscheduledSchema, (input, ctx) => l
 export const createTimeBlockAction = action(createTimeBlockSchema, (input, ctx) => createTimeBlock(ctx, input));
 export const updateTimeBlockAction = action(updateTimeBlockSchema, (input, ctx) => updateTimeBlock(ctx, input));
 export const deleteTimeBlockAction = action(timeBlockSchema, (input, ctx) => deleteTimeBlock(ctx, input));
+/** An ERROR block's Retry: push it to Google again (10.1). */
+export const retrySyncAction = action(retrySyncSchema, (input, ctx) => retrySync(ctx, input));

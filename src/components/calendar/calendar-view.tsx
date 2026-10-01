@@ -4,7 +4,10 @@ import { useCallback, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import type { DatesSetArg } from "@fullcalendar/core";
 import type FullCalendar from "@fullcalendar/react";
-import type { Range } from "@/hooks/use-calendar";
+import Link from "next/link";
+import { IconBrandGoogle } from "@tabler/icons-react";
+import { Button } from "@/components/ui/button";
+import { useGoogleConnection, type Range } from "@/hooks/use-calendar";
 import { CalendarGrid } from "./calendar-grid";
 import { CalendarToolbar } from "./calendar-toolbar";
 import { UnscheduledRail } from "./unscheduled-rail";
@@ -25,6 +28,7 @@ export function CalendarView({ spaceId }: CalendarViewProps) {
   const [range, setRange] = useState<Range | null>(null);
   const [title, setTitle] = useState("");
   const [view, setView] = useState("timeGridWeek");
+  const google = useGoogleConnection().data;
 
   const onDatesSet = useCallback((arg: DatesSetArg) => {
     const start = arg.start.toISOString();
@@ -48,9 +52,15 @@ export function CalendarView({ spaceId }: CalendarViewProps) {
     <div className="flex h-dvh flex-col overflow-hidden">
       <header className="w-full shrink-0 border-b border-border bg-sidebar/50 px-6 pb-3 pt-5">
         <div className="flex h-11 items-center">
-          <h1 className="text-[28px] font-semibold leading-[34px] tracking-[-0.02em] text-foreground">
+          <h1 className="grow text-[28px] font-semibold leading-[34px] tracking-[-0.02em] text-foreground">
             Calendar
           </h1>
+          {google?.configured && !google.connected && (
+            <Button variant="outline" size="sm" nativeButton={false} render={<Link href={`/s/${spaceId}/integrations`} />}>
+              <IconBrandGoogle aria-hidden />
+              Connect Google Calendar
+            </Button>
+          )}
         </div>
         <CalendarToolbar
           title={title}

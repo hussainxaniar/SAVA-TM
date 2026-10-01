@@ -4,6 +4,7 @@ import { db } from "../db";
 import { AppError } from "../errors";
 import { requireMember, spaceIdOfList, spaceIdOfTask } from "../guards";
 import { logActivities, logActivity, type ActivityInput } from "./activity";
+import { pushTaskRename, pushTasks, unpushTasks } from "./google-calendar";
 import { positionForMove, type MoveTarget } from "./ordering";
 import { toStatusDTO } from "./statuses";
 import { loadTaskRows, taskRowSelect, toTaskRow, type DbClient } from "./task-rows";
@@ -303,7 +304,8 @@ export async function updateTask(ctx: Ctx, input: UpdateTaskInput): Promise<Task
   const dueDate = input.dueDate === undefined ? undefined : parseDate(input.dueDate, "Due date");
   const description = input.description === undefined ? undefined : checkDescription(input.description);
 
-  return db.$transaction(async (tx) => {
+  let renamed = false;
+  const row = await db.$transaction(async (tx) => {
     const task = await tx.task.findFirst({ where: { id: input.taskId, deletedAt: null }, include: { status: true } });
     if (!task) throw notFound();
 
@@ -315,6 +317,7 @@ export async function updateTask(ctx: Ctx, input: UpdateTaskInput): Promise<Task
     if (title !== undefined && title !== task.title) {
       data.title = title;
       log("TASK_RENAMED", { from: task.title, to: title });
+      renamed = true;
     }
     if (description !== undefined && JSON.stringify(description) !== JSON.stringify(task.description)) {
       data.description = description === null ? Prisma.DbNull : description;
@@ -375,6 +378,9 @@ export async function updateTask(ctx: Ctx, input: UpdateTaskInput): Promise<Task
     await logActivities(tx, events);
     return (await loadTaskRows(tx, { id: task.id })).rows[0];
   });
+  // After commit (10.3): a new title renames the task's future Google events.
+  if (renamed) await pushTaskRename(row.id);
+  return row;
 }
 
 // ---------- Completion, assignees, order ----------
@@ -687,13 +693,16 @@ export async function deleteTask(ctx: Ctx, input: { taskId: string }): Promise<v
   const spaceId = await spaceIdOfTask(input.taskId);
   await requireMember(ctx.userId, spaceId);
 
-  await db.$transaction(async (tx) => {
+  const ids = await db.$transaction(async (tx) => {
     const task = await tx.task.findFirst({ where: { id: input.taskId, deletedAt: null }, select: { id: true } });
     if (!task) throw notFound();
     const ids = [task.id, ...(await descendantIds(tx, [task.id]))];
     await tx.task.updateMany({ where: { id: { in: ids }, deletedAt: null }, data: { deletedAt: new Date() } });
     await logActivity(tx, { spaceId, taskId: task.id, actorId: ctx.userId, type: "TASK_DELETED" });
+    return ids;
   });
+  // After commit (10.3): the subtree's future blocks leave Google Calendar (restore pushes them back).
+  await unpushTasks(ids);
 }
 
 /**
@@ -705,12 +714,12 @@ export async function restoreTask(ctx: Ctx, input: { taskId: string }): Promise<
   const spaceId = await spaceIdOfTask(input.taskId);
   await requireMember(ctx.userId, spaceId);
 
-  await db.$transaction(async (tx) => {
+  const restored = await db.$transaction(async (tx) => {
     const task = await tx.task.findUniqueOrThrow({
       where: { id: input.taskId },
       select: { id: true, deletedAt: true, depth: true, parent: { select: { deletedAt: true } } },
     });
-    if (!task.deletedAt) return; // already live: nothing to undo
+    if (!task.deletedAt) return []; // already live: nothing to undo
     if (task.parent?.deletedAt) throw new AppError("VALIDATION", "Restore the parent task first");
     // A subtask deleted on its own, whose old parent was later moved deeper (setParent), may no
     // longer fit (6.4.1).
@@ -719,7 +728,9 @@ export async function restoreTask(ctx: Ctx, input: { taskId: string }): Promise<
     const ids = [task.id, ...(await descendantIds(tx, [task.id], { includeDeleted: true }))];
     await tx.task.updateMany({ where: { id: { in: ids }, deletedAt: task.deletedAt }, data: { deletedAt: null } });
     await logActivity(tx, { spaceId, taskId: task.id, actorId: ctx.userId, type: "TASK_RESTORED" });
+    return ids;
   });
+  if (restored.length > 0) await pushTasks(restored);
 }
 
 // ---------- helpers ----------

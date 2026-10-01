@@ -8,8 +8,10 @@ import {
   listDueChipsAction,
   listTimeBlocksAction,
   listUnscheduledAction,
+  retrySyncAction,
   updateTimeBlockAction,
 } from "@/server/actions/timeblocks";
+import { getGoogleConnectionAction } from "@/server/actions/google";
 import type { MyTaskDTO, TimeBlockDTO } from "@/server/services/types";
 import { taskKey, unwrap } from "./use-list-view";
 
@@ -140,4 +142,36 @@ export function useDeleteTimeBlock(spaceId: string) {
     async (v: { timeBlockId: string; taskId: string }) => unwrap(await deleteTimeBlockAction({ timeBlockId: v.timeBlockId })),
     (blocks, v) => blocks.filter((b) => b.id !== v.timeBlockId),
   );
+}
+
+// ---------- Google Calendar (T-18) ----------
+
+export const googleConnectionKey = ["google-connection"] as const;
+
+/** Whether my Google Calendar is connected (sync icons only show when it is). */
+export function useGoogleConnection() {
+  return useQuery({
+    queryKey: googleConnectionKey,
+    queryFn: async () => unwrap(await getGoogleConnectionAction({})),
+    staleTime: 60_000,
+  });
+}
+
+/** An ERROR block's Retry: push it to Google again; the calendar and the task's dialog re-sync. */
+export function useRetrySync(spaceId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: { timeBlockId: string; taskId: string }) =>
+      unwrap(await retrySyncAction({ timeBlockId: v.timeBlockId, timeZone: browserTimeZone() })),
+    onSuccess: (block) => {
+      if (block.syncState === "ERROR") toast.error(block.lastSyncError ?? "Google Calendar sync failed again.");
+      else toast.success("Synced to Google Calendar");
+    },
+    onError: (error) => toast.error(error instanceof Error ? error.message : "Something went wrong. Try again."),
+    onSettled: (_r, _e, v) => {
+      void qc.invalidateQueries({ queryKey: calendarKey(spaceId) });
+      void qc.invalidateQueries({ queryKey: taskKey(v.taskId) });
+      void qc.invalidateQueries({ queryKey: googleConnectionKey }); // a failed refresh may have disconnected
+    },
+  });
 }

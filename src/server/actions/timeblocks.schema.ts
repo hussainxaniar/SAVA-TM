@@ -8,3 +8,4 @@ export const unscheduledSchema = z.object({ spaceId: id, projectId: id.nullable(
 export const createTimeBlockSchema = z.object({ taskId: id, start: instant, end: instant, timeZone: z.string().min(1) });
 export const updateTimeBlockSchema = z.object({ timeBlockId: id, start: instant, end: instant, timeZone: z.string().min(1) });
 export const timeBlockSchema = z.object({ timeBlockId: id });
+export const retrySyncSchema = z.object({ timeBlockId: id, timeZone: z.string().min(1).optional() });

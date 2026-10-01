@@ -123,7 +123,7 @@ export function Sidebar({
         />
       </div>
       <div className="-mx-2 flex h-10 items-center gap-2 border-t border-sidebar-border px-4">
-        <UserMenu user={user} />
+        <UserMenu user={user} spaceId={space.id} />
         <ThemeToggle />
       </div>
     </aside>
