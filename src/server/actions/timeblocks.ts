@@ -1,0 +1,28 @@
+"use server";
+
+import {
+  createTimeBlock,
+  deleteTimeBlock,
+  listDueChips,
+  listTimeBlocks,
+  listUnscheduled,
+  updateTimeBlock,
+} from "../services/timeblocks";
+import { action } from "./action";
+import {
+  createTimeBlockSchema,
+  rangeSchema,
+  timeBlockSchema,
+  unscheduledSchema,
+  updateTimeBlockSchema,
+} from "./timeblocks.schema";
+
+// Calendar actions (Section 8.6, local half). The calendar keeps its data in TanStack Query
+// (['calendar', spaceId, …]) with optimistic updates; no refresh().
+
+export const listTimeBlocksAction = action(rangeSchema, (input, ctx) => listTimeBlocks(ctx, input));
+export const listDueChipsAction = action(rangeSchema, (input, ctx) => listDueChips(ctx, input));
+export const listUnscheduledAction = action(unscheduledSchema, (input, ctx) => listUnscheduled(ctx, input));
+export const createTimeBlockAction = action(createTimeBlockSchema, (input, ctx) => createTimeBlock(ctx, input));
+export const updateTimeBlockAction = action(updateTimeBlockSchema, (input, ctx) => updateTimeBlock(ctx, input));
+export const deleteTimeBlockAction = action(timeBlockSchema, (input, ctx) => deleteTimeBlock(ctx, input));

@@ -190,3 +190,37 @@
   .rich-text blockquote { @apply border-l-2 border-border pl-3 text-muted-foreground; }
   .rich-text hr { @apply my-3 border-border; }
 }
+
+/* FullCalendar (T-17): its CSS variables mapped to the theme tokens, so light and dark mode follow. */
+.sava-calendar .fc {
+  --fc-border-color: var(--border);
+  --fc-page-bg-color: var(--background);
+  --fc-neutral-bg-color: var(--sidebar);
+  --fc-neutral-text-color: var(--muted-foreground);
+  --fc-today-bg-color: color-mix(in oklab, var(--primary) 6%, transparent);
+  --fc-now-indicator-color: var(--overdue);
+  --fc-highlight-color: color-mix(in oklab, var(--primary) 12%, transparent);
+  --fc-non-business-color: transparent;
+  --fc-event-bg-color: transparent;
+  --fc-event-border-color: transparent;
+  --fc-event-text-color: var(--foreground);
+  --fc-small-font-size: 11px;
+  font-size: 13px;
+}
+.sava-calendar .fc .fc-col-header-cell-cushion,
+.sava-calendar .fc .fc-daygrid-day-number {
+  @apply text-xs font-medium text-muted-foreground no-underline;
+}
+.sava-calendar .fc .fc-timegrid-slot-label-cushion {
+  @apply text-[11px] text-muted-foreground;
+}
+.sava-calendar .fc .fc-timegrid-slot {
+  height: 1.5rem; /* 24px per 30-minute slot = 48px per hour */
+}
+.sava-calendar .fc .fc-scrollgrid {
+  @apply rounded-none border-x-0;
+}
+.sava-calendar .fc-theme-standard td,
+.sava-calendar .fc-theme-standard th {
+  border-color: var(--divider);
+}

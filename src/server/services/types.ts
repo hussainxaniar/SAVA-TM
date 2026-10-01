@@ -105,7 +105,8 @@ export type TaskDetailDTO = TaskRowDTO & {
   breadcrumb: { id: string; title: string }[];
   /** Direct, non-deleted subtasks in position order. */
   subtasks: TaskRowDTO[];
-  timeBlocks: { id: string; start: string; end: string; syncState: string }[];
+  /** Every user's blocks for this task; only the owner (userId) can move or remove one. */
+  timeBlocks: { id: string; start: string; end: string; syncState: string; userId: string }[];
   createdBy: UserLite;
   createdAt: string;
   updatedAt: string;
@@ -167,3 +168,21 @@ export type FeedItemDTO =
       labels: Record<string, string>;
       createdAt: string;
     };
+
+// ---------- Calendar (Section 8.6 / 10.1) ----------
+
+/** One of my scheduled slots. `completed`: the task is done (the block renders struck through). */
+export type TimeBlockDTO = {
+  id: string;
+  taskId: string;
+  taskTitle: string;
+  projectColor: string;
+  completed: boolean;
+  start: string;
+  end: string;
+  syncState: "PENDING" | "SYNCED" | "ERROR";
+  lastSyncError: string | null;
+};
+
+/** A date-only due date of an open task assigned to me, shown as a chip in the all-day row (10.1). */
+export type DueChipDTO = { taskId: string; title: string; dueDate: string; projectColor: string };

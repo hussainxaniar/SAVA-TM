@@ -84,7 +84,7 @@ export async function getTask(ctx: Ctx, input: { taskId: string }): Promise<Task
         orderBy: { createdAt: "asc" },
         select: { listId: true, list: { select: { id: true, name: true } } },
       },
-      timeBlocks: { orderBy: { start: "asc" }, select: { id: true, start: true, end: true, syncState: true } },
+      timeBlocks: { orderBy: { start: "asc" }, select: { id: true, start: true, end: true, syncState: true, userId: true } },
       parent: { select: { id: true, title: true, parent: { select: { id: true, title: true } } } },
     },
   });
@@ -126,6 +126,7 @@ export async function getTask(ctx: Ctx, input: { taskId: string }): Promise<Task
       start: b.start.toISOString(),
       end: b.end.toISOString(),
       syncState: b.syncState,
+      userId: b.userId,
     })),
     createdBy: createdBy ?? { id: task.createdById, name: "Deleted user", image: null },
     createdAt: task.createdAt.toISOString(),
