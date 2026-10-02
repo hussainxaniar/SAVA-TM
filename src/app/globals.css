@@ -224,3 +224,12 @@
 .sava-calendar .fc-theme-standard th {
   border-color: var(--divider);
 }
+
+/* Doc editor extras (T-20): checklists (TaskList/TaskItem) inside .rich-text. */
+@layer components {
+  .rich-text ul[data-type="taskList"] { @apply list-none pl-0; }
+  .rich-text ul[data-type="taskList"] li { @apply flex items-start gap-2; }
+  .rich-text ul[data-type="taskList"] li > label { @apply mt-[3px] select-none; }
+  .rich-text ul[data-type="taskList"] li[data-checked="true"] > div { @apply text-muted-foreground line-through; }
+  .rich-text li > div > p { @apply m-0; }
+}

@@ -206,3 +206,30 @@ export type GoogleEventsResult = {
   /** My time blocks were moved or removed to match Google: refetch them. */
   changed: boolean;
 };
+
+// ---------- Docs (Section 8.7 / 11) ----------
+
+export type PageTreeNodeDTO = { id: string; title: string; parentId: string | null; position: string };
+
+export type DocPageDTO = {
+  id: string;
+  docId: string;
+  title: string;
+  /** Tiptap JSON. */
+  content: unknown;
+  /** The version this page is at: send it back as baseUpdatedAt when saving (11.2). */
+  updatedAt: string;
+  updatedBy: UserLite;
+};
+
+/** Everything the doc view needs for its first paint. */
+export type DocViewDTO = {
+  doc: { id: string; title: string; projectId: string; spaceId: string; projectName: string; projectColor: string };
+  tree: PageTreeNodeDTO[];
+  page: DocPageDTO;
+};
+
+/** `savePage`'s outcome: saved (the new version), or someone else saved first (11.2). */
+export type SavePageResult =
+  | { conflict?: false; updatedAt: string }
+  | { conflict: true; updatedBy: UserLite; /** The server's current version: Overwrite resends with it. */ updatedAt: string };
