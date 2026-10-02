@@ -237,13 +237,13 @@ export const TaskRow = memo(function TaskRow({
                   <span className={due.className}>{due.label}</span>
                 </span>
               )}
-              {subs && <span className="flex items-center gap-1">{subs}</span>}
+              {subs && <span className="flex max-md:hidden items-center gap-1">{subs}</span>}
               {flag}
             </span>
           )}
         </div>
         {actions}
-        <div className="flex w-16 shrink-0 items-center self-stretch justify-center">
+        <div className="hidden w-16 shrink-0 items-center self-stretch justify-center md:flex">
           <AvatarStack users={task.assignees} />
         </div>
       </div>
@@ -300,8 +300,8 @@ export const TaskRow = memo(function TaskRow({
         </span>
       )}
       {actions}
-      <div className="flex w-14 shrink-0 items-center gap-1">{subs}</div>
-      <div className="flex w-[72px] shrink-0 items-center">
+      <div className="hidden w-14 shrink-0 items-center gap-1 md:flex">{subs}</div>
+      <div className="hidden w-[72px] shrink-0 items-center md:flex">
         <AvatarStack users={task.assignees} />
       </div>
       <div className={cn("w-24 shrink-0 truncate text-[13px]", due?.className)}>

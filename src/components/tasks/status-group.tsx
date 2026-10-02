@@ -177,10 +177,10 @@ export function StatusGroup({
         {showColumns && (
           <>
             <span className="grow" />
-            <span className="w-14 shrink-0 text-left text-xs text-muted-foreground">Subs</span>
-            <span className="w-[72px] shrink-0 text-left text-xs text-muted-foreground">Assignee</span>
-            <span className="w-24 shrink-0 text-left text-xs text-muted-foreground">Due</span>
-            <span className="w-8 shrink-0 text-center text-xs text-muted-foreground">Pri</span>
+            <span className="hidden w-14 shrink-0 text-left text-xs text-muted-foreground md:block">Subs</span>
+            <span className="hidden w-[72px] shrink-0 text-left text-xs text-muted-foreground md:block">Assignee</span>
+            <span className="hidden w-24 shrink-0 text-left text-xs text-muted-foreground md:block">Due</span>
+            <span className="hidden w-8 shrink-0 text-center text-xs text-muted-foreground md:block">Pri</span>
           </>
         )}
       </button>
