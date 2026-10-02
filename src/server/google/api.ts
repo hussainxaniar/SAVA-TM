@@ -108,6 +108,40 @@ export const googleApi = {
     return { etag: res.data.etag ?? null };
   },
 
+  /** All events overlapping the range, recurring ones expanded, cancelled ones included (10.4). */
+  async listEvents(accessToken: string, calendarId: string, timeMin: string, timeMax: string): Promise<EventBody[]> {
+    const calendar = calendarClient(accessToken);
+    const items: EventBody[] = [];
+    let pageToken: string | undefined;
+    for (let page = 0; page < 4; page++) {
+      const res = await calendar.events.list({
+        calendarId,
+        timeMin,
+        timeMax,
+        singleEvents: true,
+        showDeleted: true,
+        maxResults: 250,
+        pageToken,
+      });
+      items.push(...(res.data.items ?? []));
+      pageToken = res.data.nextPageToken ?? undefined;
+      if (!pageToken) break;
+    }
+    return items;
+  },
+
+  /** One event, or null when it's gone (404/410). */
+  async getEvent(accessToken: string, calendarId: string, eventId: string): Promise<EventBody | null> {
+    try {
+      const res = await calendarClient(accessToken).events.get({ calendarId, eventId });
+      return res.data;
+    } catch (e) {
+      const status = googleStatus(e);
+      if (status === 404 || status === 410) return null;
+      throw e;
+    }
+  },
+
   async deleteEvent(accessToken: string, calendarId: string, eventId: string): Promise<void> {
     await calendarClient(accessToken).events.delete({ calendarId, eventId });
   },

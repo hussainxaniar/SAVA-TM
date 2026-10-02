@@ -7,6 +7,7 @@ import {
   getGoogleAuthUrl,
   getGoogleConnection,
   handleGoogleCallback,
+  listGoogleEvents,
 } from "@/server/services/google-calendar";
 import { createProject } from "@/server/services/projects";
 import { createTask, deleteTask, restoreTask, updateTask } from "@/server/services/tasks";
@@ -194,5 +195,93 @@ describe("push (10.3)", () => {
 
     await restoreTask(me, { taskId: t.id });
     expect((await block(b.id)).syncState).toBe("SYNCED");
+  });
+});
+
+describe("pull (10.4)", () => {
+  const hours = (h: number) => new Date(Date.now() + h * 3_600_000);
+  const range = (from: number, to: number) => ({ rangeStart: hours(from).toISOString(), rangeEnd: hours(to).toISOString() });
+  const ours = (blockId: string, extra: Record<string, unknown> = {}) => ({
+    id: googleEventIdOf.get(blockId),
+    status: "confirmed",
+    etag: '"9"',
+    extendedProperties: { private: { appTimeBlockId: blockId } },
+    ...extra,
+  });
+  const stub = (items: unknown[]) => vi.spyOn(googleApi, "listEvents").mockResolvedValue(items as never);
+
+  const googleEventIdOf = new Map<string, string | null>();
+  async function scheduled() {
+    if (!(await db.googleCalendarConnection.count({ where: { userId: me.userId } }))) await connect(me.userId);
+    const t = await createTask(me, { listId, title: "Write brief" });
+    const b = await createTimeBlock(me, { taskId: t.id, start: later(2), end: later(3), timeZone: tz });
+    const eventId = (await block(b.id)).googleEventId!;
+    googleEventIdOf.set(b.id, eventId);
+    return { t, b, eventId };
+  }
+
+  it("returns other events (timed and all-day) and nothing without a connection", async () => {
+    expect(await listGoogleEvents(me, range(0, 48))).toEqual({ events: [], changed: false });
+    await connect(me.userId);
+    stub([
+      { id: "a", summary: "Standup", status: "confirmed", start: { dateTime: hours(5).toISOString() }, end: { dateTime: hours(6).toISOString() }, htmlLink: "https://google/a" },
+      { id: "b", status: "confirmed", start: { date: "2026-10-02" }, end: { date: "2026-10-03" } },
+      { id: "c", summary: "Cancelled", status: "cancelled" },
+    ]);
+    const { events, changed } = await listGoogleEvents(me, range(0, 48));
+    expect(changed).toBe(false);
+    expect(events).toEqual([
+      expect.objectContaining({ id: "a", title: "Standup", allDay: false, htmlLink: "https://google/a" }),
+      expect.objectContaining({ id: "b", title: "(No title)", allDay: true, start: "2026-10-02", end: "2026-10-03" }),
+    ]);
+  });
+
+  it("moves my block when its event moved in Google, logging SCHEDULED, and never lists it as gray", async () => {
+    const { b, t } = await scheduled();
+    const start = hours(10);
+    const end = hours(11.5);
+    stub([ours(b.id, { start: { dateTime: start.toISOString() }, end: { dateTime: end.toISOString() } })]);
+    const { events, changed } = await listGoogleEvents(me, range(0, 48));
+    expect(events).toEqual([]);
+    expect(changed).toBe(true);
+    expect(await block(b.id)).toMatchObject({ start, end, googleEtag: '"9"', syncState: "SYNCED" });
+    const log = await db.activity.findMany({ where: { taskId: t.id, type: "SCHEDULED" } });
+    expect(log).toHaveLength(2); // creating + the pulled move
+    // Same times again: nothing changes.
+    expect((await listGoogleEvents(me, range(0, 48))).changed).toBe(false);
+  });
+
+  it("deletes my block when its event was cancelled, logging UNSCHEDULED", async () => {
+    const { b, t } = await scheduled();
+    stub([ours(b.id, { status: "cancelled" })]);
+    expect((await listGoogleEvents(me, range(0, 48))).changed).toBe(true);
+    expect(await db.timeBlock.count({ where: { id: b.id } })).toBe(0);
+    expect(await db.activity.count({ where: { taskId: t.id, type: "UNSCHEDULED" } })).toBe(1);
+  });
+
+  it("checks blocks whose event didn't come back: deleted → block removed, moved away → block updated", async () => {
+    const { b } = await scheduled();
+    stub([]);
+    const get = vi.spyOn(googleApi, "getEvent").mockResolvedValue(null);
+    expect((await listGoogleEvents(me, range(0, 48))).changed).toBe(true);
+    expect(get).toHaveBeenCalledTimes(1);
+    expect(await db.timeBlock.count({ where: { id: b.id } })).toBe(0);
+
+    const { b: b2 } = await scheduled();
+    const moved = hours(300);
+    get.mockResolvedValue(ours(b2.id, { start: { dateTime: moved.toISOString() }, end: { dateTime: new Date(moved.getTime() + 3_600_000).toISOString() } }) as never);
+    await listGoogleEvents(me, range(0, 48));
+    expect((await block(b2.id)).start).toEqual(moved);
+  });
+
+  it("returns nothing when Google is unreachable, and asks to reconnect on a dead grant", async () => {
+    await connect(me.userId);
+    vi.spyOn(googleApi, "listEvents").mockRejectedValue(new Error("network"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(await listGoogleEvents(me, range(0, 48))).toEqual({ events: [], changed: false });
+    await db.googleCalendarConnection.update({ where: { userId: me.userId }, data: { expiresAt: new Date() } });
+    api.refresh.mockRejectedValueOnce(Object.assign(new Error("invalid_grant"), { response: { data: { error: "invalid_grant" } } }));
+    await expect(listGoogleEvents(me, range(0, 48))).rejects.toThrow(/Reconnect/);
+    await expect(listGoogleEvents(me, { rangeStart: "x", rangeEnd: "y" })).rejects.toMatchObject({ code: "VALIDATION" });
   });
 });

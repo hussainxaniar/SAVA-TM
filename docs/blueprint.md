@@ -741,7 +741,7 @@ getGoogleConnection(ctx): Promise<{ connected: boolean; email?: string }>
 getGoogleAuthUrl(ctx): Promise<{ url }>
 handleGoogleCallback(ctx, { code, state }): Promise<void>
 disconnectGoogle(ctx): Promise<void>
-listGoogleEvents(ctx, { rangeStart, rangeEnd }): Promise<GoogleEventDTO[]>          // read-only layer + reconciliation
+listGoogleEvents(ctx, { rangeStart, rangeEnd }): Promise<{ events: GoogleEventDTO[]; changed: boolean }>   // read-only layer + reconciliation
 
 type TimeBlockDTO = { id; taskId; taskTitle; projectColor; start; end; syncState; lastSyncError }
 type GoogleEventDTO = { id; title; start; end; allDay: boolean; htmlLink }

@@ -21,7 +21,8 @@ type EventProps =
       syncState: "PENDING" | "SYNCED" | "ERROR";
       lastSyncError: string | null;
     }
-  | { kind: "due"; taskId: string; color: string };
+  | { kind: "due"; taskId: string; color: string }
+  | { kind: "google"; htmlLink: string | null };
 
 /**
  * Custom event rendering (10.1): my blocks with a project-color bar and a hover ⋯ menu, date-only
@@ -42,6 +43,9 @@ export function EventContent({
   const props = arg.event.extendedProps as EventProps;
   if (props.kind === "due") {
     return <DueChip title={arg.event.title} color={props.color} />;
+  }
+  if (props.kind === "google") {
+    return <GoogleEvent arg={arg} />;
   }
   const start = arg.event.start;
   const end = arg.event.end;
@@ -74,6 +78,27 @@ export function EventContent({
         onRemove={onRemove}
         onRetry={connected && props.syncState === "ERROR" ? onRetry : undefined}
       />
+    </div>
+  );
+}
+
+/** One of my other Google events: light gray, read-only (10.1). */
+function GoogleEvent({ arg }: { arg: EventContentArg }) {
+  const start = arg.event.start;
+  const end = arg.event.end;
+  const minutes = start && end ? (end.getTime() - start.getTime()) / 60_000 : 0;
+  const showTime = !arg.event.allDay && arg.view.type !== "dayGridMonth" && minutes >= 45;
+  return (
+    <div
+      title={`${arg.event.title} (Google Calendar)`}
+      className="h-full w-full overflow-hidden rounded-[5px] bg-pill px-1.5 py-0.5 text-muted-foreground"
+    >
+      <div className="truncate text-[12px] font-medium leading-4">{arg.event.title}</div>
+      {showTime && start && end && (
+        <div className="text-[11px] leading-[14px]">
+          {formatClock(start)}–{formatClock(end)}
+        </div>
+      )}
     </div>
   );
 }

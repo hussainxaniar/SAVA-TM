@@ -17,6 +17,7 @@ import {
   useDeleteTimeBlock,
   useDueChips,
   useGoogleConnection,
+  useGoogleEvents,
   useRetrySync,
   useTimeBlocks,
   useUpdateTimeBlock,
@@ -44,6 +45,7 @@ export function CalendarGrid({ spaceId, range, calendarRef, onDatesSet, onOpenTa
   const deleteTimeBlock = useDeleteTimeBlock(spaceId);
   const retrySync = useRetrySync(spaceId);
   const connected = useGoogleConnection().data?.connected ?? false;
+  const googleEvents = useGoogleEvents(spaceId, range, connected);
 
   const events = useMemo<EventInput[]>(() => {
     const list: EventInput[] = [];
@@ -64,6 +66,18 @@ export function CalendarGrid({ spaceId, range, calendarRef, onDatesSet, onOpenTa
         },
       });
     }
+    // Other Google events: gray, read-only, click opens Google (10.4).
+    for (const ev of googleEvents.data?.events ?? []) {
+      list.push({
+        id: `google-${ev.id}`,
+        title: ev.title,
+        start: ev.start,
+        end: ev.end,
+        allDay: ev.allDay,
+        editable: false,
+        extendedProps: { kind: "google", htmlLink: ev.htmlLink },
+      });
+    }
     for (const chip of dueChips.data ?? []) {
       // Date-only values are UTC midnight; take the UTC date parts for the all-day chip.
       list.push({
@@ -76,7 +90,7 @@ export function CalendarGrid({ spaceId, range, calendarRef, onDatesSet, onOpenTa
       });
     }
     return list;
-  }, [blocks.data, dueChips.data]);
+  }, [blocks.data, dueChips.data, googleEvents.data]);
 
   const removeBlock = useCallback<RemoveBlockFn>(
     (timeBlockId, taskId) => deleteTimeBlock.mutate({ timeBlockId, taskId }),
@@ -91,7 +105,12 @@ export function CalendarGrid({ spaceId, range, calendarRef, onDatesSet, onOpenTa
     (info: EventClickArg) => {
       // The block's ⋯ menu button sits inside the event: its click opens the menu, not the task.
       if ((info.jsEvent.target as HTMLElement | null)?.closest("[data-block-menu]")) return;
-      const props = info.event.extendedProps as { taskId?: string };
+      const props = info.event.extendedProps as { taskId?: string; kind?: string; htmlLink?: string | null };
+      info.jsEvent.preventDefault(); // FullCalendar would follow an event url; we open links ourselves
+      if (props.kind === "google") {
+        if (props.htmlLink) window.open(props.htmlLink, "_blank", "noopener,noreferrer");
+        return;
+      }
       if (props.taskId) onOpenTask(props.taskId);
     },
     [onOpenTask],

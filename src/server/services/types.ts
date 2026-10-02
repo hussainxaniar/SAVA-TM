@@ -186,3 +186,23 @@ export type TimeBlockDTO = {
 
 /** A date-only due date of an open task assigned to me, shown as a chip in the all-day row (10.1). */
 export type DueChipDTO = { taskId: string; title: string; dueDate: string; projectColor: string };
+
+/**
+ * A Google Calendar event that isn't one of ours (Section 10.4), shown read-only in gray. All-day
+ * events carry date-only start/end ("2026-10-02"; end exclusive); timed ones ISO instants.
+ */
+export type GoogleEventDTO = {
+  id: string;
+  title: string;
+  start: string;
+  end: string;
+  allDay: boolean;
+  htmlLink: string | null;
+};
+
+/** What `listGoogleEvents` returns: the events to show, and whether reconciling changed any of my blocks. */
+export type GoogleEventsResult = {
+  events: GoogleEventDTO[];
+  /** My time blocks were moved or removed to match Google: refetch them. */
+  changed: boolean;
+};

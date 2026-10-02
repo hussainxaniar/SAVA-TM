@@ -11,8 +11,8 @@ import {
   retrySyncAction,
   updateTimeBlockAction,
 } from "@/server/actions/timeblocks";
-import { getGoogleConnectionAction } from "@/server/actions/google";
-import type { MyTaskDTO, TimeBlockDTO } from "@/server/services/types";
+import { getGoogleConnectionAction, listGoogleEventsAction } from "@/server/actions/google";
+import type { GoogleEventsResult, MyTaskDTO, TimeBlockDTO } from "@/server/services/types";
 import { taskKey, unwrap } from "./use-list-view";
 
 /*
@@ -174,4 +174,36 @@ export function useRetrySync(spaceId: string) {
       void qc.invalidateQueries({ queryKey: googleConnectionKey }); // a failed refresh may have disconnected
     },
   });
+}
+
+/**
+ * My other Google events in the visible range, as gray read-only blocks (10.4). Fetching them also
+ * reconciles my blocks with Google on the server; when that changed any, my blocks, the rail and
+ * the open task dialogs are refetched. Only runs while connected; refetches on window focus.
+ */
+export function useGoogleEvents(spaceId: string, range: Range | null, enabled: boolean) {
+  const qc = useQueryClient();
+  const query = useQuery({
+    queryKey: [...calendarKey(spaceId), "google", range?.start ?? "none", range?.end ?? "none"],
+    queryFn: async (): Promise<GoogleEventsResult> => {
+      const res = await listGoogleEventsAction({ rangeStart: range!.start, rangeEnd: range!.end });
+      if (!res.ok) {
+        // A dead grant asks to reconnect once; the connection query then flips to disconnected.
+        toast.error(res.error.message);
+        void qc.invalidateQueries({ queryKey: googleConnectionKey });
+        return { events: [], changed: false };
+      }
+      if (res.data.changed) {
+        void qc.invalidateQueries({ queryKey: [...calendarKey(spaceId), "blocks"] });
+        void qc.invalidateQueries({ queryKey: [...calendarKey(spaceId), "unscheduled"] });
+        void qc.invalidateQueries({ queryKey: ["task"] });
+      }
+      return res.data;
+    },
+    enabled: enabled && !!range,
+    staleTime: 30_000,
+    retry: false,
+    placeholderData: keepPreviousData,
+  });
+  return query;
 }

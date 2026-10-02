@@ -3,7 +3,8 @@ import { decrypt, encrypt, signState, verifyState } from "../crypto";
 import { AppError } from "../errors";
 import { requireMember } from "../guards";
 import { CALENDAR_SCOPE, googleApi, googleStatus, isInvalidGrant, type EventBody } from "../google/api";
-import type { Ctx } from "./types";
+import { logActivity } from "./activity";
+import type { Ctx, GoogleEventDTO, GoogleEventsResult } from "./types";
 
 /*
  * Section 10.2 / 10.3 (T-18): connecting Google Calendar and pushing time blocks to it.
@@ -261,4 +262,121 @@ async function pushPendingForUser(userId: string): Promise<void> {
     select: { id: true },
   });
   for (const b of blocks) await pushTimeBlock(b.id);
+}
+
+// ---------- pull (10.4) ----------
+
+const instant = (e: EventBody["start"]) => (e?.dateTime ? new Date(e.dateTime).getTime() : null);
+
+/**
+ * Google → app, for the range the calendar is showing: reconciles my blocks with their events
+ * (Google wins), then returns every other event as a read-only DTO.
+ *  1. Events carrying our appTimeBlockId: moved → update the block and log SCHEDULED;
+ *     cancelled → delete the block and log UNSCHEDULED. They're never returned as gray events.
+ *  2. My synced blocks in range whose event didn't come back are checked with events.get: gone or
+ *     cancelled → delete the block; moved elsewhere → update it.
+ * Not connected: nothing. Google being unreachable returns nothing too (the calendar still works);
+ * a dead refresh token throws the "Reconnect" message.
+ */
+export async function listGoogleEvents(
+  ctx: Ctx,
+  input: { rangeStart: string; rangeEnd: string },
+): Promise<GoogleEventsResult> {
+  const start = new Date(input.rangeStart);
+  const end = new Date(input.rangeEnd);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start || end.getTime() - start.getTime() > 62 * 86_400_000) {
+    throw new AppError("VALIDATION", "Pick a shorter date range");
+  }
+  const access = await accessFor(ctx.userId); // throws the reconnect message when the grant is dead
+  if (!access) return { events: [], changed: false };
+
+  let items: EventBody[];
+  try {
+    items = await googleApi.listEvents(access.token, access.calendarId, start.toISOString(), end.toISOString());
+  } catch (e) {
+    console.error("Google events list failed", e);
+    return { events: [], changed: false };
+  }
+
+  const blocks = await db.timeBlock.findMany({
+    where: { userId: ctx.userId, googleEventId: { not: null }, start: { lt: end }, end: { gt: start }, task: { deletedAt: null } },
+    select: { id: true, taskId: true, spaceId: true, start: true, end: true, googleEventId: true },
+  });
+  const blockById = new Map(blocks.map((b) => [b.id, b]));
+  const seen = new Set<string>();
+  let changed = false;
+
+  const sync = async (blockId: string, event: EventBody) => {
+    const block = await db.timeBlock.findFirst({
+      where: { id: blockId, userId: ctx.userId },
+      select: { id: true, taskId: true, spaceId: true, start: true, end: true },
+    });
+    if (!block) return;
+    if (event.status === "cancelled") {
+      await db.$transaction(async (tx) => {
+        await tx.timeBlock.delete({ where: { id: block.id } });
+        await logActivity(tx, { spaceId: block.spaceId, taskId: block.taskId, actorId: ctx.userId, type: "UNSCHEDULED", payload: { timeBlockId: block.id } });
+      });
+      changed = true;
+      return;
+    }
+    const s = instant(event.start);
+    const e = instant(event.end);
+    if (s === null || e === null || e <= s) return; // an all-day event: not a slot we can mirror
+    if (s === block.start.getTime() && e === block.end.getTime()) return;
+    const newStart = new Date(s);
+    const newEnd = new Date(e);
+    await db.$transaction(async (tx) => {
+      await tx.timeBlock.update({
+        where: { id: block.id },
+        data: { start: newStart, end: newEnd, googleEtag: event.etag ?? null, syncState: "SYNCED", lastSyncError: null },
+      });
+      await logActivity(tx, {
+        spaceId: block.spaceId,
+        taskId: block.taskId,
+        actorId: ctx.userId,
+        type: "SCHEDULED",
+        payload: { timeBlockId: block.id, start: newStart.toISOString(), end: newEnd.toISOString() },
+      });
+    });
+    changed = true;
+  };
+
+  const others: GoogleEventDTO[] = [];
+  for (const event of items) {
+    if (event.id) seen.add(event.id);
+    const ours = event.extendedProperties?.private?.appTimeBlockId;
+    if (ours) {
+      await sync(ours, event);
+      continue;
+    }
+    if (event.status === "cancelled" || !event.id) continue;
+    const allDay = !!event.start?.date && !event.start?.dateTime;
+    const from = allDay ? event.start?.date : event.start?.dateTime;
+    const to = allDay ? event.end?.date : event.end?.dateTime;
+    if (!from || !to) continue;
+    others.push({
+      id: event.id,
+      title: event.summary || "(No title)",
+      start: allDay ? from : new Date(from).toISOString(),
+      end: allDay ? to : new Date(to).toISOString(),
+      allDay,
+      htmlLink: event.htmlLink ?? null,
+    });
+  }
+
+  // My blocks whose event wasn't in range any more: moved away, or deleted in Google.
+  for (const block of blocks) {
+    if (!block.googleEventId || seen.has(block.googleEventId) || !blockById.has(block.id)) continue;
+    let event: EventBody | null;
+    try {
+      event = await googleApi.getEvent(access.token, access.calendarId, block.googleEventId);
+    } catch (e) {
+      console.error("Google event lookup failed", e);
+      continue;
+    }
+    await sync(block.id, event ?? { status: "cancelled" });
+  }
+
+  return { events: others, changed };
 }
