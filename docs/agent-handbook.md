@@ -6,6 +6,8 @@ the rules the owner set. `docs/blueprint.md` stays the single source of truth fo
 
 If something here contradicts the blueprint, the blueprint wins; tell the owner and fix this file.
 
+**Also read [orchestrator-decisions.md](orchestrator-decisions.md)**: every decision the orchestrator made so far, with the reason (process, delegation, product/design, architecture, infrastructure, deviations from the blueprint, open items, mistakes not to repeat). It is the record a new agent needs to carry on exactly as it was being run.
+
 ## 1. Who does what
 
 | Role | Model | Does |
