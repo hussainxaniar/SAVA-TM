@@ -16,9 +16,7 @@
     server's version and bumps `version`.
 - `usePage(docId, pageId, initial)` (use-doc.ts) gives the page with its current `updatedAt` / `updatedBy` (kept in sync by the autosave hook).
 - `globals.css` has `.rich-text` styles incl. headings, lists, code, quotes and checklists (`ul[data-type="taskList"]`).
-- Part 2 renders `<PageEditor key={...} docId page me />` from `doc-view.tsx`. Key it as `` `${page.id}:${version}` ``?
-  No: the editor itself owns the hook; to remount on Reload, **the editor component must key its inner `EditorContent` on
-  `version`**, see below.
+- Part 2's `doc-view.tsx` renders `<PageEditor key={page.id} docId page me />`. The editor remounts its body when you Reload (see 2).
 
 ## What to build
 
