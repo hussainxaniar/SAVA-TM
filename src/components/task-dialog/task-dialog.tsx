@@ -245,6 +245,7 @@ export function TaskDialog({ spaceId, members, me, taskId, open, onClose, onOpen
                 <DescriptionEditor
                   key={task.id}
                   description={task.description}
+                  spaceId={task.spaceId}
                   onSave={(description) => editTask.mutate({ taskId: task.id, description })}
                 />
               </div>

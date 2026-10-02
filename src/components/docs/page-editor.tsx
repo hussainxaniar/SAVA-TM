@@ -59,6 +59,8 @@ function EditorBody({
     immediatelyRender: false,
     editorProps: {
       attributes: { class: "rich-text min-h-[50vh] outline-none" },
+      // The getter fires only on paste/drop, never during render — the refs rule can't see that.
+      // eslint-disable-next-line react-hooks/refs
       ...imageEditorProps(spaceId, () => editorRef.current),
     },
   });
@@ -182,6 +184,7 @@ export function PageEditor(props: PageEditorProps) {
         onChange={handleChange}
         onFlush={handleFlush}
         onReady={handleReady}
+        spaceId={spaceId}
       />
       <p className="mt-6 text-[13px] text-muted-foreground">
         Edited by {page.updatedBy.name} · {relativeTime(page.updatedAt)}

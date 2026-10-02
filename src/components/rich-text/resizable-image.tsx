@@ -61,6 +61,7 @@ function ImageView(props: NodeViewProps) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
+      {/* eslint-disable-next-line @next/next/no-img-element -- a Tiptap node view must render the raw <img> that ProseMirror serializes; next/image can't be used here */}
       <img
         ref={imageRef}
         src={node.attrs.src}

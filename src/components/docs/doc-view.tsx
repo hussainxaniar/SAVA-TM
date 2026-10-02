@@ -53,7 +53,7 @@ export function DocView(props: DocViewProps) {
           currentPageId={page.id}
         />
         <div className="min-w-0 flex-1 overflow-y-auto">
-          <PageEditor key={page.id} docId={doc.id} page={page} me={me} />
+          <PageEditor key={page.id} docId={doc.id} spaceId={doc.spaceId} page={page} me={me} />
         </div>
       </div>
     </div>
