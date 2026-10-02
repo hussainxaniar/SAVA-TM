@@ -73,7 +73,9 @@ export function usePageAutosave(opts: { docId: string; page: DocPageDTO; me: Use
         const res = await savePageAction({
           pageId: page.id,
           title: batch.title,
-          content: batch.content as { type: "doc" } | undefined,
+          // A JSON round-trip: drops `undefined` and anything non-plain the editor's JSON may carry,
+          // which server actions can't serialize (it reached Prisma as a client reference).
+          content: batch.content === undefined ? undefined : (JSON.parse(JSON.stringify(batch.content)) as { type: "doc" }),
           baseUpdatedAt: baseOverride ?? base.current,
         });
         if (!res.ok) {

@@ -392,7 +392,9 @@ function PageRow({
         >
           <IconDots />
         </DropdownMenuTrigger>
-        <DropdownMenuContent>
+        {/* The menu is portaled, but React still bubbles its clicks and keys to the row, which would
+            navigate (or start a drag) and drop the confirm dialog's state. */}
+        <DropdownMenuContent onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
           <DropdownMenuItem variant="destructive" onClick={onDelete}>
             Delete
           </DropdownMenuItem>
