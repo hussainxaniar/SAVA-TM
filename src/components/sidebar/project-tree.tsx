@@ -20,7 +20,15 @@ import {
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { IconCheck, IconChevronDown, IconChevronRight, IconDots, IconFileText, IconList } from "@tabler/icons-react";
+import {
+  IconCheck,
+  IconChevronDown,
+  IconChevronRight,
+  IconDots,
+  IconFilePlus,
+  IconFileText,
+  IconList,
+} from "@tabler/icons-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,6 +54,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { PROJECT_COLORS } from "@/lib/project-colors";
+import {
+  archiveDocAction,
+  createDocAction,
+  renameDocAction,
+} from "@/server/actions/docs";
 import {
   archiveProjectAction,
   reorderProjectAction,
@@ -108,6 +121,131 @@ const listRowActive =
   "bg-selected font-medium text-selected-foreground hover:bg-selected";
 
 type SidebarProject = SidebarDTO["projects"][number];
+type SidebarDoc = SidebarProject["docs"][number];
+
+function DocRow({
+  spaceId,
+  projectId,
+  doc,
+}: {
+  spaceId: string;
+  projectId: string;
+  doc: SidebarDoc;
+}) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(doc.title);
+  const cancelled = useRef(false);
+
+  const active = pathname.startsWith(
+    `/s/${spaceId}/p/${projectId}/d/${doc.id}`,
+  );
+
+  function startRename() {
+    cancelled.current = false;
+    setDraft(doc.title);
+    setEditing(true);
+  }
+
+  async function saveRename() {
+    setEditing(false);
+    const trimmed = draft.trim();
+    // Empty or unchanged titles cancel the rename instead of hitting the action.
+    if (!trimmed || trimmed === doc.title) return;
+    const res = await renameDocAction({ docId: doc.id, title: trimmed });
+    if (!res.ok) toast.error(res.error.message);
+  }
+
+  async function onArchive() {
+    const res = await archiveDocAction({ docId: doc.id });
+    if (!res.ok) {
+      toast.error(res.error.message);
+      return;
+    }
+    toast(`Archived "${doc.title}"`);
+    if (pathname.includes(`/d/${doc.id}/`)) {
+      router.push(`/s/${spaceId}/p/${projectId}`);
+    }
+  }
+
+  return (
+    <div className={cn(listRow, "group", active && listRowActive)}>
+      {editing ? (
+        <Input
+          value={draft}
+          autoFocus
+          onFocus={(e) => e.target.select()}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              void saveRename();
+            } else if (e.key === "Escape") {
+              cancelled.current = true;
+              setEditing(false);
+            }
+          }}
+          onBlur={() => {
+            if (cancelled.current) {
+              cancelled.current = false;
+              return;
+            }
+            void saveRename();
+          }}
+          className="h-7 my-0.5 text-sm"
+        />
+      ) : (
+        <>
+          {doc.firstPageId ? (
+            <Link
+              href={`/s/${spaceId}/p/${projectId}/d/${doc.id}/${doc.firstPageId}`}
+              className="flex min-w-0 grow items-center gap-2"
+            >
+              <IconFileText className="size-4 shrink-0 text-muted-foreground" />
+              <span className="truncate">{doc.title}</span>
+            </Link>
+          ) : (
+            <>
+              <IconFileText className="size-4 shrink-0 text-muted-foreground" />
+              <span className="grow truncate">{doc.title}</span>
+            </>
+          )}
+          <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  aria-label={`${doc.title} options`}
+                  className={cn(
+                    "shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100",
+                    menuOpen && "opacity-100",
+                  )}
+                />
+              }
+            >
+              <IconDots />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuGroup>
+                <DropdownMenuItem onClick={startRename}>
+                  Rename
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => void onArchive()}
+                >
+                  Archive
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </>
+      )}
+    </div>
+  );
+}
 
 function ProjectRow({
   spaceId,
@@ -186,6 +324,17 @@ function ProjectRow({
     }
     setArchiveOpen(false);
     if (pathname.startsWith(projectHref)) router.push(`/s/${spaceId}`);
+  }
+
+  async function onNewDoc() {
+    const res = await createDocAction({ projectId: project.id });
+    if (!res.ok) {
+      toast.error(res.error.message);
+      return;
+    }
+    router.push(
+      `/s/${spaceId}/p/${project.id}/d/${res.data.docId}/${res.data.firstPageId}`,
+    );
   }
 
   return (
@@ -282,6 +431,13 @@ function ProjectRow({
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuGroup>
+                  <DropdownMenuItem
+                    className="gap-2"
+                    onClick={() => void onNewDoc()}
+                  >
+                    <IconFilePlus />
+                    New doc
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={startRename}>
                     Rename
                   </DropdownMenuItem>
@@ -374,28 +530,14 @@ function ProjectRow({
               </Link>
             );
           })}
-          {project.docs.map((doc) =>
-            doc.firstPageId ? (
-              <Link
-                key={doc.id}
-                href={`/s/${spaceId}/p/${project.id}/d/${doc.id}/${doc.firstPageId}`}
-                className={cn(
-                  listRow,
-                  pathname.startsWith(
-                    `/s/${spaceId}/p/${project.id}/d/${doc.id}`,
-                  ) && listRowActive,
-                )}
-              >
-                <IconFileText className="size-4 shrink-0 text-muted-foreground" />
-                <span className="grow truncate">{doc.title}</span>
-              </Link>
-            ) : (
-              <p key={doc.id} className={listRow}>
-                <IconFileText className="size-4 shrink-0 text-muted-foreground" />
-                <span className="grow truncate">{doc.title}</span>
-              </p>
-            ),
-          )}
+          {project.docs.map((doc) => (
+            <DocRow
+              key={doc.id}
+              spaceId={spaceId}
+              projectId={project.id}
+              doc={doc}
+            />
+          ))}
         </>
       )}
       <AlertDialog open={archiveOpen} onOpenChange={setArchiveOpen}>
