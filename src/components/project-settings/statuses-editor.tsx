@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { IconCheck, IconTrash } from "@tabler/icons-react";
+import { StatusGlyph, statusGlyphKind } from "@/components/tasks/status-icon";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -31,7 +33,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { STATUS_ICON_KEYS, isStatusIconKey, type StatusIconKey } from "@/lib/list-icons";
 import { STATUS_CATEGORY_LABELS, STATUS_COLORS } from "@/lib/status-colors";
+import { cn } from "@/lib/utils";
 import {
   createStatusAction,
   deleteStatusAction,
@@ -61,7 +65,106 @@ function taskLabel(count: number) {
   return `${count} ${count === 1 ? "task" : "tasks"}`;
 }
 
-function StatusRowItem({ status, others }: { status: StatusRow; others: StatusRow[] }) {
+const STATUS_ICON_LABELS: Record<StatusIconKey, string> = {
+  circle: "Circle",
+  quarter: "Quarter",
+  half: "Half",
+  threeQuarter: "Three quarters",
+};
+
+/** The key matching what an ACTIVE status with no chosen icon shows (its by-position glyph). */
+function fallbackIconKey(status: StatusRow, all: readonly StatusRow[]): StatusIconKey {
+  switch (statusGlyphKind({ ...status, icon: null }, all)) {
+    case "quarter":
+      return "quarter";
+    case "half":
+      return "half";
+    case "threeQuarter":
+      return "threeQuarter";
+    default:
+      return "circle";
+  }
+}
+
+/** The four fill options an ACTIVE status's glyph can take (6.1); the current one is highlighted. */
+function StatusIconOptions({
+  current,
+  onSelect,
+}: {
+  current: StatusIconKey | null;
+  onSelect: (key: StatusIconKey) => void;
+}) {
+  return (
+    <div className="flex gap-0.5">
+      {STATUS_ICON_KEYS.map((key) => (
+        <button
+          key={key}
+          type="button"
+          title={STATUS_ICON_LABELS[key]}
+          aria-label={STATUS_ICON_LABELS[key]}
+          onClick={() => onSelect(key)}
+          className={cn(
+            "flex size-9 items-center justify-center rounded-md text-status-active hover:bg-muted",
+            current === key && "bg-selected hover:bg-selected",
+          )}
+        >
+          <StatusGlyph
+            status={{ id: "x", category: "ACTIVE", icon: key }}
+            statuses={[]}
+            size={20}
+          />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** The ACTIVE row's icon picker: the trigger shows the status's glyph, the popup the fill options. */
+function StatusIconPicker({ status, all }: { status: StatusRow; all: readonly StatusRow[] }) {
+  const [open, setOpen] = useState(false);
+
+  async function setIcon(key: StatusIconKey) {
+    setOpen(false);
+    const res = await updateStatusAction({ statusId: status.id, icon: key });
+    if (!res.ok) toast.error(res.error.message);
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        render={
+          <button
+            type="button"
+            aria-label="Status icon"
+            className="flex size-6 shrink-0 items-center justify-center rounded-md hover:bg-muted"
+          />
+        }
+      >
+        <StatusGlyph status={status} statuses={all} size={18} />
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-fit">
+        <StatusIconOptions
+          current={
+            status.icon && isStatusIconKey(status.icon)
+              ? status.icon
+              : fallbackIconKey(status, all)
+          }
+          onSelect={(key) => void setIcon(key)}
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function StatusRowItem({
+  status,
+  others,
+  allStatuses,
+}: {
+  status: StatusRow;
+  others: StatusRow[];
+  allStatuses: StatusRow[];
+}) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(status.name);
   const cancelled = useRef(false);
@@ -165,6 +268,13 @@ function StatusRowItem({ status, others }: { status: StatusRow; others: StatusRo
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
+      {status.category === "ACTIVE" ? (
+        <StatusIconPicker status={status} all={allStatuses} />
+      ) : (
+        <span className="flex size-6 shrink-0 items-center justify-center">
+          <StatusGlyph status={status} statuses={allStatuses} size={18} />
+        </span>
+      )}
       {editing ? (
         <Input
           value={draft}
@@ -282,6 +392,7 @@ function StatusRowItem({ status, others }: { status: StatusRow; others: StatusRo
 export function StatusesEditor({ projectId, statuses, canEdit }: StatusesEditorProps) {
   const [newName, setNewName] = useState("");
   const [newCategory, setNewCategory] = useState<Category>("ACTIVE");
+  const [newIcon, setNewIcon] = useState<StatusIconKey | null>(null);
   const [addError, setAddError] = useState<string | null>(null);
   const [addPending, setAddPending] = useState(false);
 
@@ -305,6 +416,8 @@ export function StatusesEditor({ projectId, statuses, canEdit }: StatusesEditorP
       name: newName,
       color: STATUS_COLORS[0].value,
       category: newCategory,
+      // Only ACTIVE statuses take an icon; the server rejects it on the others.
+      icon: newCategory === "ACTIVE" ? newIcon : undefined,
     });
     if (!parsed.success) {
       setAddError(parsed.error.issues[0]?.message ?? "Invalid input");
@@ -319,6 +432,7 @@ export function StatusesEditor({ projectId, statuses, canEdit }: StatusesEditorP
       return;
     }
     setNewName("");
+    setNewIcon(null);
   }
 
   return (
@@ -337,6 +451,7 @@ export function StatusesEditor({ projectId, statuses, canEdit }: StatusesEditorP
                   key={status.id}
                   status={status}
                   others={statuses.filter((o) => o.id !== status.id)}
+                  allStatuses={items}
                 />
               ))
             }
@@ -367,6 +482,28 @@ export function StatusesEditor({ projectId, statuses, canEdit }: StatusesEditorP
                   ))}
                 </SelectContent>
               </Select>
+              {newCategory === "ACTIVE" && (
+                <Popover>
+                  <PopoverTrigger
+                    render={
+                      <button
+                        type="button"
+                        aria-label="New status icon"
+                        className="flex size-6 shrink-0 items-center justify-center rounded-md hover:bg-muted"
+                      />
+                    }
+                  >
+                    <StatusGlyph
+                      status={{ id: "x", category: "ACTIVE", icon: newIcon ?? "circle" }}
+                      statuses={[]}
+                      size={18}
+                    />
+                  </PopoverTrigger>
+                  <PopoverContent align="start" className="w-fit">
+                    <StatusIconOptions current={newIcon} onSelect={setNewIcon} />
+                  </PopoverContent>
+                </Popover>
+              )}
               <Button type="submit" disabled={addPending}>
                 Add
               </Button>
