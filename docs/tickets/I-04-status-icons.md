@@ -39,3 +39,9 @@ Do not touch anything else. No dependencies, no installers.
 - [ ] In project settings an In-progress status has an icon picker (circle, ¼, ½, ¾); the choice shows in list rows,
   status groups, the status menu and the dialog. To-do and Done statuses can't change their icon.
 - [ ] `pnpm typecheck && pnpm lint && pnpm test` pass with no warnings.
+
+## Completion record (2026-10-02)
+
+Models: UI by GLM 5.3 Flash. Review fix by the Architect: the glyph was always the theme's blue; `StatusGlyph` now takes the status's own `color` (inline) and the picker previews icons in it. Browser QA: each status shows its icon in its own color (Review: purple three-quarter circle).
+
+Checks: `pnpm typecheck`, `pnpm lint` (0 warnings), `pnpm test` (236 tests) pass.

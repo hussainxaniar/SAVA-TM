@@ -148,8 +148,10 @@ Heuristics for **handling a request from the owner**:
   **T-13** move / add-to-list / sidebar drop (+DragOverlay). **T-14** assignees, dates, priority (date picker, popover). **T-15** comments and
   activity feed. **T-16** My Tasks. **T-17** calendar and time blocks (split into two Flash tickets). **T-18** Google connect and push.
   **T-19** Google pull. **T-20** Docs (services + drag maths + autosave by the Architect; UI in three Flash tickets).
-- **T-21** (in progress 2026-10-02) shortcuts, mobile/responsive, empty states and skeletons, plus I-01 images, I-02 rich descriptions,
-  I-03 new list + list icons, I-04 status icon picker (Flash batch).
+- **I-01..I-04** (2026-10-02, a Flash batch, then reviewed and browser-tested): images in docs/descriptions, rich descriptions, New list + list icons,
+  status icon picker. Review fix: the status glyph uses the status's own color, not the theme blue.
+- **T-21** shortcuts / responsive / empty states: **paused by the owner (2026-10-02)**. The batch runner had already run all three Flash
+  tickets; the unreviewed output was kept on branch `wip/t21-flash-output` and reverted on `main` (see `docs/tickets/T-21.md`).
 - **T-22** E2E tests (Playwright) and the production release: not started.
 
 ## 8. Open decisions and things the owner still has to do
@@ -162,6 +164,8 @@ Heuristics for **handling a request from the owner**:
 
 ## 9. Mistakes to not repeat
 
+- Starting a multi-ticket batch that includes tickets the owner hasn't approved: the runner ran T-21 to completion before I could stop it. Queue only
+  approved tickets, or run them one at a time.
 - Printing `.env` via `source` (a parse error echoed the OpenRouter key): read single values with `grep`, never `source`.
 - Launching long commands attached to the session (killed at the time limit); chaining a dispatch after a test run in one command.
 - Telling the owner a thing "works" from a unit test alone; always click through it.

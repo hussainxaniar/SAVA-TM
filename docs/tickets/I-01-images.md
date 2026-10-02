@@ -49,3 +49,9 @@ Do not touch anything else. No dependencies, no installers.
 - [ ] In a doc page: paste or drop an image, or use the toolbar's Image button; it uploads and appears; dragging its corner
   handle resizes it; the width survives autosave and a reload.
 - [ ] `pnpm typecheck && pnpm lint && pnpm test` pass with no warnings.
+
+## Completion record (2026-10-02)
+
+Models: Architect plumbing (Image table, `/api/images`, `@tiptap/extension-image`); UI by GLM 5.3 Flash (its session ended with an OpenRouter 400 near the end; the remaining wiring was completed by the I-02 run). Browser QA (2026-10-02, Ada): uploading through the toolbar inserts the image (served from `/api/images/<id>`), dragging the corner handle resizes it (400 -> 280 px) and the width survives autosave and a reload.
+
+Checks: `pnpm typecheck`, `pnpm lint` (0 warnings), `pnpm test` (236 tests) pass.

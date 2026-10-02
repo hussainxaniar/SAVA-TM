@@ -48,3 +48,9 @@ Do not touch anything else. No dependencies, no installers.
 - [ ] **New list** in the project menu creates "New list" and opens it. Lists show their icon in the sidebar and header;
   it can be changed from the header menu and from project settings, and the sidebar updates.
 - [ ] `pnpm typecheck && pnpm lint && pnpm test` pass with no warnings.
+
+## Completion record (2026-10-02)
+
+Models: UI by GLM 5.3 Flash. Browser QA: the project menu has New list (creates "New list" and opens it); the list header menu has Change icon; choosing the rocket updates the sidebar icon.
+
+Checks: `pnpm typecheck`, `pnpm lint` (0 warnings), `pnpm test` (236 tests) pass.

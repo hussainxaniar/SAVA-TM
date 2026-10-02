@@ -34,3 +34,9 @@ Do not touch anything else. No dependencies, no installers.
 - [ ] Selecting text in a description shows the formatting toolbar (bold, italic, link, H2, H3, list, image); checklists and
   `#`/`-`/`[]` shortcuts work; images can be pasted, dropped, added and resized; it all autosaves and survives a reload.
 - [ ] `pnpm typecheck && pnpm lint && pnpm test` pass with no warnings.
+
+## Completion record (2026-10-02)
+
+Models: UI by GLM 5.3 Flash. Browser QA: selecting text in a task description shows Bold, Italic, Link, H2, H3, Bullet list, Image; an uploaded image appears and, with the text, survives a reload.
+
+Checks: `pnpm typecheck`, `pnpm lint` (0 warnings), `pnpm test` (236 tests) pass.

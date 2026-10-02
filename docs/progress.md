@@ -25,8 +25,18 @@ Single-glance status for all 22 tickets. Update this file and the matching
 | T-18 | Google connect and push | A | 🔄 built, awaiting a real Google test | 470304e |
 | T-19 | Google pull and reconciliation | A | 🔄 built, awaiting a real Google test | 979b2a9 |
 | T-20 | Docs and pages | A + I | ✅ done | 6349768 |
-| T-21 | Polish: shortcuts, empty states, responsive | I | ⬜ pending | — |
+| T-21 | Polish: shortcuts, empty states, responsive | I | ⏸ **unfinished (owner paused it)**: Flash output exists, unreviewed, on branch `wip/t21-flash-output`; see `docs/tickets/T-21.md` | — |
 | T-22 | E2E tests and production release | A + I | ⬜ pending | — |
+
+Follow-up improvements (2026-10-02, requested by the owner; all built, reviewed and browser-tested):
+
+| ID | What | Ticket | State |
+|----|------|--------|-------|
+| I-01 | Images in docs: paste/drop/toolbar upload, resizable | `docs/tickets/I-01-images.md` | ✅ |
+| I-02 | Rich-text task descriptions (selection toolbar, checklists, links, images) | `I-02-description.md` | ✅ |
+| I-03 | "New list" in the project menu; list icons (24 Tabler keys) | `I-03-lists.md` | ✅ |
+| I-04 | In-progress statuses choose their icon (circle, ¼, ½, ¾); icons use the status color | `I-04-status-icons.md` | ✅ |
+| — | Wider dropdown menus (labels never wrap) | (Architect, `ui/dropdown-menu.tsx`) | ✅ |
 
 Notes:
 - Google OAuth client configured locally (2026-10-01); T-18 built and tested with Google faked; a real consent test by the human is pending.

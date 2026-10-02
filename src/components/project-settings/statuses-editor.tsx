@@ -90,9 +90,12 @@ function fallbackIconKey(status: StatusRow, all: readonly StatusRow[]): StatusIc
 function StatusIconOptions({
   current,
   onSelect,
+  color,
 }: {
   current: StatusIconKey | null;
   onSelect: (key: StatusIconKey) => void;
+  /** The status's color: the options preview the icon in it. */
+  color: string;
 }) {
   return (
     <div className="flex gap-0.5">
@@ -104,12 +107,12 @@ function StatusIconOptions({
           aria-label={STATUS_ICON_LABELS[key]}
           onClick={() => onSelect(key)}
           className={cn(
-            "flex size-9 items-center justify-center rounded-md text-status-active hover:bg-muted",
+            "flex size-9 items-center justify-center rounded-md hover:bg-muted",
             current === key && "bg-selected hover:bg-selected",
           )}
         >
           <StatusGlyph
-            status={{ id: "x", category: "ACTIVE", icon: key }}
+            status={{ id: "x", category: "ACTIVE", icon: key, color }}
             statuses={[]}
             size={20}
           />
@@ -144,6 +147,7 @@ function StatusIconPicker({ status, all }: { status: StatusRow; all: readonly St
       </PopoverTrigger>
       <PopoverContent align="start" className="w-fit">
         <StatusIconOptions
+          color={status.color}
           current={
             status.icon && isStatusIconKey(status.icon)
               ? status.icon
@@ -494,13 +498,13 @@ export function StatusesEditor({ projectId, statuses, canEdit }: StatusesEditorP
                     }
                   >
                     <StatusGlyph
-                      status={{ id: "x", category: "ACTIVE", icon: newIcon ?? "circle" }}
+                      status={{ id: "x", category: "ACTIVE", icon: newIcon ?? "circle", color: STATUS_COLORS[0].value }}
                       statuses={[]}
                       size={18}
                     />
                   </PopoverTrigger>
                   <PopoverContent align="start" className="w-fit">
-                    <StatusIconOptions current={newIcon} onSelect={setNewIcon} />
+                    <StatusIconOptions current={newIcon} onSelect={setNewIcon} color={STATUS_COLORS[0].value} />
                   </PopoverContent>
                 </Popover>
               )}

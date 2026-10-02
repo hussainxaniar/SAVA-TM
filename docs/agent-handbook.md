@@ -197,16 +197,16 @@ humans only). Paper MCP tools may be unavailable; they are read-only anyway. Whe
 
 ## 9. Current state (update this when it changes)
 
-- Tickets done and committed: T-01 to T-20. T-18 (Google connect and push) and T-19 (pull) are built and tested with Google
-  faked, **awaiting a real consent test by the owner** (OAuth client is configured locally; Vercel env names must be
-  `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`/`ENCRYPTION_KEY`; redirect URIs `…/api/auth/callback/google` and
-  `…/api/google/callback` for each domain; consent screen in Testing needs test users).
-- In flight when this was written (2026-10-02): a Flash batch (`scripts/run-batch.sh`) of I-01 images in docs, I-02 rich task
-  descriptions, I-03 new list + list icons, I-04 status icon picker, T-21 shortcuts / responsive / empty states.
-  Each still needs the section 4 review and section 5 QA. Groundwork already committed: `Status.icon`, `List.icon`, `Image` table,
-  `/api/images`, icon key validation, wider dropdowns.
-- After that: T-22 (E2E tests with Playwright, production release: Vercel env, migrations, Google verification, optionally Hetzner).
-- Not pushed: check `git log origin/main..HEAD`; the owner pushes by saying so.
+- Done and committed: T-01 to T-20 plus the follow-up improvements I-01 to I-04 (images in docs and descriptions with resize,
+  rich-text task descriptions, "New list" and list icons, status icon picker with the status's own color) and wider dropdown menus.
+- **T-21 is unfinished (the owner paused it on 2026-10-02).** Flash's unreviewed output is on branch `wip/t21-flash-output`
+  and was reverted on `main`; `docs/tickets/T-21.md` has the exact continuation steps. After it comes T-22.
+- T-18 (Google connect and push) and T-19 (pull) are built and tested with Google faked, **awaiting a real consent test by the owner**
+  (OAuth client configured locally; Vercel env names must be `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`/`ENCRYPTION_KEY`; redirect URIs
+  `…/api/auth/callback/google` and `…/api/google/callback` per domain; a consent screen in Testing needs test users).
+- T-22 (E2E tests with Playwright, production release: Vercel env, migrations, Google verification, optionally Hetzner) not started.
+- Not pushed: check `git log origin/main..HEAD`; the owner pushes by saying so. Migrations added since the last push:
+  `20261002030958_status_list_icons_images` (Vercel applies it on build).
 - The authoritative status table is `docs/progress.md`; per-ticket records are in `docs/tickets/`.
 
 ## 10. Running this in a different environment (cloud session, new machine)

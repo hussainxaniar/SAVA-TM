@@ -82,7 +82,8 @@ export function StatusGlyph({
   pill = false,
   className,
 }: {
-  status: Pick<StatusDTO, "id" | "category"> & { icon?: string | null };
+  /** `color`: the status's own color (what the user picked in settings); without it the category's theme color is used. */
+  status: Pick<StatusDTO, "id" | "category"> & { icon?: string | null; color?: string };
   statuses: readonly Pick<StatusDTO, "id" | "category">[];
   size?: number;
   pill?: boolean;
@@ -99,6 +100,8 @@ export function StatusGlyph({
       fill="none"
       aria-hidden
       className={cn("shrink-0", color, className)}
+      // The status's own color wins (a Done pill stays white on its green background).
+      style={status.color && !(pill && status.category === "DONE") ? { color: status.color } : undefined}
     >
       {kind === "dashed" && <path d={DASHED} fill="currentColor" />}
       {kind === "done" && <path d={DONE} fill="currentColor" />}
