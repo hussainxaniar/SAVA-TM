@@ -23,7 +23,7 @@ Single-glance status for all 22 tickets. Update this file and the matching
 | T-16 | My Tasks | I | ✅ done | 7a9b5a2 |
 | T-17 | Calendar and time blocks (local) | A + I | ✅ done | fb9fd9e |
 | T-18 | Google connect and push | A | 🔄 built, awaiting a real Google test | 470304e |
-| T-19 | Google pull and reconciliation | A | ⬜ pending | — |
+| T-19 | Google pull and reconciliation | A | 🔄 built, awaiting a real Google test | 979b2a9 |
 | T-20 | Docs and pages | A + I | ⬜ pending | — |
 | T-21 | Polish: shortcuts, empty states, responsive | I | ⬜ pending | — |
 | T-22 | E2E tests and production release | A + I | ⬜ pending | — |
