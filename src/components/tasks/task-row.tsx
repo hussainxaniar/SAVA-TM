@@ -47,6 +47,8 @@ export type TaskRowProps = {
   candidatesFor: (taskId: string) => TaskRowDTO[];
   /** The project's active lists in order (the row menu's Move to / Add to list pickers). */
   lists: readonly { id: string; name: string }[];
+  /** Keyboard selection ring (9.7). */
+  selected?: boolean;
 };
 
 function dueLabel(task: TaskRowDTO) {
@@ -85,6 +87,7 @@ export const TaskRow = memo(function TaskRow({
   onRemoveFromList,
   candidatesFor,
   lists,
+  selected,
 }: TaskRowProps) {
   const { task } = row;
   const done = task.completedAt !== null;
@@ -190,11 +193,14 @@ export const TaskRow = memo(function TaskRow({
       e.preventDefault();
       setMenuOpen(true);
     },
+    // The selection keys look this up to scroll the selected row into view (9.7).
+    "data-row-id": task.id,
     className: cn(
       "group/row relative flex border-b border-divider hover:-mx-2 hover:rounded-md hover:bg-sidebar hover:px-2",
       mode === "NESTED" ? "min-h-9 items-center" : "items-start py-2.5",
       drag.listeners && "cursor-grab",
       dragging && "cursor-grabbing opacity-50",
+      selected && "ring-1 ring-primary/40 rounded-md",
     ),
     ...drag.attributes,
     ...drag.listeners,
