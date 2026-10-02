@@ -4,6 +4,8 @@ The single source of truth for this project is [docs/blueprint.md](docs/blueprin
 
 **Build progress:** check [docs/progress.md](docs/progress.md) to see which tickets are done and which is next. Update it and the matching `docs/tickets/T-XX.md` when you finish a ticket.
 
+**Orchestrators and implementers: read [docs/agent-handbook.md](docs/agent-handbook.md)** (the ticket loop, how to dispatch GLM Flash, review checklist, browser QA recipe, rules and pitfalls learned so far).
+
 See [docs/model-routing.md](docs/model-routing.md) for how to switch between `claude` (Opus, architecture/review) and `claude-or` (OpenRouter implementer models), and [docs/orchestration.md](docs/orchestration.md) for how an Opus session dispatches individual tickets to a GLM implementer session.
 
 ## Model roles

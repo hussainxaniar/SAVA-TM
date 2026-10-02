@@ -1,5 +1,7 @@
 # Orchestrating tickets: Opus architect → GLM implementer
 
+> The full working knowledge (review checklist, QA recipe, failure modes, detached batch runs) is in [agent-handbook.md](agent-handbook.md). This file stays the short reference for the dispatch mechanics.
+
 This describes how to have an Opus session (your subscription, plain `claude`) act as
 the Architect/Orchestrator from `docs/blueprint.md` Section 2, and dispatch individual
 tickets to a GLM implementer session (`claude-or`, OpenRouter) instead of building the
