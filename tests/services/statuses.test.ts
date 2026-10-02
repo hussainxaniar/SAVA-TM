@@ -174,6 +174,23 @@ describe("getProjectSettings", () => {
       ["In progress", 0],
       ["Done", 0],
     ]);
-    expect(settings.lists).toEqual([{ id: listId, name: "General", subtaskDisplay: "NESTED", taskCount: 2 }]);
+    expect(settings.lists).toEqual([{ id: listId, name: "General", icon: null, subtaskDisplay: "NESTED", taskCount: 2 }]);
+  });
+});
+
+describe("status icons (ACTIVE only)", () => {
+  it("lets an In-progress status choose its icon, and clears it when it leaves ACTIVE", async () => {
+    const admin = as(s.users.admin.id);
+    const review = await createStatus(admin, { projectId, name: "Review", color: "#F59E0B", category: "ACTIVE", icon: "threeQuarter" });
+    expect(review.icon).toBe("threeQuarter");
+    await updateStatus(admin, { statusId: st.active, icon: "quarter" });
+    expect((await listStatuses(admin, { projectId })).find((x) => x.id === st.active)?.icon).toBe("quarter");
+    await updateStatus(admin, { statusId: st.active, icon: null });
+    expect((await listStatuses(admin, { projectId })).find((x) => x.id === st.active)?.icon).toBeNull();
+
+    await expect(createStatus(admin, { projectId, name: "Odd", color: "#F59E0B", category: "ACTIVE", icon: "star" })).rejects.toMatchObject({ code: "VALIDATION" });
+    await expect(createStatus(admin, { projectId, name: "Todo2", color: "#F59E0B", category: "TODO", icon: "half" })).rejects.toMatchObject({ code: "VALIDATION" });
+    await updateStatus(admin, { statusId: review.id, category: "TODO" });
+    expect((await listStatuses(admin, { projectId })).find((x) => x.id === review.id)?.icon).toBeNull();
   });
 });

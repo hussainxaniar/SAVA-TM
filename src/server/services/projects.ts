@@ -134,7 +134,7 @@ export async function getSidebar(ctx: Ctx, input: { spaceId: string }): Promise<
       name: true,
       color: true,
       icon: true,
-      lists: { where: active, orderBy: byPosition, select: { id: true, name: true } },
+      lists: { where: active, orderBy: byPosition, select: { id: true, name: true, icon: true } },
       docs: {
         where: active,
         orderBy: byPosition,
@@ -185,18 +185,19 @@ export async function getProjectSettings(ctx: Ctx, input: { projectId: string })
       lists: {
         where: { archivedAt: null },
         orderBy: { position: "asc" },
-        select: { id: true, name: true, subtaskDisplay: true, _count: { select: { homeTasks: live } } },
+        select: { id: true, name: true, icon: true, subtaskDisplay: true, _count: { select: { homeTasks: live } } },
       },
     },
   });
   const { statuses, lists, ...rest } = project;
   return {
     project: rest,
-    statuses: statuses.map(({ _count, id, name, color, category, position }) => ({
+    statuses: statuses.map(({ _count, id, name, color, category, icon, position }) => ({
       id,
       name,
       color,
       category,
+      icon,
       position,
       taskCount: _count.tasks,
     })),

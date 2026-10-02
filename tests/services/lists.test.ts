@@ -141,3 +141,18 @@ describe("deleteList", () => {
     expect(await db.task.count({ where: { projectId, homeListId: lists[0].id } })).toBe(2);
   });
 });
+
+describe("list icons", () => {
+  it("creates and updates a list with a known icon and rejects unknown ones", async () => {
+    const me = as(s.users.member.id);
+    const { listId } = await createList(me, { projectId, name: "Bugs", icon: "bug" });
+    const find = async () => (await getSidebar(me, { spaceId: s.space.id })).projects.find((p) => p.id === projectId)!.lists.find((l) => l.id === listId);
+    expect((await find())?.icon).toBe("bug");
+    await updateList(me, { listId, icon: "rocket" });
+    expect((await find())?.icon).toBe("rocket");
+    await updateList(me, { listId, icon: null });
+    expect((await find())?.icon).toBeNull();
+    await expect(updateList(me, { listId, icon: "nope" })).rejects.toMatchObject({ code: "VALIDATION" });
+    await expect(createList(me, { projectId, name: "X", icon: "nope" })).rejects.toMatchObject({ code: "VALIDATION" });
+  });
+});

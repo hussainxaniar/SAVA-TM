@@ -37,10 +37,15 @@ export type StatusGlyphKind = "dashed" | "empty" | "quarter" | "half" | "threeQu
  * the check. Unknown statuses fall back to their category's first glyph.
  */
 export function statusGlyphKind(
-  status: Pick<StatusDTO, "id" | "category">,
+  status: Pick<StatusDTO, "id" | "category"> & { icon?: string | null },
   statuses: readonly Pick<StatusDTO, "id" | "category">[],
 ): StatusGlyphKind {
   if (status.category === "DONE") return "done";
+  // An ACTIVE status can choose its icon (status settings); otherwise it's picked by position below.
+  if (status.category === "ACTIVE" && status.icon) {
+    const chosen = { circle: "empty", quarter: "quarter", half: "half", threeQuarter: "threeQuarter" } as const;
+    if (status.icon in chosen) return chosen[status.icon as keyof typeof chosen];
+  }
   const same = statuses.filter((s) => s.category === status.category);
   const index = Math.max(0, same.findIndex((s) => s.id === status.id));
   if (status.category === "TODO") return index === 0 ? "dashed" : "empty";
@@ -77,7 +82,7 @@ export function StatusGlyph({
   pill = false,
   className,
 }: {
-  status: Pick<StatusDTO, "id" | "category">;
+  status: Pick<StatusDTO, "id" | "category"> & { icon?: string | null };
   statuses: readonly Pick<StatusDTO, "id" | "category">[];
   size?: number;
   pill?: boolean;

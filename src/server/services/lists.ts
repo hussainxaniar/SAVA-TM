@@ -1,3 +1,4 @@
+import { isListIconKey } from "@/lib/list-icons";
 import type { SubtaskDisplay } from "@prisma/client";
 import { positionAfter, positionsBetween } from "@/lib/position";
 import { db } from "../db";
@@ -11,7 +12,7 @@ import { cleanName, serializableTransaction } from "./util";
 // Section 6.3 / 8.3. Any member creates, renames and reorders lists (7.3); deleting is Owner/Admin.
 
 /** Section 8.3. Appended after the project's last list. */
-export async function createList(ctx: Ctx, input: { projectId: string; name: string }): Promise<{ listId: string }> {
+export async function createList(ctx: Ctx, input: { projectId: string; name: string; icon?: string | null }): Promise<{ listId: string }> {
   await requireMember(ctx.userId, await spaceIdOfProject(input.projectId));
   const name = cleanName(input.name, "List name");
   return db.$transaction(async (tx) => {
@@ -21,7 +22,7 @@ export async function createList(ctx: Ctx, input: { projectId: string; name: str
       select: { position: true },
     });
     const list = await tx.list.create({
-      data: { projectId: input.projectId, name, position: positionAfter(last?.position) },
+      data: { projectId: input.projectId, name, icon: checkListIcon(input.icon), position: positionAfter(last?.position) },
       select: { id: true },
     });
     return { listId: list.id };
@@ -31,12 +32,13 @@ export async function createList(ctx: Ctx, input: { projectId: string; name: str
 /** Section 8.3. `subtaskDisplay` is a shared per-list setting (6.3.3). */
 export async function updateList(
   ctx: Ctx,
-  input: { listId: string; name?: string; subtaskDisplay?: SubtaskDisplay },
+  input: { listId: string; name?: string; icon?: string | null; subtaskDisplay?: SubtaskDisplay },
 ): Promise<void> {
   await requireMember(ctx.userId, await spaceIdOfList(input.listId));
   const name = input.name === undefined ? undefined : cleanName(input.name, "List name");
-  if (name === undefined && input.subtaskDisplay === undefined) return;
-  await db.list.update({ where: { id: input.listId }, data: { name, subtaskDisplay: input.subtaskDisplay } });
+  if (name === undefined && input.subtaskDisplay === undefined && input.icon === undefined) return;
+  const icon = input.icon === undefined ? undefined : checkListIcon(input.icon);
+  await db.list.update({ where: { id: input.listId }, data: { name, icon, subtaskDisplay: input.subtaskDisplay } });
 }
 
 /** Section 8.3. Among the project's active lists; see MoveTarget for beforeId/afterId. */
@@ -121,4 +123,11 @@ export async function deleteList(ctx: Ctx, input: { listId: string; targetListId
     ]);
     await tx.list.delete({ where: { id: list.id } }); // cascades its remaining links
   }, "Someone else changed these lists at the same time. Try again.");
+}
+
+/** null = the default icon; anything else must be a known key. */
+function checkListIcon(icon: string | null | undefined): string | null {
+  if (icon === null || icon === undefined) return null;
+  if (!isListIconKey(icon)) throw new AppError("VALIDATION", "Pick one of the list icons");
+  return icon;
 }

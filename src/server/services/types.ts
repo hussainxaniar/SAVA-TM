@@ -43,7 +43,7 @@ export type SidebarDTO = {
     color: string;
     icon: string | null;
     /** openTaskCount: open, live tasks shown in the list (home or linked, any depth). */
-    lists: { id: string; name: string; openTaskCount: number }[];
+    lists: { id: string; name: string; icon: string | null; openTaskCount: number }[];
     /** firstPageId: the doc's first root page, so the sidebar can link straight to it. */
     docs: { id: string; title: string; firstPageId: string | null }[];
   }[];
@@ -52,13 +52,21 @@ export type SidebarDTO = {
 export type StatusCategoryName = "TODO" | "ACTIVE" | "DONE";
 
 /** Section 8.1. */
-export type StatusDTO = { id: string; name: string; color: string; category: StatusCategoryName; position: string };
+export type StatusDTO = {
+  id: string;
+  name: string;
+  color: string;
+  category: StatusCategoryName;
+  /** ACTIVE statuses: "circle" | "quarter" | "half" | "threeQuarter"; null = chosen by position. */
+  icon: string | null;
+  position: string;
+};
 
 /** Project settings (9.6): statuses and active lists, with how many live tasks each holds. */
 export type ProjectSettingsDTO = {
   project: { id: string; spaceId: string; name: string; color: string; icon: string | null };
   statuses: (StatusDTO & { taskCount: number })[];
-  lists: { id: string; name: string; subtaskDisplay: "NESTED" | "SEPARATE"; taskCount: number }[];
+  lists: { id: string; name: string; icon: string | null; subtaskDisplay: "NESTED" | "SEPARATE"; taskCount: number }[];
 };
 
 // ---------- Tasks (Section 8.1 / 8.4) ----------
@@ -114,7 +122,7 @@ export type TaskDetailDTO = TaskRowDTO & {
 
 /** Section 8.4 getListView: Visible(L) (6.7), completed included; the client renders and sorts. */
 export type ListViewDTO = {
-  list: { id: string; name: string; subtaskDisplay: "NESTED" | "SEPARATE"; projectId: string };
+  list: { id: string; name: string; icon: string | null; subtaskDisplay: "NESTED" | "SEPARATE"; projectId: string };
   /** lists: the project's active lists in order (the Move to… / Add to list… pickers). */
   project: { id: string; spaceId: string; name: string; color: string; lists: { id: string; name: string }[] };
   statuses: StatusDTO[];

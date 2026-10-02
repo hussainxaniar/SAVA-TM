@@ -35,6 +35,7 @@
     "@prisma/client": "^6.9.0",
     "@tabler/icons-react": "^3.48.0",
     "@tanstack/react-query": "^5.75.0",
+    "@tiptap/extension-image": "^2.27.3",
     "@tiptap/extension-link": "^2.12.0",
     "@tiptap/extension-placeholder": "^2.12.0",
     "@tiptap/extension-task-item": "^2.12.0",

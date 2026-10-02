@@ -3,11 +3,14 @@ import { z } from "zod";
 const id = z.string().min(1);
 const name = z.string().trim().min(1, "Give the list a name").max(80, "Keep it under 80 characters");
 
-export const createListSchema = z.object({ projectId: id, name });
+const icon = z.string().min(1).max(20).nullable();
+
+export const createListSchema = z.object({ projectId: id, name, icon: icon.optional() });
 
 export const updateListSchema = z.object({
   listId: id,
   name: name.optional(),
+  icon: icon.optional(),
   subtaskDisplay: z.enum(["NESTED", "SEPARATE"]).optional(),
 });
 

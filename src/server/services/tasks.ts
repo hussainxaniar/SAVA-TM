@@ -42,6 +42,7 @@ export async function getListView(ctx: Ctx, input: { listId: string }): Promise<
     select: {
       id: true,
       name: true,
+      icon: true,
       subtaskDisplay: true,
       projectId: true,
       project: {

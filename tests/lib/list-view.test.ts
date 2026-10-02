@@ -17,9 +17,9 @@ import {
 import type { StatusDTO, TaskRowDTO } from "@/server/services/types";
 
 const statuses: StatusDTO[] = [
-  { id: "todo", name: "To do", color: "#94A3B8", category: "TODO", position: "a0" },
-  { id: "doing", name: "In progress", color: "#3B82F6", category: "ACTIVE", position: "a1" },
-  { id: "done", name: "Done", color: "#22C55E", category: "DONE", position: "a2" },
+  { id: "todo", name: "To do", color: "#94A3B8", category: "TODO", icon: null, position: "a0" },
+  { id: "doing", name: "In progress", color: "#3B82F6", category: "ACTIVE", icon: null, position: "a1" },
+  { id: "done", name: "Done", color: "#22C55E", category: "DONE", icon: null, position: "a2" },
 ];
 const byId = Object.fromEntries(statuses.map((s) => [s.id, s]));
 

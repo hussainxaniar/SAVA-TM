@@ -1,4 +1,5 @@
 import { Prisma, type Status, type StatusCategory } from "@prisma/client";
+import { isStatusIconKey } from "@/lib/list-icons";
 import { positionAfter } from "@/lib/position";
 import { db } from "../db";
 import { AppError } from "../errors";
@@ -13,7 +14,7 @@ import { checkColor, cleanName, serializableTransaction } from "./util";
 const NAME_MAX = 40;
 
 export function toStatusDTO(s: Status): StatusDTO {
-  return { id: s.id, name: s.name, color: s.color, category: s.category, position: s.position };
+  return { id: s.id, name: s.name, color: s.color, category: s.category, icon: s.icon, position: s.position };
 }
 
 /** Section 8.3. Statuses of a project in position order. */
@@ -26,11 +27,12 @@ export async function listStatuses(ctx: Ctx, input: { projectId: string }): Prom
 /** Section 8.3. ADMIN. Appended at the end; names are unique per project, ignoring case (6.1.5). */
 export async function createStatus(
   ctx: Ctx,
-  input: { projectId: string; name: string; color: string; category: StatusCategory },
+  input: { projectId: string; name: string; color: string; category: StatusCategory; icon?: string | null },
 ): Promise<StatusDTO> {
   await requireRole(ctx.userId, await spaceIdOfProject(input.projectId), PERMISSIONS.editStatuses);
   const name = cleanName(input.name, "Status name", NAME_MAX);
   checkColor(input.color);
+  const icon = checkStatusIcon(input.icon, input.category);
   return uniqueNameGuard(name, () =>
     db.$transaction(async (tx) => {
       await assertNameFree(tx, input.projectId, name);
@@ -45,6 +47,7 @@ export async function createStatus(
           name,
           color: input.color,
           category: input.category,
+          icon,
           position: positionAfter(last?.position),
         },
       });
@@ -60,7 +63,7 @@ export async function createStatus(
  */
 export async function updateStatus(
   ctx: Ctx,
-  input: { statusId: string; name?: string; color?: string; category?: StatusCategory },
+  input: { statusId: string; name?: string; color?: string; category?: StatusCategory; icon?: string | null },
 ): Promise<void> {
   await requireRole(ctx.userId, await spaceIdOfStatus(input.statusId), PERMISSIONS.editStatuses);
   const name = input.name === undefined ? undefined : cleanName(input.name, "Status name", NAME_MAX);
@@ -72,6 +75,8 @@ export async function updateStatus(
       if (name !== undefined && name !== status.name) await assertNameFree(tx, status.projectId, name, status.id);
 
       const category = input.category ?? status.category;
+      // Only ACTIVE statuses have a choosable icon; leaving ACTIVE clears it.
+      const icon = category !== "ACTIVE" ? null : input.icon === undefined ? undefined : checkStatusIcon(input.icon, category);
       if (category !== status.category) {
         const others = await tx.status.findMany({
           where: { projectId: status.projectId, id: { not: status.id } },
@@ -82,7 +87,7 @@ export async function updateStatus(
 
       await tx.status.update({
         where: { id: status.id },
-        data: { name, color: input.color, category: input.category },
+        data: { name, color: input.color, category: input.category, icon },
       });
       if (category !== status.category) await syncCompletion(tx, { statusId: status.id }, status.category, category);
     }, "Someone else changed these statuses at the same time. Try again."),
@@ -185,4 +190,12 @@ async function syncCompletion(
   } else if (from === "DONE" && to !== "DONE") {
     await tx.task.updateMany({ where: { ...where, completedAt: { not: null } }, data: { completedAt: null } });
   }
+}
+
+/** A status icon is only for ACTIVE statuses and must be one of the known keys; null/undefined = by position. */
+function checkStatusIcon(icon: string | null | undefined, category: StatusCategory): string | null {
+  if (icon === null || icon === undefined) return null;
+  if (category !== "ACTIVE") throw new AppError("VALIDATION", "Only In-progress statuses can pick an icon");
+  if (!isStatusIconKey(icon)) throw new AppError("VALIDATION", "Pick one of the status icons");
+  return icon;
 }
