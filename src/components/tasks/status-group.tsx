@@ -27,10 +27,7 @@ export type StatusGroupProps = {
   onCancelAdd: () => void;
   onCreate: (input: { title: string; statusId?: string; parentId?: string }) => void;
   collapsed: ReadonlySet<string>;
-  /** Shared per-view props; `selectedTaskId` is resolved to a per-row `selected` below (9.7). */
-  rowProps: Omit<TaskRowProps, "row" | "mode" | "dragHandle" | "collapsed" | "selected"> & {
-    selectedTaskId: string | null;
-  };
+  rowProps: Omit<TaskRowProps, "row" | "mode" | "dragHandle" | "collapsed">;
   className?: string;
 };
 
@@ -129,11 +126,9 @@ export function StatusGroup({
   const rootIdSet = useMemo(() => new Set(rootIds), [rootIds]);
 
   function renderRow(row: ListRow, dragHandle: DragHandle | null) {
-    const { selectedTaskId, ...rest } = rowProps;
     return (
       <TaskRow
-        {...rest}
-        selected={row.task.id === selectedTaskId}
+        {...rowProps}
         row={row}
         mode={mode}
         dragHandle={dragHandle}

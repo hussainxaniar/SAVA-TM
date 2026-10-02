@@ -1,13 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { IconChevronDown, IconChevronRight } from "@tabler/icons-react";
 import { PriorityFlag } from "@/components/tasks/priority-flag";
 import { StatusControl } from "@/components/tasks/status-icon";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { useMyTaskStatus, useMyTasks } from "@/hooks/use-my-tasks";
-import { isTaskDialogOpen, shortcutEventAllowed } from "@/hooks/use-global-shortcuts";
 import { formatDue } from "@/lib/list-view";
 import { groupMyTasks } from "@/lib/my-tasks";
 import { publishTaskOrder } from "@/lib/task-nav";
@@ -32,7 +31,6 @@ export function MyTasksView({ spaceId, initialData }: MyTasksViewProps) {
   // Per-browser preference (6.7): which groups are collapsed, by group key.
   const [collapsedIds, setCollapsedIds] = useLocalStorage("sava.myTasks.collapsed", [] as string[]);
   const collapsed = useMemo(() => new Set(collapsedIds), [collapsedIds]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const setStatus = useMyTaskStatus(spaceId);
 
@@ -71,52 +69,6 @@ export function MyTasksView({ spaceId, initialData }: MyTasksViewProps) {
     publishTaskOrder(rowOrder);
   }, [rowOrder]);
   useEffect(() => () => publishTaskOrder([]), []);
-
-  // The keys and the ring act on the selection only while that row is on screen (9.7): a
-  // completed or regrouped-away task drops the ring on the next render, no effect needed.
-  const selectedTaskId = selectedId !== null && rowOrder.includes(selectedId) ? selectedId : null;
-
-  // Keyboard selection (9.7), same rules as the list view but without the priority keys: `x`
-  // completes via the row's project statuses, since My Tasks lists open tasks only.
-  const selectAndReveal = useCallback((taskId: string) => {
-    setSelectedId(taskId);
-    document.querySelector(`[data-row-id="${taskId}"]`)?.scrollIntoView({ block: "nearest" });
-  }, []);
-
-  const completeSelected = useCallback(
-    (taskId: string) => {
-      const task = data.tasks.find((t) => t.id === taskId);
-      if (!task) return;
-      const done = data.statusesByProject[task.projectId]?.find((s) => s.category === "DONE");
-      if (done) setStatus.mutate({ taskId: task.id, title: task.title, from: task.status, to: done });
-    },
-    [data.tasks, data.statusesByProject, setStatus],
-  );
-
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (!shortcutEventAllowed(e) || isTaskDialogOpen()) return;
-      const ids = rowOrder;
-      const i = selectedTaskId ? ids.indexOf(selectedTaskId) : -1;
-      if (e.key === "j" || e.key === "ArrowDown") {
-        e.preventDefault();
-        if (ids.length) selectAndReveal(i === -1 ? ids[0] : ids[Math.min(ids.length - 1, i + 1)]);
-      } else if (e.key === "k" || e.key === "ArrowUp") {
-        e.preventDefault();
-        if (ids.length)
-          selectAndReveal(i === -1 ? ids[ids.length - 1] : ids[Math.max(0, i - 1)]);
-      } else if (e.key === "Enter" && selectedTaskId) {
-        e.preventDefault();
-        openTask(selectedTaskId);
-      } else if (e.key === "x" && selectedTaskId) {
-        completeSelected(selectedTaskId);
-      } else if (e.key === "Escape") {
-        setSelectedId(null);
-      }
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [rowOrder, selectedTaskId, selectAndReveal, openTask, completeSelected]);
 
   const n = data.tasks.length;
 
@@ -176,7 +128,6 @@ export function MyTasksView({ spaceId, initialData }: MyTasksViewProps) {
                     key={task.id}
                     task={task}
                     statuses={data.statusesByProject[task.projectId]}
-                    selected={selectedTaskId === task.id}
                     onOpenTask={openTask}
                     onSetStatus={onSetStatus}
                   />
@@ -193,14 +144,11 @@ export function MyTasksView({ spaceId, initialData }: MyTasksViewProps) {
 function MyTaskRow({
   task,
   statuses,
-  selected,
   onOpenTask,
   onSetStatus,
 }: {
   task: MyTaskDTO;
   statuses: StatusDTO[];
-  /** Keyboard selection ring (9.7). */
-  selected: boolean;
   onOpenTask: (taskId: string) => void;
   /** `to` is resolved from this row's project statuses before the parent mutates. */
   onSetStatus: (task: TaskRowDTO, to: StatusDTO, completeSubtasks?: boolean) => void;
@@ -211,11 +159,7 @@ function MyTaskRow({
   return (
     <div
       onClick={() => onOpenTask(task.id)}
-      data-row-id={task.id}
-      className={cn(
-        "relative flex items-start border-b border-divider py-2.5 hover:-mx-2 hover:rounded-md hover:bg-sidebar hover:px-2",
-        selected && "ring-1 ring-primary/40 rounded-md",
-      )}
+      className="relative flex items-start border-b border-divider py-2.5 hover:-mx-2 hover:rounded-md hover:bg-sidebar hover:px-2"
     >
       <div className="w-5 shrink-0" />
       <div className="mt-px ml-0.5 mr-3 shrink-0">

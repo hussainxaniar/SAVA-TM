@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { IconKeyboard, IconLogout, IconPlug } from "@tabler/icons-react";
+import { IconLogout, IconPlug } from "@tabler/icons-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -13,7 +13,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { avatarColors, initials } from "@/lib/list-view";
-import { showShortcuts } from "@/hooks/use-global-shortcuts";
 import { authClient } from "@/lib/auth-client";
 
 export type UserMenuProps = {
@@ -64,10 +63,6 @@ export function UserMenu({ user, spaceId }: UserMenuProps) {
           <DropdownMenuItem onClick={() => router.push(`/s/${spaceId}/integrations`)}>
             <IconPlug />
             Integrations
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={showShortcuts}>
-            <IconKeyboard />
-            Keyboard shortcuts
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => void onSignOut()}>
             <IconLogout />

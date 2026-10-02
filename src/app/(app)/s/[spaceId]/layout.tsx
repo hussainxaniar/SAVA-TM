@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { QuickAddDialog } from "@/components/quick-add/quick-add-dialog";
-import { GlobalShortcuts } from "@/components/shortcuts/global-shortcuts";
 import { Sidebar } from "@/components/sidebar/sidebar";
 import { TaskDialogHost } from "@/components/task-dialog/task-dialog-host";
 import { can } from "@/server/guards";
@@ -47,8 +46,6 @@ export default async function SpaceLayout({
         />
       </Suspense>
       <QuickAddDialog spaceId={spaceId} projects={projects} members={memberList} />
-      {/* Global shortcuts (9.7) and the "Keyboard shortcuts" help dialog. */}
-      <GlobalShortcuts spaceId={spaceId} />
     </div>
   );
 }

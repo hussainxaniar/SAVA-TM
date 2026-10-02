@@ -38,7 +38,6 @@ import {
 } from "@/hooks/use-task";
 import { useSidebarDrop } from "@/hooks/use-sidebar-drop";
 import { useLocalStorage } from "@/hooks/use-local-storage";
-import { isTaskDialogOpen, shortcutEventAllowed } from "@/hooks/use-global-shortcuts";
 import { ListHeader } from "@/components/tasks/list-header";
 import { StatusGroup, type AddTarget } from "@/components/tasks/status-group";
 import { StatusGlyph } from "@/components/tasks/status-icon";
@@ -77,7 +76,6 @@ export function ListView({ initialData, spaceId, canDeleteLists }: ListViewProps
   );
 
   const [add, setAdd] = useState<AddTarget | null>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
   const collapsed = useMemo(() => new Set(collapsedIds), [collapsedIds]);
 
   const setCompleted = useSetCompleted(listId);
@@ -287,48 +285,6 @@ export function ListView({ initialData, spaceId, canDeleteLists }: ListViewProps
   }, [rowOrder]);
   useEffect(() => () => publishTaskOrder([]), []);
 
-  // The keys and the ring act on the selection only while that row is on screen (9.7): a
-  // completed, deleted or hidden task drops the ring on the next render, no effect needed.
-  const selectedTaskId =
-    selectedId !== null && rowOrder.includes(selectedId) ? selectedId : null;
-
-  // Keyboard selection (9.7): j/k or the arrows walk the on-screen rows, Enter opens, x
-  // completes/reopens via the row menu's handler, 1–4 set priority, Esc clears. Stands down
-  // while typing, with any dialog open, and while the task dialog is up (?task= in the URL).
-  const selectAndReveal = useCallback((taskId: string) => {
-    setSelectedId(taskId);
-    // Every row carries data-row-id, so the row exists even before the ring re-renders.
-    document.querySelector(`[data-row-id="${taskId}"]`)?.scrollIntoView({ block: "nearest" });
-  }, []);
-
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (!shortcutEventAllowed(e) || isTaskDialogOpen()) return;
-      const ids = rowOrder;
-      const i = selectedTaskId ? ids.indexOf(selectedTaskId) : -1;
-      if (e.key === "j" || e.key === "ArrowDown") {
-        e.preventDefault();
-        if (ids.length) selectAndReveal(i === -1 ? ids[0] : ids[Math.min(ids.length - 1, i + 1)]);
-      } else if (e.key === "k" || e.key === "ArrowUp") {
-        e.preventDefault();
-        if (ids.length)
-          selectAndReveal(i === -1 ? ids[ids.length - 1] : ids[Math.max(0, i - 1)]);
-      } else if (e.key === "Enter" && selectedTaskId) {
-        e.preventDefault();
-        openTask(selectedTaskId);
-      } else if (e.key === "x" && selectedTaskId) {
-        const task = data.tasks.find((t) => t.id === selectedTaskId);
-        if (task) complete(task, { completed: task.completedAt === null });
-      } else if (e.key >= "1" && e.key <= "4" && selectedTaskId) {
-        setPriority(selectedTaskId, Number(e.key) as Priority);
-      } else if (e.key === "Escape") {
-        setSelectedId(null);
-      }
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [rowOrder, selectedTaskId, data.tasks, selectAndReveal, openTask, complete, setPriority]);
-
   // Dropping a row on a sidebar list (6.5/6.6): only lists of this project, never the current
   // one; a move needs a top-level task and a list that isn't its home, an add skips linked lists.
   const isValidFor = useCallback(
@@ -417,7 +373,6 @@ export function ListView({ initialData, spaceId, canDeleteLists }: ListViewProps
     onRemoveFromList: removeFromList,
     candidatesFor,
     lists: data.project.lists,
-    selectedTaskId,
   };
 
   return (
