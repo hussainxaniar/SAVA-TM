@@ -56,8 +56,6 @@ export type PageTreeProps = {
   projectId: string;
   tree: PageTreeNodeDTO[];
   currentPageId: string;
-  /** Extra classes for the aside: doc-view hides/caps it in the mobile column layout (9.1). */
-  className?: string;
 };
 
 /** One level of nesting (Section 11.1) and the drop maths' indent unit. */
@@ -71,7 +69,7 @@ const noopSubscribe = () => () => {};
  * add a child page, ⋯ with Delete behind a confirm dialog, and an Add page button for
  * top-level pages.
  */
-export function PageTree({ docId, spaceId, projectId, tree, currentPageId, className }: PageTreeProps) {
+export function PageTree({ docId, spaceId, projectId, tree, currentPageId }: PageTreeProps) {
   const router = useRouter();
   const createPage = useCreatePage(docId);
   const movePage = useMovePage(docId);
@@ -204,14 +202,7 @@ export function PageTree({ docId, spaceId, projectId, tree, currentPageId, class
   const deleteCount = deleteTarget ? subtreeIds(tree, deleteTarget.id).length - 1 : 0;
 
   return (
-    <aside
-      className={cn(
-        "flex w-[220px] shrink-0 flex-col border-r border-border bg-panel",
-        // In the mobile column it sits above the editor, capped so the editor stays visible.
-        "max-md:max-h-[45dvh] max-md:w-full max-md:border-b max-md:border-r-0",
-        className,
-      )}
-    >
+    <aside className="flex w-[220px] shrink-0 flex-col border-r border-border bg-panel">
       <div className="min-h-0 flex-1 overflow-y-auto p-2">
         <DndContext
           id={dndId}

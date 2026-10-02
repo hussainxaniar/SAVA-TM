@@ -431,7 +431,7 @@ export function ListView({ initialData, spaceId, canDeleteLists }: ListViewProps
         onSort={setSort}
         onShowCompleted={setShowCompleted}
       />
-      <div className="mx-auto w-full max-w-[880px] px-4 pt-1 pb-24 md:px-6">
+      <div className="mx-auto w-full max-w-[880px] px-6 pt-1 pb-24">
         {data.tasks.length === 0 && (
           <p className="mt-7 text-sm text-muted-foreground">
             No tasks yet — press Q to add one

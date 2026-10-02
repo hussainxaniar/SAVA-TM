@@ -32,7 +32,7 @@ export default async function SpaceSettingsPage({ params }: { params: Promise<{ 
   }));
 
   return (
-    <div className="mx-auto max-w-[880px] space-y-10 px-4 py-8 md:px-6">
+    <div className="mx-auto max-w-[880px] space-y-10 px-6 py-8">
       <h1 className="text-xl font-semibold tracking-tight">Space settings</h1>
       <SpaceNameForm spaceId={spaceId} name={space.name} canRename={can(viewerRole, "renameSpace")} />
       <MembersTable spaceId={spaceId} members={rows} />

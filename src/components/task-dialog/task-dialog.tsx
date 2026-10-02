@@ -228,9 +228,8 @@ export function TaskDialog({ spaceId, members, me, taskId, open, onClose, onOpen
         ) : !task ? (
           <LoadingState />
         ) : (
-          // Below 768px the columns stack and the body scrolls as one (9.1).
-          <div className="flex min-h-0 flex-1 max-md:flex-col max-md:overflow-y-auto">
-            <div className="min-w-0 flex-1 overflow-y-auto p-6 max-md:overflow-visible">
+          <div className="flex min-h-0 flex-1">
+            <div className="min-w-0 flex-1 overflow-y-auto p-6">
               <div className="flex items-start gap-3.5">
                 <div className="mt-[3px] shrink-0">
                   <StatusControl task={task} statuses={task.statuses} size={22} onSetStatus={onSetStatus} />

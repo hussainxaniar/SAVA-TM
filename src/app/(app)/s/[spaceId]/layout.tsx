@@ -29,17 +29,15 @@ export default async function SpaceLayout({
   const memberList = members.map(({ id, name, image }) => ({ id, name, image }));
 
   return (
-    <>
-      {/* The shell (sidebar / mobile top bar + drawer / main area) renders the view; 9.1. */}
+    <div className="flex h-full">
       <Sidebar
         space={current}
         spaces={spaces}
         projects={projects}
         user={{ id: user.id, name: user.name, email: user.email, image: user.image }}
         canArchiveProjects={can(current.role, "archiveProject")}
-      >
-        {children}
-      </Sidebar>
+      />
+      <div className="min-w-0 flex-1 overflow-auto">{children}</div>
       {/* Reads ?task= (useSearchParams), so it sits in its own Suspense boundary. */}
       <Suspense fallback={null}>
         <TaskDialogHost
@@ -51,6 +49,6 @@ export default async function SpaceLayout({
       <QuickAddDialog spaceId={spaceId} projects={projects} members={memberList} />
       {/* Global shortcuts (9.7) and the "Keyboard shortcuts" help dialog. */}
       <GlobalShortcuts spaceId={spaceId} />
-    </>
+    </div>
   );
 }

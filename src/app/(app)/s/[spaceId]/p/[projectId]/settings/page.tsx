@@ -26,7 +26,7 @@ export default async function ProjectSettingsPage({
   const role = (await listMySpaces(ctx)).find((s) => s.id === spaceId)!.role;
 
   return (
-    <div className="mx-auto max-w-[880px] space-y-10 px-4 py-8 md:px-6">
+    <div className="mx-auto max-w-[880px] space-y-10 px-6 py-8">
       <h1 className="text-xl font-semibold tracking-tight">Project settings</h1>
       <ProjectDetailsForm projectId={projectId} name={settings.project.name} color={settings.project.color} />
       <StatusesEditor projectId={projectId} statuses={settings.statuses} canEdit={can(role, "editStatuses")} />

@@ -15,7 +15,7 @@ export default async function IntegrationsPage({
   const user = await getSessionUser();
   const connection = await getGoogleConnection({ userId: user.id });
   return (
-    <div className="mx-auto max-w-[880px] space-y-10 px-4 py-8 md:px-6">
+    <div className="mx-auto max-w-[880px] space-y-10 px-6 py-8">
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Integrations</h1>
         <p className="mt-1 text-sm text-muted-foreground">Connections for your account. Other members connect their own.</p>

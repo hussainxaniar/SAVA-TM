@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import type { DatesSetArg } from "@fullcalendar/core";
 import type FullCalendar from "@fullcalendar/react";
@@ -8,7 +8,6 @@ import Link from "next/link";
 import { IconBrandGoogle } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { useGoogleConnection, type Range } from "@/hooks/use-calendar";
-import { useIsMobile } from "@/hooks/use-media-query";
 import { CalendarGrid } from "./calendar-grid";
 import { CalendarToolbar } from "./calendar-toolbar";
 import { UnscheduledRail } from "./unscheduled-rail";
@@ -30,17 +29,6 @@ export function CalendarView({ spaceId }: CalendarViewProps) {
   const [title, setTitle] = useState("");
   const [view, setView] = useState("timeGridWeek");
   const google = useGoogleConnection().data;
-  const isMobile = useIsMobile();
-
-  // The week grid doesn't fit below 768px: switch to Day once after hydration (9.1).
-  const didDayView = useRef(false);
-  useEffect(() => {
-    if (!isMobile || didDayView.current) return;
-    const api = calendarRef.current?.getApi();
-    if (!api) return;
-    didDayView.current = true;
-    api.changeView("timeGridDay");
-  }, [isMobile]);
 
   const onDatesSet = useCallback((arg: DatesSetArg) => {
     const start = arg.start.toISOString();
@@ -61,8 +49,8 @@ export function CalendarView({ spaceId }: CalendarViewProps) {
   };
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <header className="w-full shrink-0 border-b border-border bg-sidebar/50 px-4 pb-3 pt-5 md:px-6">
+    <div className="flex h-dvh flex-col overflow-hidden">
+      <header className="w-full shrink-0 border-b border-border bg-sidebar/50 px-6 pb-3 pt-5">
         <div className="flex h-11 items-center">
           <h1 className="grow text-[28px] font-semibold leading-[34px] tracking-[-0.02em] text-foreground">
             Calendar
@@ -84,9 +72,7 @@ export function CalendarView({ spaceId }: CalendarViewProps) {
         />
       </header>
       <div className="flex min-h-0 flex-1">
-        <div className="max-md:hidden">
-          <UnscheduledRail spaceId={spaceId} />
-        </div>
+        <UnscheduledRail spaceId={spaceId} />
         <div className="sava-calendar min-w-0 flex-1">
           <CalendarGrid
             spaceId={spaceId}
