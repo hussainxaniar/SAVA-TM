@@ -17,6 +17,7 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import { IconPlus } from "@tabler/icons-react";
 import { comparePositions } from "@/lib/position";
 import { buildGroups, dateOnlyFromLocal, parentCandidates, type DisplayMode, type SortMode } from "@/lib/list-view";
 import { rememberLastList } from "@/lib/last-list";
@@ -42,6 +43,7 @@ import { isTaskDialogOpen, shortcutEventAllowed } from "@/hooks/use-global-short
 import { ListHeader } from "@/components/tasks/list-header";
 import { StatusGroup, type AddTarget } from "@/components/tasks/status-group";
 import { StatusGlyph } from "@/components/tasks/status-icon";
+import { Button } from "@/components/ui/button";
 import type { ListViewDTO, Priority, TaskRowDTO } from "@/server/services/types";
 
 export type ListViewProps = {
@@ -96,6 +98,13 @@ export function ListView({ initialData, spaceId, canDeleteLists }: ListViewProps
   const groups = useMemo(
     () => buildGroups(data.tasks, data.statuses, { mode, sort, collapsed }),
     [data.tasks, data.statuses, mode, sort, collapsed],
+  );
+
+  // The empty list's "Add task" targets the first To-do group's inline add (the same handler
+  // the groups' own rows use).
+  const firstTodoStatusId = useMemo(
+    () => groups.find((g) => g.status.category === "TODO")?.status.id ?? null,
+    [groups],
   );
 
   // Manual sort only: root tasks per status group, in position order (drop math + SortableContext).
@@ -433,9 +442,18 @@ export function ListView({ initialData, spaceId, canDeleteLists }: ListViewProps
       />
       <div className="mx-auto w-full max-w-[880px] px-4 pt-1 pb-24 md:px-6">
         {data.tasks.length === 0 && (
-          <p className="mt-7 text-sm text-muted-foreground">
-            No tasks yet — press Q to add one
-          </p>
+          <div className="mt-7 text-center">
+            <p className="text-sm font-medium text-foreground">No tasks yet</p>
+            <p className="mt-1 text-[13px] text-muted-foreground">Press Q or add one below.</p>
+            {firstTodoStatusId && (
+              <div className="mt-4 flex justify-center">
+                <Button onClick={() => setAdd({ statusId: firstTodoStatusId })}>
+                  <IconPlus aria-hidden />
+                  Add task
+                </Button>
+              </div>
+            )}
+          </div>
         )}
         <DndContext
           id={dndId}
