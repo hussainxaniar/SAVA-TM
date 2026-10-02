@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { PageEditor } from "@/components/docs/page-editor";
 import { PageTree } from "@/components/docs/page-tree";
 import { usePageTree } from "@/hooks/use-doc";
 import type { DocViewDTO, UserLite } from "@/server/services/types";
@@ -16,7 +17,7 @@ export type DocViewProps = {
  * server-rendered; the tree hydrates into ['doc', docId, 'tree'].
  */
 export function DocView(props: DocViewProps) {
-  const { initialData } = props;
+  const { initialData, me } = props;
   const { doc, page } = initialData;
   const { data: tree } = usePageTree(doc.id, initialData.tree);
 
@@ -52,10 +53,7 @@ export function DocView(props: DocViewProps) {
           currentPageId={page.id}
         />
         <div className="min-w-0 flex-1 overflow-y-auto">
-          {/* T-20 part 3 mounts the page editor here: <PageEditor key={page.id} docId page me />. */}
-          <div className="flex h-full items-center justify-center p-6">
-            <p className="text-sm text-muted-foreground">The editor is built in the next part of T-20.</p>
-          </div>
+          <PageEditor key={page.id} docId={doc.id} page={page} me={me} />
         </div>
       </div>
     </div>
