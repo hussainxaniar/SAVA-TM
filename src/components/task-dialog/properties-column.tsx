@@ -88,7 +88,7 @@ export function PropertiesColumn({
     );
 
   return (
-    <aside className="flex w-80 shrink-0 flex-col overflow-y-auto border-l border-divider bg-panel px-6 pt-2">
+    <aside className="flex w-80 shrink-0 flex-col overflow-y-auto border-l border-divider bg-panel px-6 pt-2 max-md:w-full max-md:border-l-0 max-md:border-t max-md:overflow-visible">
       <Section title="Status">
         <StatusControl
           task={task}
