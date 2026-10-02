@@ -13,6 +13,8 @@ import { usePage } from "@/hooks/use-doc";
 import { usePageAutosave } from "@/hooks/use-page-autosave";
 import { relativeTime } from "@/lib/activity-format";
 import type { DocPageDTO, UserLite } from "@/server/services/types";
+import { imageEditorProps } from "@/components/rich-text/image-handlers";
+import { imageExtensions } from "@/components/rich-text/resizable-image";
 import { PageToolbar } from "./page-toolbar";
 
 /*
@@ -24,6 +26,7 @@ import { PageToolbar } from "./page-toolbar";
 
 export type PageEditorProps = {
   docId: string;
+  spaceId: string;
   page: DocPageDTO;
   me: UserLite;
 };
@@ -34,12 +37,15 @@ function EditorBody({
   onChange,
   onFlush,
   onReady,
+  spaceId,
 }: {
   content: unknown;
   onChange: (json: JSONContent) => void;
   onFlush: () => void;
   onReady: (editor: Editor) => void;
+  spaceId: string;
 }) {
+  const editorRef = useRef<Editor | null>(null);
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
@@ -47,16 +53,21 @@ function EditorBody({
       TaskItem.configure({ nested: true }),
       Link.configure({ openOnClick: false, autolink: true }),
       Placeholder.configure({ placeholder: "Start writing…" }),
+      ...imageExtensions,
     ],
     content: (content ?? "") as Content,
     immediatelyRender: false,
-    editorProps: { attributes: { class: "rich-text min-h-[50vh] outline-none" } },
+    editorProps: {
+      attributes: { class: "rich-text min-h-[50vh] outline-none" },
+      ...imageEditorProps(spaceId, () => editorRef.current),
+    },
   });
 
   // `last` is the JSON of the previous update: the update Tiptap fires when content is set
   // programmatically replays the same JSON, so it is skipped and only real edits are reported.
   useEffect(() => {
     if (!editor) return;
+    editorRef.current = editor;
     onReady(editor);
     let last = JSON.stringify(editor.getJSON());
     const onUpdate = ({ editor: ed }: { editor: Editor }) => {
@@ -74,14 +85,14 @@ function EditorBody({
 
   return (
     <div onBlur={onFlush}>
-      {editor && <PageToolbar editor={editor} />}
+      {editor && <PageToolbar editor={editor} spaceId={spaceId} />}
       <EditorContent editor={editor} />
     </div>
   );
 }
 
 export function PageEditor(props: PageEditorProps) {
-  const { docId, me } = props;
+  const { docId, me, spaceId } = props;
   const { data: livePage } = usePage(docId, props.page.id, props.page);
   const page = livePage ?? props.page;
   const { status, conflict, version, change, flush, overwrite, reload } = usePageAutosave({
