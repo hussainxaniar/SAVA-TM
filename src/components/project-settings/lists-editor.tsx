@@ -1,8 +1,10 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { IconHash, IconTrash } from "@tabler/icons-react";
+import { IconTrash } from "@tabler/icons-react";
+import { ListIconPicker } from "@/components/list-icon-picker";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -58,6 +60,7 @@ function ListRowItem({
   /** The server rejects deleting a project's last list; the UI says why up front. */
   onlyList: boolean;
 }) {
+  const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(list.name);
   const cancelled = useRef(false);
@@ -83,6 +86,15 @@ function ListRowItem({
     }
     const res = await updateListAction(parsed.data);
     if (!res.ok) toast.error(res.error.message);
+  }
+
+  async function onIconChange(icon: string | null) {
+    const res = await updateListAction({ listId: list.id, icon });
+    if (!res.ok) {
+      toast.error(res.error.message);
+      return;
+    }
+    router.refresh();
   }
 
   function openDelete() {
@@ -113,7 +125,10 @@ function ListRowItem({
 
   return (
     <SortableRow id={list.id}>
-      <IconHash className="size-4 shrink-0 text-muted-foreground" />
+      <ListIconPicker
+        value={list.icon}
+        onChange={(icon) => void onIconChange(icon)}
+      />
       {editing ? (
         <Input
           value={draft}

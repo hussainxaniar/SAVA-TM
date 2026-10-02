@@ -27,8 +27,9 @@ import {
   IconDots,
   IconFilePlus,
   IconFileText,
-  IconList,
+  IconListDetails,
 } from "@tabler/icons-react";
+import { ListIcon } from "@/components/list-icon";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -59,6 +60,7 @@ import {
   createDocAction,
   renameDocAction,
 } from "@/server/actions/docs";
+import { createListAction } from "@/server/actions/lists";
 import {
   archiveProjectAction,
   reorderProjectAction,
@@ -337,6 +339,15 @@ function ProjectRow({
     );
   }
 
+  async function onNewList() {
+    const res = await createListAction({ projectId: project.id, name: "New list" });
+    if (!res.ok) {
+      toast.error(res.error.message);
+      return;
+    }
+    router.push(`/s/${spaceId}/p/${project.id}/l/${res.data.listId}`);
+  }
+
   return (
     // The sortable node wraps the header AND its lists/docs, so they move together.
     <div
@@ -438,6 +449,13 @@ function ProjectRow({
                     <IconFilePlus />
                     New doc
                   </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="gap-2"
+                    onClick={() => void onNewList()}
+                  >
+                    <IconListDetails />
+                    New list
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={startRename}>
                     Rename
                   </DropdownMenuItem>
@@ -504,7 +522,8 @@ function ProjectRow({
                   targeted && "bg-selected text-selected-foreground ring-1 ring-primary/40 hover:bg-selected",
                 )}
               >
-                <IconList
+                <ListIcon
+                  icon={list.icon}
                   className={cn(
                     "size-4 shrink-0 text-muted-foreground",
                     (active || targeted) && "text-selected-foreground",

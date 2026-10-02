@@ -1,10 +1,13 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { IconDots } from "@tabler/icons-react";
 import { toast } from "sonner";
+import { ListIcon } from "@/components/list-icon";
+import { ListIconGrid } from "@/components/list-icon-picker";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,9 +18,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { ViewMenu } from "@/components/tasks/view-menu";
-import { useRenameList, useSetSubtaskDisplay } from "@/hooks/use-list-view";
+import {
+  listViewKey,
+  useRenameList,
+  useSetSubtaskDisplay,
+} from "@/hooks/use-list-view";
 import type { SortMode } from "@/lib/list-view";
+import { updateListAction } from "@/server/actions/lists";
 import type { ListViewDTO } from "@/server/services/types";
 
 /** The full-width header band: breadcrumb, inline-renameable list name, View and ⋯ menus. */
@@ -39,11 +52,13 @@ export function ListHeader({
   onShowCompleted: (show: boolean) => void;
 }) {
   const router = useRouter();
+  const qc = useQueryClient();
   const rename = useRenameList(data.list.id);
   const setSubtaskDisplay = useSetSubtaskDisplay(data.list.id);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(data.list.name);
   const [copied, setCopied] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const escaped = useRef(false);
 
   function startRename() {
@@ -57,6 +72,19 @@ export function ListHeader({
     const name = draft.trim();
     if (!name || name === data.list.name) return;
     rename.mutate({ name });
+  }
+
+  async function onIconChange(icon: string | null) {
+    setPickerOpen(false);
+    qc.setQueryData<ListViewDTO>(listViewKey(data.list.id), (d) =>
+      d ? { ...d, list: { ...d.list, icon } } : d,
+    );
+    const res = await updateListAction({ listId: data.list.id, icon });
+    if (!res.ok) {
+      toast.error(res.error.message);
+      return;
+    }
+    router.refresh();
   }
 
   async function share() {
@@ -97,6 +125,26 @@ export function ListHeader({
         </div>
 
         <div className="mt-2 flex h-11 items-center">
+          <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+            <PopoverTrigger
+              render={
+                <button
+                  type="button"
+                  aria-label="List icon"
+                  title="Change icon"
+                  className="mr-2 flex shrink-0 rounded-md text-muted-foreground hover:text-foreground"
+                />
+              }
+            >
+              <ListIcon icon={data.list.icon} className="size-5" />
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-fit">
+              <ListIconGrid
+                value={data.list.icon}
+                onSelect={(icon) => void onIconChange(icon)}
+              />
+            </PopoverContent>
+          </Popover>
           <div className="min-w-0 grow">
             {editing ? (
               <Input
@@ -159,6 +207,9 @@ export function ListHeader({
             <DropdownMenuContent align="end">
               <DropdownMenuGroup>
                 <DropdownMenuItem onClick={startRename}>Rename list</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setPickerOpen(true)}>
+                  Change icon
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() =>
                     router.push(`/s/${spaceId}/p/${data.project.id}/settings`)
