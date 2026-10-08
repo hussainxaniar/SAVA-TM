@@ -108,12 +108,23 @@ function FilterButton({ label, active, onClick }: { label: string; active: boole
 
 // ---------- Entries ----------
 
+/** Marks an entry written through an API token (Section 15). */
+function ViaChip() {
+  return (
+    <>
+      {" "}
+      <span className="rounded-[4px] border border-border px-1 text-[11px] text-muted-foreground">via AI</span>
+    </>
+  );
+}
+
 function ActivityRow({ item }: { item: ActivityItem }) {
   return (
     <li className="flex items-start gap-2.5">
       <Avatar user={item.actor} />
       <p className="text-[13px] leading-[18px] text-foreground/75">
-        {firstName(item.actor.name)} {formatActivity(item)} · {relativeTime(item.createdAt)}
+        {firstName(item.actor.name)}
+        {item.payload.via === "mcp" && <ViaChip />} {formatActivity(item)} · {relativeTime(item.createdAt)}
       </p>
     </li>
   );
@@ -143,7 +154,8 @@ function CommentRow({ taskId, comment }: { taskId: string; comment: CommentItem 
         ) : (
           <>
             <p className="text-[13px] leading-[18px] text-foreground/75">
-              {firstName(comment.author.name)} · {relativeTime(comment.createdAt)}
+              {firstName(comment.author.name)}
+              {comment.via && <ViaChip />} · {relativeTime(comment.createdAt)}
               {comment.editedAt && " · edited"}
             </p>
             {comment.deleted ? (

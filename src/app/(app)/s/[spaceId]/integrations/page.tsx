@@ -1,5 +1,7 @@
+import { AiAccessCard } from "@/components/integrations/ai-access-card";
 import { GoogleCalendarCard } from "@/components/integrations/google-calendar-card";
 import { getSessionUser } from "@/server/auth";
+import { listApiTokens } from "@/server/services/api-tokens";
 import { getGoogleConnection } from "@/server/services/google-calendar";
 
 // Section 9.6 "User → Integrations" (T-18). Per user, shown inside the current space's shell; the
@@ -13,7 +15,10 @@ export default async function IntegrationsPage({
 }) {
   const [{ spaceId }, { google, message }] = await Promise.all([params, searchParams]);
   const user = await getSessionUser();
-  const connection = await getGoogleConnection({ userId: user.id });
+  const [connection, tokens] = await Promise.all([
+    getGoogleConnection({ userId: user.id }),
+    listApiTokens({ userId: user.id }, { spaceId }),
+  ]);
   return (
     <div className="mx-auto max-w-[880px] space-y-10 px-4 py-8 md:px-6">
       <div>
@@ -21,6 +26,7 @@ export default async function IntegrationsPage({
         <p className="mt-1 text-sm text-muted-foreground">Connections for your account. Other members connect their own.</p>
       </div>
       <GoogleCalendarCard spaceId={spaceId} connection={connection} outcome={google ?? null} message={message ?? null} />
+      <AiAccessCard spaceId={spaceId} tokens={tokens} />
     </div>
   );
 }
