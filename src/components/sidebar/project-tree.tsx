@@ -4,6 +4,7 @@ import { useId, useRef, useState, useMemo, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useRefreshListViews } from "@/hooks/use-task";
 import {
   DndContext,
   KeyboardSensor,
@@ -265,6 +266,7 @@ function ProjectRow({
   isFirst: boolean;
 }) {
   const router = useRouter();
+  const refreshListViews = useRefreshListViews();
   const pathname = usePathname();
   // While a task row is dragged over a list of this project (list view), the row lights up.
   const dropTarget = useSidebarDropTarget();
@@ -345,6 +347,7 @@ function ProjectRow({
       toast.error(res.error.message);
       return;
     }
+    refreshListViews();
     router.push(`/s/${spaceId}/p/${project.id}/l/${res.data.listId}`);
   }
 

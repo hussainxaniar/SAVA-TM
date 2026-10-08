@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -40,6 +41,18 @@ const ALL_LISTS: QueryKey = ["tasks"];
 const ALL_TASKS: QueryKey = ["task"];
 /** My Tasks (use-my-tasks.ts): refreshed after every task change so its groups stay right. */
 const MY_TASKS: QueryKey = ["my-tasks"];
+
+/**
+ * Refetches every cached list view. Lists created, renamed, reordered or deleted elsewhere (sidebar, project
+ * settings) change each view's `project.lists`, which feeds the row menu's Move to / Add to list pickers;
+ * without this a view visited within the 30 s stale window keeps offering the old set.
+ */
+export function useRefreshListViews() {
+  const qc = useQueryClient();
+  return useCallback(() => {
+    void qc.invalidateQueries({ queryKey: ALL_LISTS });
+  }, [qc]);
+}
 
 /** The open task. Not-found (deleted, or no access) is not retried: the dialog shows it. */
 export function useTask(taskId: string | null) {

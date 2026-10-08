@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useRefreshListViews } from "@/hooks/use-task";
 import { toast } from "sonner";
 import { IconTrash } from "@tabler/icons-react";
 import { ListIconPicker } from "@/components/list-icon-picker";
@@ -61,6 +62,7 @@ function ListRowItem({
   onlyList: boolean;
 }) {
   const router = useRouter();
+  const refreshListViews = useRefreshListViews();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(list.name);
   const cancelled = useRef(false);
@@ -86,6 +88,7 @@ function ListRowItem({
     }
     const res = await updateListAction(parsed.data);
     if (!res.ok) toast.error(res.error.message);
+    else refreshListViews();
   }
 
   async function onIconChange(icon: string | null) {
@@ -94,6 +97,7 @@ function ListRowItem({
       toast.error(res.error.message);
       return;
     }
+    refreshListViews();
     router.refresh();
   }
 
@@ -120,6 +124,7 @@ function ListRowItem({
       setDeleteError(res.error.message);
       return;
     }
+    refreshListViews();
     setDeleteOpen(false);
   }
 
@@ -234,6 +239,7 @@ function ListRowItem({
 }
 
 export function ListsEditor({ projectId, lists, canDelete }: ListsEditorProps) {
+  const refreshListViews = useRefreshListViews();
   const [newName, setNewName] = useState("");
   const [addError, setAddError] = useState<string | null>(null);
   const [addPending, setAddPending] = useState(false);
@@ -248,6 +254,7 @@ export function ListsEditor({ projectId, lists, canDelete }: ListsEditorProps) {
       toast.error(res.error.message);
       return false;
     }
+    refreshListViews();
     return true;
   }
 
@@ -266,6 +273,7 @@ export function ListsEditor({ projectId, lists, canDelete }: ListsEditorProps) {
       setAddError(res.error.message);
       return;
     }
+    refreshListViews();
     setNewName("");
   }
 
