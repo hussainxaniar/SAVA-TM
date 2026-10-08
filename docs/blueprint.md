@@ -1169,11 +1169,14 @@ Run against a dedicated Neon test branch (or local Postgres in Docker), resettin
 
 ### 13.5 Deployment
 
-1. Neon: one project with branches `main` (production), `staging`, `test`.
-2. Vercel: production on `main`, a fixed staging domain on a `staging` branch. Build command: `prisma migrate deploy && next build`.
-3. Google Cloud: enable Calendar API, configure consent screen (Internal if on Workspace), add redirect URIs for production and staging (10.5).
-4. Security basics: HTTPS only, secure cookies, Better Auth rate limiting on, no secrets in client bundles, CSP default from Next.js.
-5. Backups: rely on Neon point-in-time restore; note the retention window of your plan.
+Production runs on a **Hetzner server at `https://tm.sava.af`**, behind Cloudflare. It is rebuilt and redeployed automatically whenever `main` is updated (pushed). The original plan (Vercel + Neon) was replaced; `vercel.json` and the `build:vercel` script (`prisma migrate deploy && next build`) remain only as a reference for that option.
+
+1. **Database:** Postgres, reached through `DATABASE_URL` (app runtime) and `DIRECT_URL` (migrations). Local development and tests use the Docker Postgres from `docker-compose.yml` (`pnpm db:up`). Schema changes ship as Prisma migrations that must be applied on every deploy (`prisma migrate deploy` before the new build serves traffic); add a migration only with the owner's knowledge, because it runs against live data.
+2. **Environment variables:** those in 13.4, set on the server, never in the repo. `APP_URL` is `https://tm.sava.af`.
+3. **Google Cloud:** Calendar API enabled and the consent screen configured (10.5). Redirect URIs registered for production: `https://tm.sava.af/api/auth/callback/google` (sign-in) and `https://tm.sava.af/api/google/callback` (calendar). A staging domain is optional; if one is added, register its two URIs as well (Vercel-style preview URLs change, so they cannot be used).
+4. **Release flow:** work on `main` in small commits, run `pnpm typecheck && pnpm lint && pnpm test` and, for UI changes, `pnpm e2e` (the Section 13.2 smoke suite, run against the local dev server and Docker database; it removes its own `e2e-*@example.test` users). Pushing `main` deploys. Push only when the owner says so.
+5. **Security basics:** HTTPS only (Cloudflare to the browser, and the app's cookies are `secure` in production), Better Auth rate limiting on, no secrets in client bundles, CSP and security headers from Next.js or the proxy in front. The `ENCRYPTION_KEY` and `AUTH_SECRET` must be stored somewhere safe outside the server: losing `ENCRYPTION_KEY` makes stored Google tokens unreadable (everyone reconnects Calendar), and changing `AUTH_SECRET` signs everyone out.
+6. **Backups (open item):** nothing backs up the production database yet. Planned: a nightly `pg_dump -Fc` copied to storage outside the server, a retention schedule (for example 7 daily, 4 weekly, 6 monthly), a failure alert, and a restore test written up as `docs/backup-restore.md`. Images live in the database, so they are covered by the same dump. Postponed by the owner on 2026-10-08; revisit before the team's data becomes hard to recreate.
 
 ## 14. After v1: roadmap toward commercial
 

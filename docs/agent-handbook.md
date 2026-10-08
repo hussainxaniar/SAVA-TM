@@ -197,14 +197,14 @@ humans only). Paper MCP tools may be unavailable; they are read-only anyway. Whe
 
 ## 9. Current state (update this when it changes)
 
-- Done and committed: T-01 to T-21 plus the follow-up improvements I-01 to I-04 (images in docs and descriptions with resize,
+- Done and committed: T-01 to T-22 plus the follow-up improvements I-01 to I-04 (images in docs and descriptions with resize,
   rich-text task descriptions, "New list" and list icons, status icon picker with the status's own color) and wider dropdown menus.
 - T-21 (shortcuts, empty/loading/error states, responsive shell) is done: the Flash output was reviewed, fixed and browser-tested on 2026-10-08.
-  Next is T-22.
+  T-22 is done too (Playwright smoke suite; production live on Hetzner at tm.sava.af). Next is T-23 (API tokens + MCP, blueprint Section 15).
 - T-18 (Google connect and push) and T-19 (pull) are built and tested with Google faked, **awaiting a real consent test by the owner**
   (OAuth client configured locally; Vercel env names must be `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`/`ENCRYPTION_KEY`; redirect URIs
   `…/api/auth/callback/google` and `…/api/google/callback` per domain; a consent screen in Testing needs test users).
-- T-22 (E2E tests with Playwright, production release: Vercel env, migrations, Google verification, optionally Hetzner) not started.
+- T-22 is done: `pnpm e2e` runs the nine smoke flows locally; production is on Hetzner (`https://tm.sava.af`, redeploys when `main` is pushed) and the team uses it daily. Open item: database backups (postponed by the owner, see blueprint 13.5).
 - Not pushed: check `git log origin/main..HEAD`; the owner pushes by saying so. Migrations added since the last push:
   `20261002030958_status_list_icons_images` (Vercel applies it on build).
 - The authoritative status table is `docs/progress.md`; per-ticket records are in `docs/tickets/`.

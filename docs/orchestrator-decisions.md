@@ -152,14 +152,14 @@ Heuristics for **handling a request from the owner**:
   status icon picker. Review fix: the status glyph uses the status's own color, not the theme blue.
 - **T-21** shortcuts / responsive / empty states: **paused by the owner (2026-10-02)**. The batch runner had already run all three Flash
   tickets; the unreviewed output was kept on branch `wip/t21-flash-output` and reverted on `main` (see `docs/tickets/T-21.md`).
-- **T-22** E2E tests (Playwright) and the production release: not started.
+- **T-22** E2E tests (Playwright) and the production release: done 2026-10-08. Production is on Hetzner (tm.sava.af); backups postponed by the owner.
 
 ## 8. Open decisions and things the owner still has to do
 
 - Real Google consent test for T-18/T-19 (their account); add test users, or switch the consent screen to Internal; decide about publishing.
 - Put `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`/`ENCRYPTION_KEY` on Vercel (names exact) and the production redirect URIs in Google Cloud.
 - Push the unpushed commits when they say so (Vercel then redeploys; migrations run on build).
-- Where to host production (Vercel + hosted DB vs Hetzner) at T-22.
+- ~~Where to host production~~ Decided: Hetzner at tm.sava.af (auto-deploys `main`). Remaining: database backups (postponed 2026-10-08).
 - Cloud-session continuation was discussed and deferred ("needs a lot of rework"); see handbook section 10 for what would be required.
 
 ## 9. Mistakes to not repeat
