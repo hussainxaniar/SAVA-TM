@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { authNoticeFor } from "@/lib/auth-errors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,11 +13,14 @@ type Props = {
   mode: "sign-in" | "sign-up";
   next: string;
   googleEnabled: boolean;
+  /** `error` code Better Auth redirected back with after a failed Google sign-in. */
+  callbackError?: string | null;
 };
 
-export function AuthForm({ mode, next, googleEnabled }: Props) {
+export function AuthForm({ mode, next, googleEnabled, callbackError }: Props) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState(() => authNoticeFor(callbackError));
   const [pending, setPending] = useState(false);
   const isSignUp = mode === "sign-up";
   const nextQuery = next === "/" ? "" : `?next=${encodeURIComponent(next)}`;
@@ -28,6 +32,7 @@ export function AuthForm({ mode, next, googleEnabled }: Props) {
     const password = String(form.get("password") ?? "");
     setPending(true);
     setError(null);
+    setNotice(null);
     const { error } = isSignUp
       ? await authClient.signUp.email({ name: String(form.get("name") ?? ""), email, password })
       : await authClient.signIn.email({ email, password });
@@ -43,7 +48,13 @@ export function AuthForm({ mode, next, googleEnabled }: Props) {
   async function onGoogle() {
     setPending(true);
     setError(null);
-    const { error } = await authClient.signIn.social({ provider: "google", callbackURL: next });
+    setNotice(null);
+    const { error } = await authClient.signIn.social({
+      provider: "google",
+      callbackURL: next,
+      // Failed sign-ins come back to the sign-in page with `?error=<code>`.
+      errorCallbackURL: `/sign-in${nextQuery}`,
+    });
     if (error) {
       setError(error.message ?? "Google sign-in failed. Try again.");
       setPending(false);
@@ -52,6 +63,12 @@ export function AuthForm({ mode, next, googleEnabled }: Props) {
 
   return (
     <div className="space-y-4">
+      {notice && (
+        <div role="alert" className="space-y-1 rounded-md border border-destructive/40 bg-destructive/5 p-3">
+          <p className="text-sm font-medium text-destructive">{notice.title}</p>
+          <p className="text-sm text-muted-foreground">{notice.description}</p>
+        </div>
+      )}
       {/* method="post": if submitted before hydration, credentials must never land in the URL. */}
       <form method="post" onSubmit={onSubmit} className="space-y-3">
         {isSignUp && (
