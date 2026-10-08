@@ -280,7 +280,7 @@ export function CreateTokenDialog({
 
   return (
     <Dialog open={open} onOpenChange={(next) => (next ? onOpenChange(true) : close())}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-lg">
         {created ? (
           <SecretStep token={created} onDone={close} />
         ) : (

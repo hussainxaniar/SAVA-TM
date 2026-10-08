@@ -27,7 +27,7 @@ Single-glance status for all 22 tickets. Update this file and the matching
 | T-20 | Docs and pages | A + I | ✅ done | 6349768 |
 | T-21 | Polish: shortcuts, empty states, responsive | I | ✅ done (Flash output reviewed, 5 review fixes, browser-tested) | see git log |
 | T-22 | E2E tests and production release | A + I | ✅ done (smoke suite `pnpm e2e` passes locally; production live at tm.sava.af and in daily use; blueprint 13.5 updated). **Open item: database backups (postponed by the owner, 2026-10-08)** | see git log |
-| T-23 | API tokens and MCP server (added after v1, blueprint Section 15) | A + I | ⬜ planned, ticket written (`docs/tickets/T-23.md`) | — |
+| T-23 | API tokens and MCP server (added after v1, blueprint Section 15) | A + I | ✅ built and tested locally; **awaiting push + a real client check on tm.sava.af** (`docs/tickets/T-23.md`) | see git log |
 
 Follow-up improvements (2026-10-02, requested by the owner; all built, reviewed and browser-tested):
 

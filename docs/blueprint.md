@@ -1237,7 +1237,7 @@ revokeApiToken(ctx, { tokenId }): Promise<void>                  // own token, o
 resolveApiToken(rawToken): Promise<{ userId; spaceId; scope; tokenId } | null>  // hash lookup; null if unknown/revoked/expired; re-checks membership; updates lastUsedAt at most once a minute
 ```
 
-- `Ctx` gains an optional `via?: "mcp"`. An `AsyncLocalStorage` set by the MCP route lets `logActivity` add `via` to every payload without changing call sites.
+- No `Ctx` change: an `AsyncLocalStorage` set by the MCP route (`src/server/mcp/context.ts`) lets `logActivity` add `via` to every payload and `addComment` set `Comment.via`, without changing any service call site.
 - Rate limit: 120 requests per minute per token, in memory (one app instance today; use a shared store before running several). Over the limit: HTTP 429.
 - Origin check: if the request has an `Origin` header it must equal `APP_URL`'s origin (MCP clients normally send none); otherwise 403.
 - Tokens are never logged, never put in URLs, and error messages never echo them. Production must be HTTPS (it is, behind Cloudflare).
@@ -1255,7 +1255,7 @@ resolveApiToken(rawToken): Promise<{ userId; spaceId; scope; tokenId } | null>  
 | `get_my_tasks` | READ | none | The user's open tasks across the space, grouped by due date |
 | `get_task` | READ | `taskId` | One task: description as plain text, subtasks, linked lists, last 20 comments and activity entries |
 | `create_task` | WRITE | `title`, `listId`, `statusId?`, `description?`, `priority?` (1-4), `dueDate?` (ISO, date or datetime), `assigneeIds?`, `parentId?` | Creates a task (or subtask) |
-| `quick_add` | WRITE | `text`, `listId?` | Same parser as the quick-add dialog (`Write brief tomorrow p1 @ada #design`); the list defaults to the user's last used list |
+| `quick_add` | WRITE | `text`, `listId?` | Same parser as the quick-add dialog (`Write brief tomorrow p1 @ada #design`); without `listId` and a `#list` token it goes to the first list of the first project (the server has no "last used list") |
 | `update_task` | WRITE | `taskId`, any of `title`, `description`, `priority`, `dueDate`, `startDate` | Edits fields (`null` clears a date) |
 | `set_task_status` | WRITE | `taskId`, `statusId` or `completed: boolean` | Moves a task to a status, or completes/reopens it |
 | `assign_task` | WRITE | `taskId`, `userIds` | Replaces the assignees |
@@ -1265,7 +1265,7 @@ Descriptions and comments are plain text or simple Markdown paragraphs on the wa
 
 ### 15.5 UI
 
-On the Integrations page (`/s/[spaceId]/integrations`), under the Google card: an "AI access" card listing the user's tokens (name, scope, prefix, last used, expiry, Revoke) and a "Create token" dialog. After creating, the secret is shown once with a Copy button and ready-made snippets with the real URL filled in:
+On the Integrations page (`/s/[spaceId]/integrations`), under the Google card (the page loads the list on the server and the actions `refresh()` it, like Space settings): an "AI access" card listing the user's tokens (name, scope, prefix, last used, expiry, Revoke) and a "Create token" dialog. After creating, the secret is shown once with a Copy button and ready-made snippets with the real URL filled in:
 
 - Claude Code: `claude mcp add --transport http sava <APP_URL>/api/mcp --header "Authorization: Bearer <token>"`
 - Claude Desktop / other clients: the JSON config using `npx mcp-remote <APP_URL>/api/mcp --header "Authorization: Bearer <token>"`.

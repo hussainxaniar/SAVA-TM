@@ -189,6 +189,64 @@ test("9. a doc: add a child page, type, reload and the text persists", async () 
   await expect(page.locator(".ProseMirror").first()).toContainText("Persisted by the e2e suite");
 });
 
+test("10. an API token lets an MCP client create a task that shows up labelled via AI (Section 15)", async ({ request }) => {
+  await page.goto(spaceUrl.replace(/\/p\/.*$/, "/integrations"));
+  await expect(page.getByRole("heading", { name: "AI access" })).toBeVisible();
+  await expect(page.getByText("No tokens yet")).toBeVisible();
+
+  await expect(async () => {
+    await page.getByRole("button", { name: "Create token" }).first().click({ timeout: 3000 });
+    await expect(page.getByRole("dialog").getByLabel("Name")).toBeVisible({ timeout: 3000 });
+  }).toPass({ timeout: 20_000 });
+  const dialog = page.getByRole("dialog");
+  await dialog.getByLabel("Name").fill("E2E assistant");
+  await dialog.getByRole("button", { name: "Create token" }).click();
+  const token = await dialog.getByLabel("API token").inputValue();
+  expect(token).toMatch(/^sava_pat_/);
+  await expect(dialog.getByText(/claude mcp add --transport http sava .*\/api\/mcp/)).toBeVisible();
+  await dialog.getByRole("button", { name: "Done" }).click();
+  await expect(page.getByText("E2E assistant")).toBeVisible();
+  await expect(page.getByText("Never used")).toBeVisible();
+
+  // Talk to the endpoint like an MCP client does.
+  const call = async (method: string, params: unknown) => {
+    const res = await request.post("/api/mcp", {
+      headers: { authorization: `Bearer ${token}`, accept: "application/json, text/event-stream" },
+      data: { jsonrpc: "2.0", id: 1, method, params },
+    });
+    expect(res.ok()).toBe(true);
+    return res.json();
+  };
+  const projects = JSON.parse((await call("tools/call", { name: "list_projects", arguments: {} })).result.content[0].text);
+  const generalId = projects[0].lists.find((l: { name: string }) => l.name === "General").id;
+  const created = JSON.parse(
+    (await call("tools/call", { name: "create_task", arguments: { title: "Made by the assistant", listId: generalId, priority: 2 } })).result.content[0].text,
+  );
+  await call("tools/call", { name: "add_comment", arguments: { taskId: created.id, text: "Hello from the assistant" } });
+
+  // The task is in the list, and its dialog shows the AI label on the activity and the comment.
+  await page.goto(spaceUrl);
+  const dialog2 = await openTask(page, "Made by the assistant");
+  await expect(dialog2.getByText("Hello from the assistant")).toBeVisible();
+  await expect(dialog2.getByText("via AI")).toHaveCount(2);
+  await page.keyboard.press("Escape");
+  await expect(dialog2).toBeHidden();
+
+  // Revoking stops the token at once.
+  await page.goto(spaceUrl.replace(/\/p\/.*$/, "/integrations"));
+  await expect(async () => {
+    await page.getByRole("button", { name: "Revoke" }).first().click({ timeout: 3000 });
+    await expect(page.getByRole("alertdialog")).toBeVisible({ timeout: 3000 });
+  }).toPass({ timeout: 20_000 });
+  await page.getByRole("alertdialog").getByRole("button", { name: "Revoke" }).click();
+  await expect(page.getByText("No tokens yet")).toBeVisible();
+  const after = await request.post("/api/mcp", {
+    headers: { authorization: `Bearer ${token}`, accept: "application/json, text/event-stream" },
+    data: { jsonrpc: "2.0", id: 2, method: "tools/list" },
+  });
+  expect(after.status()).toBe(401);
+});
+
 // Signing in again proves the account the suite created works outside the session that made it.
 test("sign out and back in with the same account", async ({ browser }) => {
   const ctx = await browser.newContext();
