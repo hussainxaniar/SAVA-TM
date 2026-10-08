@@ -975,6 +975,7 @@ Each project can hold many docs; each doc is a tree of pages up to 3 levels deep
 | T-20 | Docs and pages | Sun afternoon | A + I | T-06 | 11, 8.7 |
 | T-21 | Polish: shortcuts, empty states, responsive | Sun evening | I | all UI | 9 |
 | T-22 | E2E tests and production release | Sun evening | A + I | all | 13 |
+| T-23 | API tokens and MCP server (added after v1) | after T-22 | A + I | T-22 | 15 |
 
 ### Acceptance criteria
 
@@ -1093,6 +1094,15 @@ Each project can hold many docs; each doc is a tree of pages up to 3 levels deep
 - [ ] Playwright smoke suite in Section 13 passes against a preview deployment.
 - [ ] Production env vars set, migrations deployed, real space created, team invited.
 
+**T-23 API tokens and MCP server** (added 2026-10-08, after v1; design in Section 15)
+
+- [ ] A member creates a personal API token (name, read-only or read/write, expiry) on the Integrations page; the secret is shown once; revoking works at once.
+- [ ] `POST /api/mcp` speaks MCP (Streamable HTTP, stateless) and authenticates with `Authorization: Bearer <token>`; every tool acts as the token's user, inside the token's space, through the existing services (guards and activity apply).
+- [ ] Tools in 15.4 exist; read-only tokens cannot call the write tools; nothing can delete tasks.
+- [ ] Changes made through a token are labelled "via AI" in the activity feed and on comments.
+- [ ] Works against the deployed app (`https://tm.sava.af/api/mcp`) from Claude Code and Claude Desktop; setup snippets are shown in the app.
+- [ ] Service and route tests pass; one Playwright flow creates a token, calls a tool and sees the task.
+
 ### If you fall behind, cut in this order
 
 1. T-19 (Google pull) → push-only sync.
@@ -1176,3 +1186,95 @@ Nothing below is built this weekend. The v1 schema already leaves room for each 
 | v2 (commercial) | Billing and plans per space, usage limits, project-level privacy, audit log UI, data export, Dari/Pashto/English i18n with RTL, Google OAuth verification | `Plan`/`Subscription` on `Space`; `ProjectMember` for private projects |
 
 Open questions to settle before v1.1: whether statuses should also exist as space-level templates, and whether guests (external clients) need a restricted role.
+
+## 15. API tokens and MCP server (T-23)
+
+Lets an AI client (Claude Desktop, Claude Code, any MCP client) read and create tasks on behalf of a person. It is a thin transport over the existing services: the AI can never do more than the person who owns the token, and every guard, validation and activity rule still applies. Added after v1; nothing in Sections 1 to 14 changes.
+
+### 15.1 Decisions
+
+- **Personal API tokens, not OAuth.** A member creates a token in the app and pastes it into the AI client's config. OAuth for MCP (so claude.ai can connect with a sign-in) is a later step; the token model below stays valid next to it.
+- **A token belongs to one user and one space.** It limits the blast radius: a leaked token reaches one space, never all of the user's spaces.
+- **Two scopes:** `READ` (list and get) and `WRITE` (also create, update, complete, comment). No scope deletes anything, moves tasks between projects, or touches members, statuses, lists, docs, invites or Google.
+- **Attribution.** Activity written through a token carries `via: "mcp"` in its payload (no Activity schema change) and comments carry `via`; the feed shows "via AI".
+- **No new roles.** A token acts with the user's current role. If the user is removed from the space, the token stops working (checked on every call).
+
+### 15.2 Data
+
+```prisma
+enum ApiTokenScope { READ WRITE }
+
+model ApiToken {
+  id         String        @id @default(cuid(2))
+  userId     String
+  spaceId    String
+  name       String                                   // "Claude Desktop", max 60
+  prefix     String                                   // first 12 chars of the token, for display ("sava_pat_ab3k")
+  tokenHash  String        @unique                    // SHA-256 hex of the full token
+  scope      ApiTokenScope
+  expiresAt  DateTime?                                // null = never
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime      @default(now())
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  space      Space         @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+
+  @@index([userId, spaceId])
+}
+```
+
+Plus `Comment.via String?` (null for humans, `"mcp"` for AI). The token is `sava_pat_` + 32 random bytes base64url. The full secret is shown exactly once at creation and never stored; only its SHA-256 is (the secret is high-entropy, so a fast hash is correct). Limit 10 live tokens per user per space.
+
+### 15.3 Services and auth (`src/server/services/api-tokens.ts`, `src/server/mcp/*`)
+
+```ts
+createApiToken(ctx, { spaceId, name, scope, expiresInDays: 30|90|365|null }): Promise<{ id; token /* shown once */; prefix }>  // [A] requireMember
+listApiTokens(ctx, { spaceId }): Promise<ApiTokenDTO[]>          // own tokens; Owner/Admin see everyone's in the space
+revokeApiToken(ctx, { tokenId }): Promise<void>                  // own token, or Owner/Admin for any in the space
+resolveApiToken(rawToken): Promise<{ userId; spaceId; scope; tokenId } | null>  // hash lookup; null if unknown/revoked/expired; re-checks membership; updates lastUsedAt at most once a minute
+```
+
+- `Ctx` gains an optional `via?: "mcp"`. An `AsyncLocalStorage` set by the MCP route lets `logActivity` add `via` to every payload without changing call sites.
+- Rate limit: 120 requests per minute per token, in memory (one app instance today; use a shared store before running several). Over the limit: HTTP 429.
+- Origin check: if the request has an `Origin` header it must equal `APP_URL`'s origin (MCP clients normally send none); otherwise 403.
+- Tokens are never logged, never put in URLs, and error messages never echo them. Production must be HTTPS (it is, behind Cloudflare).
+
+### 15.4 The MCP endpoint (`src/app/api/mcp/route.ts`)
+
+`POST /api/mcp` using `@modelcontextprotocol/sdk` (Streamable HTTP, stateless, JSON responses; `GET` and `DELETE` answer 405). `src/proxy.ts` does not match `/api/*`, so no sign-in redirect applies. The token's space is implicit, so no tool takes a `spaceId`.
+
+| Tool | Scope | Input | Does |
+| --- | --- | --- | --- |
+| `whoami` | READ | none | The user, the space, the token's scope; use to confirm the connection |
+| `list_projects` | READ | none | Projects with their lists (id, name, task counts) and statuses (id, name, category) |
+| `list_members` | READ | none | Space members (id, name) for assigning |
+| `list_tasks` | READ | `listId`, `includeCompleted?` | Tasks of a list as in the list view (title, status, assignees, due date, priority, subtask count) |
+| `get_my_tasks` | READ | none | The user's open tasks across the space, grouped by due date |
+| `get_task` | READ | `taskId` | One task: description as plain text, subtasks, linked lists, last 20 comments and activity entries |
+| `create_task` | WRITE | `title`, `listId`, `statusId?`, `description?`, `priority?` (1-4), `dueDate?` (ISO, date or datetime), `assigneeIds?`, `parentId?` | Creates a task (or subtask) |
+| `quick_add` | WRITE | `text`, `listId?` | Same parser as the quick-add dialog (`Write brief tomorrow p1 @ada #design`); the list defaults to the user's last used list |
+| `update_task` | WRITE | `taskId`, any of `title`, `description`, `priority`, `dueDate`, `startDate` | Edits fields (`null` clears a date) |
+| `set_task_status` | WRITE | `taskId`, `statusId` or `completed: boolean` | Moves a task to a status, or completes/reopens it |
+| `assign_task` | WRITE | `taskId`, `userIds` | Replaces the assignees |
+| `add_comment` | WRITE | `taskId`, `text` | Adds a comment |
+
+Descriptions and comments are plain text or simple Markdown paragraphs on the way in (converted to Tiptap JSON by a small tested helper, `src/lib/plain-to-doc.ts`) and plain text on the way out. Results are compact JSON as text content. A service error becomes a tool result with `isError: true` and the error's message (`NOT_FOUND`, `FORBIDDEN`, `VALIDATION`, `CONFLICT` as the code in the text); a missing or bad token is HTTP 401 with `WWW-Authenticate: Bearer`.
+
+### 15.5 UI
+
+On the Integrations page (`/s/[spaceId]/integrations`), under the Google card: an "AI access" card listing the user's tokens (name, scope, prefix, last used, expiry, Revoke) and a "Create token" dialog. After creating, the secret is shown once with a Copy button and ready-made snippets with the real URL filled in:
+
+- Claude Code: `claude mcp add --transport http sava <APP_URL>/api/mcp --header "Authorization: Bearer <token>"`
+- Claude Desktop / other clients: the JSON config using `npx mcp-remote <APP_URL>/api/mcp --header "Authorization: Bearer <token>"`.
+
+The activity feed and comments show a small "via AI" label on anything written through a token.
+
+### 15.6 Tests
+
+- Services: create/list/revoke, expiry, revoked and unknown tokens, membership re-check (removed member's token fails), 10-token limit, hash stored not secret, Admin revokes others' tokens, Member cannot.
+- MCP: `tools/list` shows only what the scope allows; a `READ` token calling a write tool is refused; each tool against the real database (including permission failures); activity rows carry `via`; comments carry `via`; rate limit; Origin check; malformed JSON-RPC.
+- Playwright: create a token in the UI, call `tools/call create_task` through Playwright's `request` context, see the task in the list with the "via AI" label.
+
+### 15.7 Out of scope for T-23
+
+Deleting or moving tasks, editing docs, managing members/lists/statuses, MCP resources and prompts, OAuth sign-in for MCP, webhooks, a public REST API. (A REST API would reuse `resolveApiToken` and the same services.)

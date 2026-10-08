@@ -26,7 +26,8 @@ Single-glance status for all 22 tickets. Update this file and the matching
 | T-19 | Google pull and reconciliation | A | 🔄 built, awaiting a real Google test | 979b2a9 |
 | T-20 | Docs and pages | A + I | ✅ done | 6349768 |
 | T-21 | Polish: shortcuts, empty states, responsive | I | ✅ done (Flash output reviewed, 5 review fixes, browser-tested) | see git log |
-| T-22 | E2E tests and production release | A + I | ⬜ pending | — |
+| T-22 | E2E tests and production release | A + I | 🔄 smoke suite written and passing locally (`pnpm e2e`, 9 flows); production checklist (backups, env, docs) open | see git log |
+| T-23 | API tokens and MCP server (added after v1, blueprint Section 15) | A + I | ⬜ planned, ticket written (`docs/tickets/T-23.md`) | — |
 
 Follow-up improvements (2026-10-02, requested by the owner; all built, reviewed and browser-tested):
 
