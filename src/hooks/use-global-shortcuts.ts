@@ -33,7 +33,9 @@ export function shortcutEventAllowed(e: KeyboardEvent): boolean {
       t.isContentEditable)
   )
     return false;
-  if (document.querySelector('[role="dialog"], [role="alertdialog"]')) return false;
+  // Enter belongs to a focused button or link (it activates it), never to a row selection.
+  if (e.key === "Enter" && t && (t.tagName === "BUTTON" || t.tagName === "A")) return false;
+  if (document.querySelector('[role="dialog"], [role="alertdialog"], [role="menu"]')) return false;
   return true;
 }
 

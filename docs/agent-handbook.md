@@ -197,10 +197,10 @@ humans only). Paper MCP tools may be unavailable; they are read-only anyway. Whe
 
 ## 9. Current state (update this when it changes)
 
-- Done and committed: T-01 to T-20 plus the follow-up improvements I-01 to I-04 (images in docs and descriptions with resize,
+- Done and committed: T-01 to T-21 plus the follow-up improvements I-01 to I-04 (images in docs and descriptions with resize,
   rich-text task descriptions, "New list" and list icons, status icon picker with the status's own color) and wider dropdown menus.
-- **T-21 is unfinished (the owner paused it on 2026-10-02).** Flash's unreviewed output is on branch `wip/t21-flash-output`
-  and was reverted on `main`; `docs/tickets/T-21.md` has the exact continuation steps. After it comes T-22.
+- T-21 (shortcuts, empty/loading/error states, responsive shell) is done: the Flash output was reviewed, fixed and browser-tested on 2026-10-08.
+  Next is T-22.
 - T-18 (Google connect and push) and T-19 (pull) are built and tested with Google faked, **awaiting a real consent test by the owner**
   (OAuth client configured locally; Vercel env names must be `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`/`ENCRYPTION_KEY`; redirect URIs
   `…/api/auth/callback/google` and `…/api/google/callback` per domain; a consent screen in Testing needs test users).

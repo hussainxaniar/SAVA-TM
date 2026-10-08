@@ -25,7 +25,7 @@ Single-glance status for all 22 tickets. Update this file and the matching
 | T-18 | Google connect and push | A | 🔄 built, awaiting a real Google test | 470304e |
 | T-19 | Google pull and reconciliation | A | 🔄 built, awaiting a real Google test | 979b2a9 |
 | T-20 | Docs and pages | A + I | ✅ done | 6349768 |
-| T-21 | Polish: shortcuts, empty states, responsive | I | ⏸ **unfinished (owner paused it)**: Flash output exists, unreviewed, on branch `wip/t21-flash-output`; see `docs/tickets/T-21.md` | — |
+| T-21 | Polish: shortcuts, empty states, responsive | I | ✅ done (Flash output reviewed, 5 review fixes, browser-tested) | see git log |
 | T-22 | E2E tests and production release | A + I | ⬜ pending | — |
 
 Follow-up improvements (2026-10-02, requested by the owner; all built, reviewed and browser-tested):

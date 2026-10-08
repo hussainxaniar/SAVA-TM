@@ -211,6 +211,8 @@ export function Sidebar({
           "hidden shrink-0 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar px-2 py-3 transition-[width] duration-200 ease-in-out md:flex",
           collapsed ? "w-0 border-r-0 px-0" : "w-[260px]",
         )}
+        // A collapsed sidebar must not stay reachable by Tab.
+        inert={collapsed}
       >
         <SidebarContent
           space={space}
@@ -248,9 +250,12 @@ export function Sidebar({
             )}
           />
           <aside
-            role="dialog"
-            aria-modal="true"
+            // Only a dialog while open: a closed drawer is off-screen, and a standing
+            // role="dialog" would make every keyboard shortcut stand down.
+            role={drawerOpen ? "dialog" : undefined}
+            aria-modal={drawerOpen || undefined}
             aria-label="Space navigation"
+            inert={!drawerOpen}
             className={cn(
               "fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col border-r border-sidebar-border bg-sidebar px-2 py-3 shadow-xl transition-transform duration-200 ease-in-out md:hidden",
               drawerOpen ? "translate-x-0" : "-translate-x-full",

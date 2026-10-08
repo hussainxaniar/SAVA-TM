@@ -22,7 +22,7 @@ type CalendarToolbarProps = {
 /** The header band's second row (10.1): Today, ‹ ›, the range title and the Week | Day | Month toggle. */
 export function CalendarToolbar({ title, view, onToday, onPrev, onNext, onView }: CalendarToolbarProps) {
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex flex-wrap items-center gap-1 max-md:gap-y-2">
       <Button variant="outline" size="sm" onClick={onToday}>
         Today
       </Button>
@@ -32,7 +32,7 @@ export function CalendarToolbar({ title, view, onToday, onPrev, onNext, onView }
       <Button variant="ghost" size="icon-sm" aria-label="Next" onClick={onNext}>
         <IconChevronRight aria-hidden />
       </Button>
-      <h2 className="ml-1 text-[15px] font-semibold text-foreground">{title}</h2>
+      <h2 className="ml-1 whitespace-nowrap text-[15px] font-semibold text-foreground">{title}</h2>
       <div className="ml-auto flex shrink-0 rounded-md bg-pill p-0.5">
         {VIEWS.map((v) => (
           <ViewButton key={v.id} label={v.label} active={view === v.id} onClick={() => onView(v.id)} />
