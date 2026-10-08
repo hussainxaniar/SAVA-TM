@@ -78,6 +78,7 @@ model User {
   activities  Activity[]
   timeBlocks  TimeBlock[]
   googleCal   GoogleCalendarConnection?
+  apiTokens   ApiToken[]
 
   @@unique([email])
   @@map("user")
@@ -143,6 +144,7 @@ model Space {
   members     SpaceMember[]
   invites     Invite[]
   projects    Project[]
+  apiTokens   ApiToken[]
 }
 
 model SpaceMember {
@@ -298,6 +300,7 @@ model Comment {
   bodyText  String // plain text for previews/search
   editedAt  DateTime?
   deletedAt DateTime?
+  via       String? // null = written by a person; "mcp" = through an API token (Section 15)
   createdAt DateTime  @default(now())
   task      Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
   author    User      @relation(fields: [authorId], references: [id])
@@ -408,4 +411,29 @@ model Image {
   createdAt    DateTime @default(now())
 
   @@index([spaceId])
+}
+
+// ---------- API tokens (Section 15) ----------
+
+enum ApiTokenScope {
+  READ
+  WRITE
+}
+
+model ApiToken {
+  id         String        @id @default(cuid(2))
+  userId     String
+  spaceId    String
+  name       String // "Claude Desktop", max 60
+  prefix     String // first 12 characters of the token, shown in the list
+  tokenHash  String        @unique // SHA-256 hex of the full token; the secret itself is never stored
+  scope      ApiTokenScope
+  expiresAt  DateTime? // null = never
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime      @default(now())
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  space      Space         @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+
+  @@index([userId, spaceId])
 }

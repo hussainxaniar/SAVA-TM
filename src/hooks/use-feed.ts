@@ -42,6 +42,7 @@ export function useAddComment(taskId: string, me: UserLite) {
         createdAt: new Date().toISOString(),
         editedAt: null,
         deleted: false,
+        via: null,
         canEdit: false,
         canDelete: false,
       };

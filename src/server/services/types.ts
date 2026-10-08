@@ -162,6 +162,8 @@ export type FeedItemDTO =
       createdAt: string;
       editedAt: string | null;
       deleted: boolean;
+      /** Written through an API token (Section 15); null for a person. */
+      via: string | null;
       /** The viewer wrote it (6.10). */
       canEdit: boolean;
       /** The viewer wrote it, or is Admin/Owner (6.10). */
@@ -241,3 +243,20 @@ export type DocViewDTO = {
 export type SavePageResult =
   | { conflict?: false; updatedAt: string }
   | { conflict: true; updatedBy: UserLite; /** The server's current version: Overwrite resends with it. */ updatedAt: string };
+
+// ---------- API tokens (Section 15) ----------
+
+export type ApiTokenDTO = {
+  id: string;
+  name: string;
+  scope: "READ" | "WRITE";
+  /** First characters of the token, enough to recognise it ("sava_pat_ab3k"). */
+  prefix: string;
+  expiresAt: string | null;
+  expired: boolean;
+  lastUsedAt: string | null;
+  createdAt: string;
+  owner: UserLite;
+  /** The viewer created it. Owner/Admin also see (and may revoke) other members' tokens. */
+  mine: boolean;
+};

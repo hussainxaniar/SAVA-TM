@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import { db } from "../db";
 import { AppError } from "../errors";
 import { PERMISSIONS, hasRole, requireMember, spaceIdOfComment, spaceIdOfTask } from "../guards";
+import { currentVia } from "../mcp/context";
 import { logActivity } from "./activity";
 import type { Ctx, FeedItemDTO, UserLite } from "./types";
 
@@ -23,8 +24,8 @@ export async function addComment(ctx: Ctx, input: { taskId: string; body: unknow
     const task = await tx.task.findFirst({ where: { id: input.taskId, deletedAt: null }, select: { id: true } });
     if (!task) throw new AppError("NOT_FOUND", "Task not found");
     const comment = await tx.comment.create({
-      data: { taskId: task.id, authorId: ctx.userId, body, bodyText },
-      select: { id: true, body: true, createdAt: true, editedAt: true, deletedAt: true, authorId: true, author: userLite },
+      data: { taskId: task.id, authorId: ctx.userId, body, bodyText, via: currentVia() },
+      select: { id: true, body: true, createdAt: true, editedAt: true, deletedAt: true, via: true, authorId: true, author: userLite },
     });
     await logActivity(tx, {
       spaceId,
@@ -77,7 +78,7 @@ export async function getFeed(ctx: Ctx, input: { taskId: string; filter?: "all" 
   const comments = await db.comment.findMany({
     where: { taskId: task.id },
     orderBy: [{ createdAt: "asc" }, { id: "asc" }],
-    select: { id: true, body: true, createdAt: true, editedAt: true, deletedAt: true, authorId: true, author: userLite },
+    select: { id: true, body: true, createdAt: true, editedAt: true, deletedAt: true, via: true, authorId: true, author: userLite },
   });
   const items: FeedItemDTO[] = comments.map((c) => toCommentItem(c, ctx.userId, member.role));
 
@@ -114,6 +115,7 @@ function toCommentItem(
     createdAt: Date;
     editedAt: Date | null;
     deletedAt: Date | null;
+    via: string | null;
     authorId: string;
     author: UserLite;
   },
@@ -130,6 +132,7 @@ function toCommentItem(
     createdAt: c.createdAt.toISOString(),
     editedAt: c.editedAt?.toISOString() ?? null,
     deleted,
+    via: c.via,
     canEdit: mine && !deleted,
     canDelete: !deleted && (mine || hasRole(viewerRole, PERMISSIONS.deleteOthersComments)),
   };
