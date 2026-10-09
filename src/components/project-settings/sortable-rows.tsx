@@ -17,6 +17,7 @@ import {
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { rowKeyboardOnly } from "@/lib/dnd";
 import { cn } from "@/lib/utils";
 
 /**
@@ -129,7 +130,7 @@ export function SortableRow({
       )}
       title="Drag to reorder"
       {...attributes}
-      {...listeners}
+      {...rowKeyboardOnly(listeners)}
     >
       {children}
     </div>

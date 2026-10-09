@@ -132,7 +132,7 @@ Always, before accepting: `git status`, read the **whole** diff, then `pnpm type
 
 ### Bug classes that keep recurring (check for each)
 
-1. **Portaled menus/dialogs bubble events to the parent row.** React bubbles events through portals, so a menu click can navigate
+1. **Portaled menus/dialogs and inputs bubble events to the parent row.** (A rename input inside a row that drags from anywhere: wrap the row's dnd `listeners` with `rowKeyboardOnly` from `src/lib/dnd.ts`, I-11.) React bubbles events through portals, so a menu click can navigate
    the row or start a drag, and a space typed in a picker can start a keyboard drag. Fix: stop `click`, `pointerdown`, `keydown` at
    the menu/picker boundary (`onClick={(e) => e.stopPropagation()}` on the content or its wrapper). Exception: FullCalendar listens
    natively above React; don't native-`stopPropagation` there (it also kills React's own handling); guard in `eventClick` instead.

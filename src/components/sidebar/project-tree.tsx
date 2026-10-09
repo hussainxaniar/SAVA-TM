@@ -55,6 +55,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { rowKeyboardOnly } from "@/lib/dnd";
 import { PROJECT_COLORS } from "@/lib/project-colors";
 import {
   archiveDocAction,
@@ -371,7 +372,7 @@ function ProjectRow({
         // The whole project row drags (a 4px move starts it, so clicks still work); the
         // sortable wrapper above keeps the header and its lists/docs moving together.
         {...attributes}
-        {...listeners}
+        {...rowKeyboardOnly(listeners)}
       >
         {editing ? (
           <Input

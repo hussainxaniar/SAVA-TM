@@ -49,6 +49,7 @@ Work tracked on tm.sava.af (project SAVA TM; the owner's own tasks, planned 2026
 | I-08 | TaskManagement skill: the Sava TM workflow for agents (`.claude/skills/task-management/SKILL.md`) | `I-08-task-management-skill.md` | ✅ written, awaiting the owner's additions; not pushed |
 | I-09 | Sava ERP task-management skill (held uncommitted in the ERP repo at `React/sava/.claude/skills/sava-erp-tasks/`; copy in `docs/skills/sava-erp-task-management/`; also a document in the Sava ERP project) | `I-09-sava-erp-task-skill.md` | ✅ written; awaiting the owner's review and a commit in the ERP repo |
 | I-10 | Documents in the MCP: `list_docs`, `get_page`, `create_doc`, `create_page`, `update_page` (Markdown in and out), image placeholders | `I-10-mcp-documents.md` | ✅ built, tested (295 tests), pushed and live on tm.sava.af (2026-10-09) |
+| I-11 | Space in a list / status / project rename field started a keyboard drag (row went gray, space swallowed); fixed with a shared `rowKeyboardOnly` helper | `I-11-rename-space-bug.md` | ✅ fixed, browser-tested, 297 tests + e2e 11/11 locally; not pushed |
 
 Notes:
 - Google OAuth client configured locally (2026-10-01); T-18 built and tested with Google faked; a real consent test by the human is pending.
