@@ -33,9 +33,17 @@ vanished from what agents read.
 - [x] An agent can list docs and pages, read a page as Markdown, create a doc and pages, and replace or append to a page; a stale edit is refused.
 - [x] A READ token cannot write; ids from another space answer NOT_FOUND; there is no delete/move tool.
 - [x] `pnpm typecheck && pnpm lint && pnpm test` pass (295 tests, 14 new).
-- [ ] Live check on tm.sava.af after the push (needs the deploy, and the MCP client to reconnect so it sees the new tools).
+- [x] Live check on tm.sava.af after the push (2026-10-09): `tools/list` on the production endpoint shows 17 tools including the five document tools.
 
 ## Completion record (2026-10-09)
 
 Written and tested locally by the Architect (Sonnet 5.5); no UI, so no Flash dispatch and no browser QA. **Not pushed** (no migration; the push only changes the MCP endpoint and a helper).
 Browser check (local, seed user Ada): a page written from Markdown through the same converter and `savePage` opened in the real editor with headings, bold / italic / strike / code / link, a numbered list with a nested bullet, a task list with a checked item, a quote, a code block (the table), a rule and a paragraph, no console errors; the QA doc was deleted afterwards. Not verified: the live endpoint.
+
+## Live check and first use (2026-10-09, after the push `0437c1d`)
+
+- Production `tools/list` returned 17 tools: the 12 task tools plus `list_docs`, `get_page`, `create_doc`, `create_page`, `update_page`. The orchestrator's own MCP connection loaded its tool list at session
+  start and does not see the new tools until it reconnects, so the check and the writes below were made with a small script that calls `https://tm.sava.af/api/mcp` with the owner's token read from the Claude desktop config (never printed).
+- Created in the **Sava ERP** project the document **"Sava ERP task-management skill"**: an intro page (what it is, how to install it in the ERP repository, what the agent may do alone, limits, open points) and a child page
+  **"SKILL.md"** holding the full skill text in one code block. Read back through `get_page`: the child page's text is byte-identical to `docs/skills/sava-erp-task-management/SKILL.md`.
+- The pre-existing "Untitled doc" in Sava ERP was left alone.
