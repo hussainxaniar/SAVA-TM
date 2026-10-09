@@ -24,7 +24,7 @@ We are building a web task manager for our internal team in one weekend: Todoist
 
 ### Non-goals (v1)
 
-Board/Gantt/timeline views, custom fields, time tracking, automations, recurring tasks, goals, dashboards, whiteboards, chat, email notifications, @mention notifications, real-time collaboration, mobile apps, offline mode, billing, i18n/RTL. Agents must not build any of these, even partially.
+Board/Gantt/timeline views, custom fields, time tracking, automations, recurring tasks, goals, dashboards, whiteboards, chat, email notifications, @mention notifications, real-time collaboration, mobile apps, offline mode, billing, i18n/RTL. Agents must not build any of these, even partially. (Exception, added 2026-10-09 at the owner's request: the in-app task notifications of Section 16, and the API tokens / MCP server of Section 15. Email, @mentions and reminders stay non-goals.)
 
 ### Product principles
 
@@ -1281,3 +1281,68 @@ The activity feed and comments show a small "via AI" label on anything written t
 ### 15.7 Out of scope for T-23
 
 Deleting or moving tasks, editing docs, managing members/lists/statuses, MCP resources and prompts, OAuth sign-in for MCP, webhooks, a public REST API. (A REST API would reuse `resolveApiToken` and the same services.)
+
+## 16. In-app notifications (I-06)
+
+Added after v1 at the owner's request (task "Notification" in the SAVA TM project on tm.sava.af, 2026-10-09). A person sees what happened on the tasks they are involved in without opening each one. It is a thin layer on the existing activity log; nothing in Sections 1 to 15 changes except the non-goals line.
+
+### 16.1 Decisions
+
+- **In-app only.** No email, no push, no @mentions, no due-soon or overdue reminders (those need a scheduler and are separate tasks). Real-time delivery is not built: the client polls every 30 seconds and when the window regains focus.
+- **Involved people only.** The recipients of an event are the task's assignees and its creator, never the actor, and only while they are members of the task's space. Being assigned notifies the new assignee only.
+- **Four types**, each created from the activity row that describes the same event:
+
+| Notification | From activity | Recipients |
+| --- | --- | --- |
+| `ASSIGNED` | `ASSIGNEE_ADDED` | the user who was assigned |
+| `COMMENTED` | `COMMENT_ADDED` | assignees and creator |
+| `STATUS_CHANGED` | `STATUS_CHANGED`, `TASK_COMPLETED`, `TASK_REOPENED` | assignees and creator |
+| `DUE_DATE_CHANGED` | `DUE_DATE_CHANGED` | assignees and creator |
+
+- **Same transaction.** `logActivity` / `logActivities` call `notifyFromActivities(tx, inputs)`, so a notification exists if and only if its activity row does. Changes made through an API token notify exactly like any other change (the actor is the token's owner).
+- **Quiet by design.** Deleted tasks and soft-deleted comments do not notify; one event notifies a recipient once even if they are both assignee and creator.
+
+### 16.2 Data
+
+```prisma
+enum NotificationType { ASSIGNED COMMENTED STATUS_CHANGED DUE_DATE_CHANGED }
+
+model Notification {
+  id        String           @id @default(cuid(2))
+  spaceId   String
+  userId    String                                  // the recipient
+  actorId   String                                  // who did it (never the recipient)
+  taskId    String
+  type      NotificationType
+  payload   Json                                    // { to?: statusId | ISO date | null, toHasTime?: boolean, completed?: boolean }
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+  // relations: user (recipient), actor, task (cascade), space (cascade)
+  @@index([userId, spaceId, createdAt])
+  @@index([userId, spaceId, readAt])
+}
+```
+
+### 16.3 Services (`src/server/services/notifications.ts`)
+
+```ts
+notifyFromActivities(tx, inputs: ActivityInput[]): Promise<void>       // internal [A], called by logActivity(ies)
+listNotifications(ctx, { spaceId, limit?: number, unreadOnly?: boolean }): Promise<NotificationDTO[]>   // newest first, default 30, max 100
+getUnreadCount(ctx, { spaceId }): Promise<number>
+markNotificationRead(ctx, { notificationId }): Promise<void>
+markAllNotificationsRead(ctx, { spaceId }): Promise<void>
+```
+
+All start with `requireMember`; a user only ever sees and changes their own rows (another user's id is `NOT_FOUND`). `NotificationDTO` = `{ id, type, createdAt, readAt, actor: UserLite, task: { id, title, projectId, homeListId }, statusName?: string, dueDate?: string | null, completed?: boolean }`; labels (status names) are resolved at read time so renamed statuses read correctly.
+
+### 16.4 UI
+
+A bell button with an unread badge in the sidebar header (next to the space switcher). It opens a popover: a header "Notifications" with "Mark all as read", then one row per notification: actor name, a sentence ("assigned you to", "commented on", "changed the status of … to In progress", "changed the due date of … to Oct 12"), the task title, and a relative time; unread rows have a dot. Clicking a row opens the task (`/s/<space>/p/<project>/l/<list>?task=<id>`) and marks it read. Empty state: "You're all caught up". Below 768px the popover is a full-width sheet.
+
+### 16.5 Tests
+
+Services: each of the four types reaches the right people (assignee, creator, both once, not the actor, not a non-member); `ASSIGNED` reaches only the new assignee; marking read is per user; mark all read is per space; counts; another user's notification id is `NOT_FOUND`; deleted tasks cascade; notifications are rolled back with a failed mutation. UI: Playwright smoke (assign a task to another user, see the badge, open it, badge clears).
+
+### 16.6 Out of scope
+
+Email, push, @mentions, reminders, per-type preferences and muting, grouping or digests, real-time updates.
