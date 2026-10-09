@@ -6,6 +6,8 @@ import { AvatarStack } from "@/components/tasks/avatar-stack";
 import { StatusControl, SubtaskGlyph } from "@/components/tasks/status-icon";
 import { PriorityFlag } from "@/components/tasks/priority-flag";
 import { TaskRowMenu } from "@/components/tasks/task-row-menu";
+import { AssigneeCell, DueCell, PriorityCell } from "@/components/tasks/row-cell-actions";
+import { rowKeyboardOnly } from "@/lib/dnd";
 import { formatDue, type DisplayMode, type ListRow } from "@/lib/list-view";
 import { cn } from "@/lib/utils";
 import type { Priority, StatusDTO, TaskRowDTO, UserLite } from "@/server/services/types";
@@ -80,6 +82,7 @@ export const TaskRow = memo(function TaskRow({
   onSetStatus,
   onSetPriority,
   onSetDue,
+  onToggleAssignee,
   onDeleteTask,
   onAddChild,
   onMakeSubtaskOf,
@@ -205,7 +208,8 @@ export const TaskRow = memo(function TaskRow({
       selected && "ring-1 ring-primary/40 rounded-md",
     ),
     ...drag.attributes,
-    ...drag.listeners,
+    // Space / Enter start a keyboard drag only on the row itself, not on a button inside it (cell pickers, chevron).
+    ...rowKeyboardOnly(drag.listeners),
   } as const;
 
   if (mode === "SEPARATE") {
@@ -303,13 +307,22 @@ export const TaskRow = memo(function TaskRow({
       )}
       {actions}
       <div className="hidden w-14 shrink-0 items-center gap-1 md:flex">{subs}</div>
-      <div className="hidden w-[72px] shrink-0 items-center md:flex">
-        <AvatarStack users={task.assignees} />
-      </div>
-      <div className={cn("w-24 shrink-0 truncate text-[13px]", due?.className)}>
-        {due?.label}
-      </div>
-      <div className="flex w-8 shrink-0 justify-center">{flag}</div>
+      {temp ? (
+        // Temporary rows cannot be edited yet: plain cells, no triggers.
+        <>
+          <div className="hidden w-[72px] shrink-0 items-center md:flex">
+            <AvatarStack users={task.assignees} />
+          </div>
+          <div className={cn("w-24 shrink-0 truncate text-[13px]", due?.className)}>{due?.label}</div>
+          <div className="flex w-8 shrink-0 justify-center">{flag}</div>
+        </>
+      ) : (
+        <>
+          <AssigneeCell task={task} onToggle={onToggleAssignee} />
+          <DueCell task={task} label={due?.label} className={due?.className} onSetDue={onSetDue} />
+          <PriorityCell task={task} onSetPriority={onSetPriority} />
+        </>
+      )}
     </div>
   );
 });

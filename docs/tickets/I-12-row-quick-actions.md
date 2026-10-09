@@ -48,7 +48,25 @@ Only the **NESTED row layout** (the fixed right columns, `md` and up). The SEPAR
 
 ## Acceptance
 
-- [ ] Hovering a row with no assignee, due date or priority shows a faint user-plus, calendar-plus and flag in their columns; they are not visible when the row is not hovered. Clicking each opens its picker and changes the task (the row updates at once).
-- [ ] Clicking a filled cell (avatars, date, flag) opens the same picker to change it; clicking elsewhere on the row still opens the task dialog; dragging a row still works from every cell.
-- [ ] Adding the first assignee keeps the picker open (more members can be toggled); Esc and outside click close it; no sentence in the picker starts a keyboard drag (space in the member search works).
-- [ ] `pnpm typecheck && pnpm lint && pnpm test` pass with no warnings.
+- [x] Hovering a row with no assignee, due date or priority shows a faint user-plus, calendar-plus and flag in their columns; they are not visible when the row is not hovered. Clicking each opens its picker and changes the task (the row updates at once).
+- [x] Clicking a filled cell (avatars, date, flag) opens the same picker to change it; clicking elsewhere on the row still opens the task dialog; dragging a row still works from every cell.
+- [x] Adding the first assignee keeps the picker open (more members can be toggled); Esc and outside click close it; no sentence in the picker starts a keyboard drag (space in the member search works).
+- [x] `pnpm typecheck && pnpm lint && pnpm test` pass with no warnings.
+
+## Completion record (2026-10-09)
+
+**Models:** Architect (Sonnet 5.5): `useSpaceMembers` context (mounted in the space layout), the `onToggleAssignee` callback in `list-view.tsx` (a `useSetAssignees` toggle), the width fix below, the ticket. UI: GLM 5.3 Flash (one dispatch, no re-dispatch; touched only `task-row.tsx` and the new `row-cell-actions.tsx`).
+
+**Review:** the diff matched the ticket. One hardening by the Architect: the task row spread dnd's keyboard listener on the whole row, so Space or Enter on a button inside it (the new cell triggers, the chevron) could start a keyboard drag instead of clicking;
+`task-row.tsx` now wraps the listeners with `rowKeyboardOnly` (`src/lib/dnd.ts`, I-11).
+
+**Also in this change (subtask "Table columns looks a little bit off"):** compared the running app (demo account, 1440px) with the Paper export `docs/design/list-view-nested`. Column widths (56 / 72 / 96 / 32), row height 36, avatar 22px, fonts and colors already matched; the content column did not: `max-w-[880px]` with `md:px-6` made the table 832px,
+inset 24px on each side, while the design's content is 880px. Now `max-w-[928px]` (880 + 2 x 24) in the list view, its header, My Tasks and the two loading skeletons: rows 410 to 1290, and the Pri column and the Share button both end at 1290, as in the design.
+The owner's screenshot in that task could not be read (the MCP drops images), so this is what the comparison found; the owner confirms.
+
+**Checks:** `pnpm typecheck`, `pnpm lint`, `pnpm test` (297) pass; `pnpm e2e` 11/11.
+
+**Browser QA** (local, seed user Ada, "Website relaunch / Backlog"): hovering a row without assignee, due date or priority shows a faint user-plus, calendar-plus and outline flag in their columns; clicking the assignee cell opened the picker (the task dialog did not open), picking Ben showed his avatar on the row and the picker stayed open with a check; the priority cell opened a menu with the four priorities and setting High P2 turned the flag orange; the due cell opened the date picker and "Tomorrow" set the date;
+no console errors. The seed data changed by the test was put back afterwards.
+
+**Not verified:** typing a space in the picker's member search (covered by the keydown stop on the popover content), the keyboard path (Tab to a cell, Enter), phone width (cells only exist from md up), the dark theme, and the SEPARATE (stacked) layout, which was left unchanged on purpose. Not pushed.
