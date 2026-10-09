@@ -119,7 +119,7 @@ describe("tools by scope", () => {
     const write = await names(writeToken);
     expect(read).toEqual(["get_my_tasks", "get_page", "get_task", "list_docs", "list_members", "list_projects", "list_tasks", "whoami"]);
     expect(write).toEqual(
-      [...read, "add_comment", "assign_task", "create_doc", "create_page", "create_task", "quick_add", "set_task_status", "update_page", "update_task"].sort(),
+      [...read, "add_comment", "assign_task", "create_doc", "create_page", "create_task", "quick_add", "rename_doc", "set_task_status", "update_page", "update_task"].sort(),
     );
     expect(write.some((n: string) => /delete|move|archive/.test(n))).toBe(false);
   });
@@ -353,8 +353,32 @@ describe("document tools", () => {
     expect((await db.docPage.findUniqueOrThrow({ where: { id: foreign.firstPageId } })).title).toBe("Untitled");
   });
 
-  it("offers no delete, move or archive for docs either", async () => {
+  it("offers no delete, move or archive for docs either (rename is the only doc-level change)", async () => {
     const names: string[] = (await rpc(writeToken, "tools/list")).body.result.tools.map((x: { name: string }) => x.name);
-    expect(names.filter((n) => /doc|page/.test(n)).sort()).toEqual(["create_doc", "create_page", "get_page", "list_docs", "update_page"]);
+    expect(names.filter((n) => /doc|page/.test(n)).sort()).toEqual(["create_doc", "create_page", "get_page", "list_docs", "rename_doc", "update_page"]);
+  });
+});
+
+describe("rename_doc", () => {
+  it("renames the doc but not its pages, trims the name, and refuses empty names, READ tokens and other spaces", async () => {
+    const t = client(writeToken);
+    const { docId, firstPageId } = (await t.create_doc({ projectId, title: "Old name" })).data;
+    const r = await t.rename_doc({ docId, title: "  New name  " });
+    expect(r.data).toEqual({ docId, title: "New name" });
+    expect((await db.doc.findUniqueOrThrow({ where: { id: docId } })).title).toBe("New name");
+    expect((await t.get_page({ pageId: firstPageId })).data.title).toBe("Old name"); // the page keeps its own title
+    expect((await client(readToken).list_docs({ projectId })).data[0].title).toBe("New name");
+
+    expect((await t.rename_doc({ docId, title: "   " })).isError).toBe(true);
+    expect((await client(readToken).rename_doc({ docId, title: "Nope" })).isError).toBe(true);
+    expect((await db.doc.findUniqueOrThrow({ where: { id: docId } })).title).toBe("New name");
+
+    const other = await makeSpace({ boss: "OWNER" });
+    const op = await createProject(as(other.users.boss.id), { spaceId: other.space.id, name: "Elsewhere" });
+    const foreign = await createDoc(as(other.users.boss.id), { projectId: op.projectId, title: "Theirs" });
+    const denied = await t.rename_doc({ docId: foreign.docId, title: "Mine now" });
+    expect(denied.isError).toBe(true);
+    expect(denied.text).toContain("NOT_FOUND");
+    expect((await db.doc.findUniqueOrThrow({ where: { id: foreign.docId } })).title).toBe("Theirs");
   });
 });

@@ -5,7 +5,7 @@ import { db } from "../db";
 import { AppError } from "../errors";
 import { spaceIdOfDoc, spaceIdOfDocPage, spaceIdOfList, spaceIdOfProject, spaceIdOfStatus, spaceIdOfTask } from "../guards";
 import { addComment, getFeed } from "../services/comments";
-import { createDoc, createPage, getPage, getPageTree, savePage } from "../services/docs";
+import { createDoc, createPage, getPage, getPageTree, renameDoc, savePage } from "../services/docs";
 import { getProjectSettings, getSidebar } from "../services/projects";
 import { listMembers } from "../services/spaces";
 import {
@@ -360,6 +360,18 @@ export function buildMcpServer(auth: McpAuth): McpServer {
       const page = await getPage(ctx, { pageId: firstPageId });
       await savePage(ctx, { pageId: firstPageId, title, content: content ? markdownToDoc(content) : undefined, baseUpdatedAt: page.updatedAt });
       return { docId, firstPageId };
+    },
+  );
+
+  tool(
+    "rename_doc",
+    "Renames a document (its name in the sidebar and the doc header). Pages keep their own titles: change those with update_page.",
+    "WRITE",
+    { docId: z.string(), title: z.string().min(1) },
+    async ({ docId, title }) => {
+      await docOk(docId);
+      await renameDoc(ctx, { docId, title });
+      return { docId, title: title.trim() };
     },
   );
 

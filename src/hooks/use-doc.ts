@@ -9,6 +9,7 @@ import {
   getPageAction,
   getPageTreeAction,
   movePageAction,
+  renameDocAction,
   savePageAction,
 } from "@/server/actions/docs";
 import type { DocPageDTO, PageTreeNodeDTO } from "@/server/services/types";
@@ -99,6 +100,18 @@ export function useDeletePage(docId: string) {
     mutationFn: async (v: { pageId: string }) => unwrap(await deletePageAction(v)),
     onError: (error) => toast.error(error instanceof Error ? error.message : "Something went wrong. Try again."),
     onSettled: () => void qc.invalidateQueries({ queryKey: treeKey(docId) }),
+  });
+}
+
+/**
+ * Renames the doc itself (not a page): the doc header's title and the sidebar entry. The action
+ * refresh()es the server-rendered header and the sidebar, so there is no cache to patch; callers that
+ * want an instant title keep a local value (see doc-title.tsx) and this rolls back with a toast.
+ */
+export function useRenameDoc(docId: string) {
+  return useMutation({
+    mutationFn: async (v: { title: string }) => unwrap(await renameDocAction({ docId, title: v.title })),
+    onError: (error) => toast.error(error instanceof Error ? error.message : "Something went wrong. Try again."),
   });
 }
 
