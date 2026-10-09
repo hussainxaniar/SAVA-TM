@@ -24,11 +24,11 @@ the date in its first paragraph when he does.
 
 ## Gaps found while writing it (not built)
 
-1. **Statuses Hold and Canceled do not exist yet** in the SAVA TM or Sava ERP projects; the owner adds them in each project's settings (the MCP cannot create statuses).
+1. ~~Hold and Canceled missing~~ (corrected 2026-10-09): they exist in **Sava ERP**; SAVA TM does not have them and does not need them for now (the owner skipped them).
 2. **The MCP cannot add a task to a second list**, so "add to Weekly Tasks" must be done in the app. An `add_to_list` tool would close this.
 3. **The MCP has no document tools**, and documents cannot link to tasks yet.
 4. **Images in descriptions are invisible to the MCP** (`docToPlain` drops them); an `[image: url]` placeholder would help.
-5. SAVA TM has no **Global Strategy** list (Sava ERP has one); create it when the first such task appears.
+5. ~~No Global Strategy list in SAVA TM~~ (corrected 2026-10-09): SAVA TM is not a sold product and needs only Weekly Tasks, Features and Test & Debug. The Sava ERP skill is I-09.
 
 ## Acceptance
 

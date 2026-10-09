@@ -21,6 +21,7 @@ Tasks are the team's day-to-day source of ground truth: what we plan, what we de
 | **Global Strategy** | Business strategy, system architecture, fundamentals. |
 | **Marketing** (or "Website & Marketing") | Only for products we sell: content creation, marketing strategy and hands-on marketing work. |
 
+- **Which lists a project has depends on the project.** SAVA TM (the task manager itself, not a sold product) only needs **Weekly Tasks, Features and Test & Debug**; it has no Global Strategy or Marketing list and does not need one. **Sava ERP** has all five (Weekly Task, Features, Tests & Bugs, Website & Marketing, Global Strategy) and has its own skill, `sava-erp-tasks`, in the ERP repository. Use the lists a project really has; do not create new ones without the owner.
 - **Statuses**, in the order a task usually travels:
 
 | Status | Meaning |
@@ -30,11 +31,11 @@ Tasks are the team's day-to-day source of ground truth: what we plan, what we de
 | **In progress** | Someone is working on it now. |
 | **Review** | Done by the worker, waiting for a reviewer to validate. |
 | **Update** | The review found something to change; back to the worker. |
-| **Hold** | Blocked by something that cannot be resolved for now. |
-| **Canceled** | Will not be done. |
+| **Hold** (where the project has it) | Blocked by something that cannot be resolved for now. |
+| **Canceled** (where the project has it) | Will not be done. |
 | **Done** | The review validated it. |
 
-`Hold` and `Canceled` are new (2026-10-09). If a project does not have them yet, tell the owner to add them in the project's settings (the MCP cannot create statuses); until then use Update plus a comment for Hold and ask before closing a task as cancelled. Suggested categories: Hold = active, Canceled = done (closed).
+`Hold` and `Canceled` exist in **Sava ERP** only. **SAVA TM does not have them and does not need them for now**: there, record a blocker as a comment (and use Update only if a reviewer asked for changes) and ask the owner before dropping a task. Never try to create a status (the MCP cannot); if a project you work in lacks one you need, ask the owner. Check the project's real statuses with `list_projects`.
 
 ## 2. Creating a task (backlog)
 
@@ -57,8 +58,8 @@ When the task is decided:
 | You start working | **In progress** (keep it to what you are really doing, one at a time per person) | No |
 | The work is finished | **Review** | Often yes: what was done, how it was checked, what was not verified, where the details are (commit, ticket, document) |
 | The review asks for changes | **Update** | Yes: what must change and why |
-| You hit a blocker that cannot be resolved now | **Hold** | Yes: the blocker, who or what can unblock it |
-| The task will not be done | **Canceled** | Yes: the decision and the reason |
+| You hit a blocker that cannot be resolved now | **Hold** (if the project has it; otherwise a comment only) | Yes: the blocker, who or what can unblock it |
+| The task will not be done | **Canceled** (if the project has it; otherwise ask the owner) | Yes: the decision and the reason |
 | The reviewer validates it | **Done** | Only if something is worth recording |
 
 - **Done belongs to the reviewer.** An agent that built something moves it to Review and stops. Mark Done only when the owner or reviewer has said it is validated (or asks you to).
