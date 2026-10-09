@@ -44,7 +44,8 @@ import { ListHeader } from "@/components/tasks/list-header";
 import { StatusGroup, type AddTarget } from "@/components/tasks/status-group";
 import { StatusGlyph } from "@/components/tasks/status-icon";
 import { Button } from "@/components/ui/button";
-import type { ListViewDTO, Priority, TaskRowDTO } from "@/server/services/types";
+import { useSetAssignees } from "@/hooks/use-task";
+import type { ListViewDTO, Priority, TaskRowDTO, UserLite } from "@/server/services/types";
 
 export type ListViewProps = {
   initialData: ListViewDTO;
@@ -85,6 +86,7 @@ export function ListView({ initialData, spaceId, canDeleteLists }: ListViewProps
   const setCompleted = useSetCompleted(listId);
   const setStatus = useSetStatus(listId);
   const updateTask = useUpdateTask(listId);
+  const setAssignees = useSetAssignees();
   const createTask = useCreateTask(listId);
   const reorderTask = useReorderTask(listId);
   const deleteTask = useDeleteTask(listId);
@@ -150,6 +152,18 @@ export function ListView({ initialData, spaceId, canDeleteLists }: ListViewProps
   const setPriority = useCallback(
     (taskId: string, priority: Priority) => updateTask.mutate({ taskId, priority }),
     [updateTask],
+  );
+
+  // Row quick action "add assignee" (9.2): the same toggle the dialog's picker does (adds at the end, or removes).
+  const toggleAssignee = useCallback(
+    (task: TaskRowDTO, member: UserLite) =>
+      setAssignees.mutate({
+        taskId: task.id,
+        assignees: task.assignees.some((a) => a.id === member.id)
+          ? task.assignees.filter((a) => a.id !== member.id)
+          : [...task.assignees, member],
+      }),
+    [setAssignees],
   );
 
   // Row menu Due date quick picks (9.2): date-only values; null clears it.
@@ -417,6 +431,7 @@ export function ListView({ initialData, spaceId, canDeleteLists }: ListViewProps
     onSetStatus: changeStatus,
     onSetPriority: setPriority,
     onSetDue: setDue,
+    onToggleAssignee: toggleAssignee,
     onDeleteTask: removeTask,
     onAddChild: addChild,
     onMakeSubtaskOf: makeSubtaskOf,
@@ -440,7 +455,7 @@ export function ListView({ initialData, spaceId, canDeleteLists }: ListViewProps
         onSort={setSort}
         onShowCompleted={setShowCompleted}
       />
-      <div className="mx-auto w-full max-w-[880px] px-4 pt-1 pb-24 md:px-6">
+      <div className="mx-auto w-full max-w-[928px] px-4 pt-1 pb-24 md:px-6">
         {data.tasks.length === 0 && (
           <div className="mt-7 text-center">
             <p className="text-sm font-medium text-foreground">No tasks yet</p>

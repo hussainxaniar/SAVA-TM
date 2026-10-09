@@ -123,7 +123,7 @@ export function MyTasksView({ spaceId, initialData }: MyTasksViewProps) {
   return (
     <div>
       <header className="w-full border-b border-border bg-sidebar/50 pb-4">
-        <div className="mx-auto w-full max-w-[880px] px-4 pt-5 md:px-6">
+        <div className="mx-auto w-full max-w-[928px] px-4 pt-5 md:px-6">
           <div className="flex h-11 items-center">
             <h1 className="text-[28px] font-semibold leading-[34px] tracking-[-0.02em] text-foreground">
               My Tasks
@@ -134,7 +134,7 @@ export function MyTasksView({ spaceId, initialData }: MyTasksViewProps) {
           </p>
         </div>
       </header>
-      <div className="mx-auto w-full max-w-[880px] px-4 pt-1 pb-24 md:px-6">
+      <div className="mx-auto w-full max-w-[928px] px-4 pt-1 pb-24 md:px-6">
         {n === 0 ? (
           <div className="mt-7 text-center">
             <p className="text-sm font-medium text-foreground">Nothing assigned to you right now.</p>

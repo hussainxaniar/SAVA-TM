@@ -33,7 +33,7 @@ export default function Loading() {
   return (
     <div>
       <header className="w-full border-b border-border bg-sidebar/50 pb-4">
-        <div className="mx-auto w-full max-w-[880px] px-4 pt-5 md:px-6">
+        <div className="mx-auto w-full max-w-[928px] px-4 pt-5 md:px-6">
           <div className="flex h-5 items-center gap-1.5">
             <Bar className="size-2 rounded-[2px]" />
             <Bar className="h-2 w-24" />
@@ -49,7 +49,7 @@ export default function Loading() {
           <Bar className="mt-0.5 h-2.5 w-40" />
         </div>
       </header>
-      <div className="mx-auto w-full max-w-[880px] px-4 pt-1 pb-24 md:px-6">
+      <div className="mx-auto w-full max-w-[928px] px-4 pt-1 pb-24 md:px-6">
         <Group first />
         <Group first={false} />
         <Group first={false} />

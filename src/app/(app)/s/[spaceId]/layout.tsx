@@ -4,6 +4,7 @@ import { QuickAddDialog } from "@/components/quick-add/quick-add-dialog";
 import { GlobalShortcuts } from "@/components/shortcuts/global-shortcuts";
 import { Sidebar } from "@/components/sidebar/sidebar";
 import { TaskDialogHost } from "@/components/task-dialog/task-dialog-host";
+import { SpaceMembersProvider } from "@/hooks/use-space-members";
 import { can } from "@/server/guards";
 import { getSessionUser } from "@/server/auth";
 import { getSidebar } from "@/server/services/projects";
@@ -29,7 +30,7 @@ export default async function SpaceLayout({
   const memberList = members.map(({ id, name, image }) => ({ id, name, image }));
 
   return (
-    <>
+    <SpaceMembersProvider members={memberList}>
       {/* The shell (sidebar / mobile top bar + drawer / main area) renders the view; 9.1. */}
       <Sidebar
         space={current}
@@ -51,6 +52,6 @@ export default async function SpaceLayout({
       <QuickAddDialog spaceId={spaceId} projects={projects} members={memberList} />
       {/* Global shortcuts (9.7) and the "Keyboard shortcuts" help dialog. */}
       <GlobalShortcuts spaceId={spaceId} />
-    </>
+    </SpaceMembersProvider>
   );
 }

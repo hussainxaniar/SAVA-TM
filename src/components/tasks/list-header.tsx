@@ -102,7 +102,7 @@ export function ListHeader({
 
   return (
     <header className="w-full border-b border-border bg-sidebar/50 pb-4">
-      <div className="mx-auto w-full max-w-[880px] px-4 pt-5 md:px-6">
+      <div className="mx-auto w-full max-w-[928px] px-4 pt-5 md:px-6">
         <div className="flex h-5 items-center gap-1.5">
           <span
             className="size-2 shrink-0 rounded-[2px]"

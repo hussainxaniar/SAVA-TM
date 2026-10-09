@@ -11,14 +11,14 @@ export default function Loading() {
   return (
     <div>
       <header className="w-full border-b border-border bg-sidebar/50 pb-4">
-        <div className="mx-auto w-full max-w-[880px] px-4 pt-5 md:px-6">
+        <div className="mx-auto w-full max-w-[928px] px-4 pt-5 md:px-6">
           <div className="flex h-11 items-center">
             <Bar className="h-7 w-44" />
           </div>
           <Bar className="mt-0.5 h-2.5 w-24" />
         </div>
       </header>
-      <div className="mx-auto w-full max-w-[880px] px-4 pt-1 pb-24 md:px-6">
+      <div className="mx-auto w-full max-w-[928px] px-4 pt-1 pb-24 md:px-6">
         {[0, 1].map((g) => (
           <section key={g} className={g === 0 ? "mt-7" : "mt-6"}>
             <div className="flex h-8 w-full items-center border-b border-border">

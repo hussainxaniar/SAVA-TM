@@ -8,7 +8,7 @@ import { PriorityFlag } from "@/components/tasks/priority-flag";
 import { TaskRowMenu } from "@/components/tasks/task-row-menu";
 import { formatDue, type DisplayMode, type ListRow } from "@/lib/list-view";
 import { cn } from "@/lib/utils";
-import type { Priority, StatusDTO, TaskRowDTO } from "@/server/services/types";
+import type { Priority, StatusDTO, TaskRowDTO, UserLite } from "@/server/services/types";
 
 /**
  * dnd-kit's draggable state, loosely typed so this file needn't import dnd internals. The
@@ -36,6 +36,8 @@ export type TaskRowProps = {
   onSetPriority: (taskId: string, priority: Priority) => void;
   /** A quick day (date-only) or null to clear the due date. */
   onSetDue: (task: TaskRowDTO, day: Date | null) => void;
+  /** Adds the member to the task's assignees, or removes them if already assigned (the row's quick "add assignee"). */
+  onToggleAssignee: (task: TaskRowDTO, member: UserLite) => void;
   onDeleteTask: (task: TaskRowDTO) => void;
   onAddChild: (task: TaskRowDTO) => void;
   onMakeSubtaskOf: (task: TaskRowDTO, parentId: string) => void;
