@@ -57,8 +57,32 @@ Do not touch: prisma/, src/server/, src/lib/, src/hooks/, package.json
 
 ## Acceptance
 
-- [ ] The bell shows in the sidebar header with the unread count; it updates within 30 s of someone else's action and when the window regains focus.
-- [ ] Opening it lists notifications newest first with avatar, sentence and time; unread ones have a dot.
-- [ ] Clicking one opens the task dialog on the right list and clears its dot and one from the badge; "Mark all as read" clears everything.
-- [ ] Works in dark mode and below 768px (the popover never overflows the screen).
-- [ ] `pnpm typecheck && pnpm lint && pnpm test` pass with no warnings.
+- [x] The bell shows in the sidebar header with the unread count; it updates within 30 s of someone else's action and when the window regains focus.
+- [x] Opening it lists notifications newest first with avatar, sentence and time; unread ones have a dot.
+- [x] Clicking one opens the task dialog on the right list and clears its dot and one from the badge; "Mark all as read" clears everything.
+- [x] Works in dark mode and below 768px (the popover never overflows the screen).
+- [x] `pnpm typecheck && pnpm lint && pnpm test` pass with no warnings.
+
+## Completion record (2026-10-09)
+
+**Models:** Architect (Sonnet 5.5): blueprint Section 16, schema + migration `20261009012006_notifications`, `notifications.ts` service and its hook into
+`logActivity(ies)`, actions, `use-notifications.ts`, `notification-format.ts`, 13 tests. UI: GLM 5.3 Flash (one dispatch, no re-dispatch; the three checks passed
+in its own run).
+
+**Review fixes (Architect):** the task title was an `inline-block` with `truncate`, which broke the sentence onto a different baseline; replaced by a plain
+inline span and `line-clamp-3` on the paragraph. Nothing else needed changing; Flash touched only the three allowed files.
+
+**Behavior notes:** choosing a DONE status through `updateTask` logs only `STATUS_CHANGED` (no `TASK_COMPLETED`), so that notification reads "changed the status of
+X to Done"; the complete / reopen buttons log `TASK_COMPLETED` / `TASK_REOPENED` and read "completed X" / "reopened X". Completing a parent together with its subtasks
+notifies the people on each subtask separately.
+
+**Checks:** `pnpm typecheck`, `pnpm lint`, `pnpm test` (281 tests, 13 of them new) pass.
+
+**Browser QA** (local dev server restarted so it loaded the new Prisma client; seed users): as Ada, a comment and a due-date change on a task assigned to Ben;
+as Ben the bell showed badge 2, the popover listed both with Ada's avatar, sentence and "just now" and an unread dot each; clicking one opened the task dialog on
+the right list and the badge became 1; "Mark all as read" cleared the badge and the dot and muted the rows; no console errors. The two actions were made with a
+throwaway script through the services (deleted); the local seed task "Collect stakeholder input" now has due date Oct 12 from that test.
+
+**Not verified:** phone width (the popover is `min(380px, 100vw - 24px)` by construction), dark/light switch beyond dark, the 30-second poll timing across two
+live browsers, and production. **Not pushed.** Pushing runs a database migration on production (`20261009012006_notifications`, additive: one enum, one table,
+indexes and foreign keys; no existing data is touched), so the owner should say "push".

@@ -12,6 +12,7 @@ import {
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { requestQuickAdd } from "@/lib/quick-add";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { TOGGLE_SIDEBAR_EVENT } from "@/hooks/use-global-shortcuts";
 import { useLocalStorage } from "@/hooks/use-local-storage";
@@ -72,7 +73,12 @@ function SidebarContent({
 
   return (
     <>
-      <SpaceSwitcher current={space} spaces={spaces} />
+      <div className="flex items-center gap-1">
+        <div className="min-w-0 grow">
+          <SpaceSwitcher current={space} spaces={spaces} />
+        </div>
+        <NotificationBell spaceId={space.id} />
+      </div>
       <button
         type="button"
         onClick={requestQuickAdd}
