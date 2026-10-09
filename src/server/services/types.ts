@@ -1,4 +1,4 @@
-import type { ActivityType, SpaceRole } from "@prisma/client";
+import type { ActivityType, NotificationType, SpaceRole } from "@prisma/client";
 
 // Section 8: every service takes `ctx` first.
 export type Ctx = { userId: string };
@@ -178,6 +178,26 @@ export type FeedItemDTO =
       labels: Record<string, string>;
       createdAt: string;
     };
+
+// ---------- Notifications (Section 16) ----------
+
+/**
+ * One in-app notification for the viewer. The browser builds the sentence from `type` and the
+ * resolved fields: `statusName` (STATUS_CHANGED, the status it moved to), `completed` (set when the
+ * change was complete/reopen), `dueDate`/`dueHasTime` (DUE_DATE_CHANGED, the new date; null = cleared).
+ */
+export type NotificationDTO = {
+  id: string;
+  type: NotificationType;
+  createdAt: string;
+  readAt: string | null;
+  actor: UserLite;
+  task: { id: string; title: string; projectId: string; homeListId: string };
+  statusName: string | null;
+  completed: boolean | null;
+  dueDate: string | null;
+  dueHasTime: boolean;
+};
 
 // ---------- Calendar (Section 8.6 / 10.1) ----------
 
