@@ -51,6 +51,7 @@ Work tracked on tm.sava.af (project SAVA TM; the owner's own tasks, planned 2026
 | I-10 | Documents in the MCP: `list_docs`, `get_page`, `create_doc`, `create_page`, `update_page` (Markdown in and out), image placeholders | `I-10-mcp-documents.md` | ✅ built, tested (295 tests), pushed and live on tm.sava.af (2026-10-09) |
 | I-11 | Space in a list / status / project rename field started a keyboard drag (row went gray, space swallowed); fixed with a shared `rowKeyboardOnly` helper | `I-11-rename-space-bug.md` | ✅ fixed, browser-tested, 297 tests + e2e 11/11 locally; not pushed |
 | I-12 | List rows: hover quick actions in the Assignee, Due and Priority columns (add or change from the row), and the list / My Tasks content at the design's 880px | `I-12-row-quick-actions.md` | ✅ built, reviewed, browser-tested, 297 tests + e2e 11/11 locally; not pushed |
+| I-13 | Docs: the doc header title renames in place; MCP `rename_doc`; skills corrected for the document tools | `I-13-doc-header-rename.md` | ✅ built, browser-tested, 298 tests + e2e 11/11 locally; not pushed |
 
 Notes:
 - Google OAuth client configured locally (2026-10-01); T-18 built and tested with Google faked; a real consent test by the human is pending.

@@ -77,7 +77,7 @@ Tasks hold the story, so write it:
 ## 6. Documents are the permanent knowledge
 
 Tasks say what happened; **documents say how things are**: major changes, structure and architecture decisions, data model, how a feature behaves. Record that kind of knowledge in the project's documents, not only in a task comment, and mention the relevant task where it helps. Linking a document to its task is not supported yet (the document feature needs updating).
-The MCP has **no document tools yet**, so an agent cannot read or write documents there: say so, and for software projects keep this knowledge in the repository's docs (blueprint, handbook, tickets) until the MCP can reach documents.
+Documents are reachable through the MCP (see the tools in section 8): list and read them, create docs and pages, and edit pages in Markdown (headings, lists, task lists, quotes, code blocks, links; a table is stored as a code block because the editor has no tables). Read a page before you edit it, and prefer `append` when you only add something. Deleting, moving or archiving documents is done in the app. For software projects the technical details still live in the repository's docs (blueprint, handbook, tickets); put the knowledge the whole team should find in the project's documents too.
 
 ## 7. Reporting ("what's on my plate")
 
@@ -87,11 +87,11 @@ Start with `whoami`, then `get_my_tasks` (or `list_tasks` for a list). Answer in
 ## 8. Technical notes (the `sava` MCP)
 
 - First calls: `whoami` (who you act as, space, whether you can write), `list_projects` (projects, their lists with ids, their statuses with ids). Every id you pass must come from these tools.
-- Tools: `list_tasks` (one list; `includeCompleted` optional), `get_my_tasks`, `get_task` (description, subtasks, latest comments and activity), `create_task` (`listId`; `parentId` for a subtask; `statusId`, `priority`, `assigneeIds`, dates, `description`), `update_task`, `set_task_status` (a `statusId`, or `completed: true/false`; exactly one), `assign_task` (replaces all assignees), `add_comment`, `quick_add` (one-line natural text such as "Write brief tomorrow p1 @ada #design"), `list_members`.
+- Tools: `list_tasks` (one list; `includeCompleted` optional), `get_my_tasks`, `get_task` (description, subtasks, latest comments and activity), `create_task` (`listId`; `parentId` for a subtask; `statusId`, `priority`, `assigneeIds`, dates, `description`), `update_task`, `set_task_status` (a `statusId`, or `completed: true/false`; exactly one), `assign_task` (replaces all assignees), `add_comment`, `list_docs` (a project's docs and their page trees), `get_page` (a page as Markdown with its `updatedAt`), `create_doc`, `create_page`, `rename_doc`, `update_page` (replace or append; pass the `updatedAt` you read as `baseUpdatedAt` and a stale edit is refused with a CONFLICT: read again and retry), `quick_add` (one-line natural text such as "Write brief tomorrow p1 @ada #design"), `list_members`.
 - Dates are ISO: `2026-10-12` for a day, `2026-10-12T15:00:00Z` for a moment. Priority is 1 urgent, 2 high, 3 medium, 4 none.
 - Descriptions and comments are **plain text**: blank lines separate paragraphs, lines starting `- ` are bullets. **Images in a description are not returned**, so ask the owner when a task says "see screenshot".
 - Your changes appear in the app as made by the token's owner, labelled "via AI". A READ token cannot change anything.
-- **Not available** (say so instead of working around it): delete or move a task, add a task to a second list (Weekly Tasks), edit lists / statuses / members, documents, attachments.
+- **Not available** (say so instead of working around it): delete or move a task, add a task to a second list (Weekly Tasks), edit lists / statuses / members, delete or move documents and pages, attachments, opening an image (images show as an `[image]` placeholder in task text and as `![alt](src)` in pages; ask the owner to describe a screenshot).
 - `set_task_status` with `completed: true` jumps to the project's first Done status; use it only when Done is really meant.
 
 ## 9. For a software project with a repository (Sava TM itself)

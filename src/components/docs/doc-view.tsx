@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { IconChevronDown, IconChevronRight } from "@tabler/icons-react";
+import { DocTitle } from "@/components/docs/doc-title";
 import { PageEditor } from "@/components/docs/page-editor";
 import { PageTree } from "@/components/docs/page-tree";
 import { usePageTree } from "@/hooks/use-doc";
@@ -43,9 +44,7 @@ export function DocView(props: DocViewProps) {
             </Link>
           </div>
           <div className="mt-2 flex h-11 items-center">
-            <h1 className="truncate text-[28px] font-semibold leading-[34px] tracking-[-0.02em] text-foreground">
-              {doc.title}
-            </h1>
+            <DocTitle docId={doc.id} title={doc.title} />
           </div>
         </div>
       </header>

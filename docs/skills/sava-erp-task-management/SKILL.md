@@ -94,7 +94,7 @@ Tasks keep the story; **documents say how the product is**. Any major change, st
 | Design direction and design-to-code process | `docs/DESIGN_DIRECTION.md`, `docs/DESIGN_TO_CODE.md` |
 | An open question, a known problem, a pending decision with options | `docs/NOTE.md` |
 
-Linking a Sava TM task from a document (and the document feature itself) is not supported yet; mention the task title in the document when it helps. The MCP has **no document tools**, so you cannot read or write Sava TM documents; keep this knowledge in the files above.
+Linking a Sava TM task from a document (and the document feature itself) is not supported yet; mention the task title in the document when it helps. Sava TM documents are reachable through the MCP (tools in section 7): you can list and read them, create docs and pages and edit pages in Markdown. Read a page before editing it, prefer `append` when you only add, and keep this repository's `docs/` files as the technical record. Deleting, moving or archiving documents is done in the app.
 
 ## 6. Reporting ("what's on my plate")
 
@@ -102,11 +102,11 @@ Linking a Sava TM task from a document (and the document feature itself) is not 
 
 ## 7. Technical notes (the `sava` MCP)
 
-- Tools: `whoami`, `list_projects`, `list_members`, `list_tasks` (one list; `includeCompleted` optional), `get_my_tasks`, `get_task`, `create_task` (`listId`, optional `parentId`, `statusId`, `priority`, `assigneeIds`, dates, `description`), `update_task`, `set_task_status` (a `statusId`, or `completed: true/false`; exactly one), `assign_task` (replaces all assignees), `add_comment`, `quick_add` ("Write brief tomorrow p1 @ada #design").
+- Tools: `whoami`, `list_projects`, `list_members`, `list_tasks` (one list; `includeCompleted` optional), `get_my_tasks`, `get_task`, `create_task` (`listId`, optional `parentId`, `statusId`, `priority`, `assigneeIds`, dates, `description`), `update_task`, `set_task_status` (a `statusId`, or `completed: true/false`; exactly one), `assign_task` (replaces all assignees), `add_comment`, `quick_add` ("Write brief tomorrow p1 @ada #design"), `list_docs` (a project's docs and their page trees), `get_page` (a page as Markdown with its `updatedAt`), `create_doc`, `create_page`, `rename_doc`, `update_page` (replace or append; pass the `updatedAt` you read as `baseUpdatedAt` and a stale edit is refused with a CONFLICT: read again and retry).
 - Dates are ISO (`2026-10-12` or `2026-10-12T15:00:00Z`). Priority is 1 urgent to 4 none. Descriptions and comments are plain text (blank line = new paragraph, `- ` = bullet).
 - `completed: true` jumps to the first Done status of the project; use it only when Done is really meant (and allowed).
 - A READ token cannot change anything; a WRITE token acts as its owner and everything it writes is labelled "via AI".
-- **Not available** (say so, do not work around): delete or move a task, add a task to a second list, edit lists / statuses / members, documents, attachments.
+- **Not available** (say so, do not work around): delete or move a task, add a task to a second list, edit lists / statuses / members, delete or move documents and pages, attachments, opening an image (images show as an `[image]` placeholder in task text and as `![alt](src)` in pages; ask the owner to describe a screenshot).
 
 ## 8. Not decided yet (ask the owner, do not guess)
 
