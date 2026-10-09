@@ -21,7 +21,7 @@ Tasks are the team's day-to-day source of ground truth: what we plan, what we de
 | **Global Strategy** | Business strategy, system architecture, fundamentals. |
 | **Marketing** (or "Website & Marketing") | Only for products we sell: content creation, marketing strategy and hands-on marketing work. |
 
-- **Which lists a project has depends on the project.** SAVA TM (the task manager itself, not a sold product) only needs **Weekly Tasks, Features and Test & Debug**; it has no Global Strategy or Marketing list and does not need one. **Sava ERP** has all five (Weekly Task, Features, Tests & Bugs, Website & Marketing, Global Strategy) and has its own skill, `sava-erp-tasks`, in the ERP repository. Use the lists a project really has; do not create new ones without the owner.
+- **Which lists a project has depends on the project.** SAVA TM (the task manager itself, not a sold product) only needs **Weekly Tasks, Features and Test & Debug**; it has no Global Strategy or Marketing list and does not need one. **Sava ERP** has all five (Weekly Task, Features, Tests & Bugs, Website & Marketing, Global Strategy) and has its own skill, `sava-erp-task-management` (a copy is kept in this repository at `docs/skills/sava-erp-task-management/SKILL.md`; the ERP team copies it into their repository's `.claude/skills/`). Use the lists a project really has; do not create new ones without the owner.
 - **Statuses**, in the order a task usually travels:
 
 | Status | Meaning |

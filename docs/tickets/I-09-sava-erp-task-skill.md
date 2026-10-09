@@ -19,6 +19,13 @@ automated": agents working in the ERP repository should pick their next task, ke
 - The generic **`task-management`** skill in Sava TM (I-08) was corrected: **SAVA TM needs only Weekly Tasks, Features and Test & Debug** (it is not a sold product, so no Global Strategy or Marketing
   list), and **Hold / Canceled exist in Sava ERP only**; SAVA TM does not have them and does not need them for now.
 
+## Where it lives now (2026-10-09, owner's decision)
+
+- The file in the ERP repository (`React/sava/.claude/skills/sava-erp-tasks/SKILL.md`) is **held as is: uncommitted, not pushed**, until the owner or Mahdi decides.
+- A copy with the more specific name **`sava-erp-task-management`** is saved in this repository at `docs/skills/sava-erp-task-management/SKILL.md`. It is deliberately **not** under
+  `.claude/skills/`, so it does not load as a skill in Sava TM sessions; it is a document that Mahdi copies into the ERP repository's `.claude/skills/sava-erp-task-management/`.
+- Next: write it as a **document inside Sava TM** too, so the team can open and copy it from the app. That needs the document tools in the MCP (I-10).
+
 ## Facts checked while writing (2026-10-09)
 
 Sava ERP's statuses: To do, Planned, In progress, Review, Update, Hold, Canceled, Done. Lists: Weekly Task, Features, Tests & Bugs, Website & Marketing, Global Strategy. The ERP repo's
