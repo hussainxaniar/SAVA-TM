@@ -59,3 +59,17 @@ Do not touch: prisma/, src/server/, src/lib/, src/hooks/, package.json
 
 - [ ] A task that a page links shows a Documents section naming "Doc / Page"; clicking opens that page; a task with no links shows nothing new.
 - [ ] `pnpm typecheck && pnpm lint && pnpm test` pass with no warnings.
+
+## Completion record (2026-10-09)
+
+**Models:** Architect (Sonnet 5.5): migration, services, Markdown, MCP, hooks, 15 new tests, blueprint 11.4, tickets. UI: GLM 5.3 Flash, two dispatches (I-17a the chip and insert popover, I-17b the Documents section), no re-dispatch; each touched only the files its ticket allowed.
+
+**Review:** both diffs matched the tickets. One fix by the Architect: after picking a task the popover returned focus to the "Link task" button, so typing did not continue in the page; the popover content now has `finalFocus={false}`, and the caret stays right after the chip.
+
+**Checks:** `pnpm typecheck`, `pnpm lint`, `pnpm test` (314) pass; `pnpm e2e` 11/11.
+
+**Browser QA** (local, demo account, "Website relaunch / Team handbook / Welcome"): "Link task" opened a search; typing "stakeholder" found the task; Enter inserted a chip with its status glyph and live title; the page autosaved and the chip survived a reload; a second link was inserted from the keyboard and typing continued after it;
+clicking a chip opened that task's dialog on the doc page (`?task=`) and the dialog showed **Documents 1: Team handbook / Welcome**; no console errors. The demo page and the link rows were restored afterwards.
+
+**Not verified:** the "Task not found" chip for a deleted task (the service path is tested), the light theme, phone width, copy and paste of a chip between pages, many chips on one page (each asks for its own label), the Documents link opening the page from the dialog. Keystrokes typed within about 100 ms of picking a result (during the popover's close animation) are lost; normal typing is not affected.
+Not pushed. **The push runs a migration on production** (`doc_task_links`, additive: one table, one index, two foreign keys; no existing data is touched).

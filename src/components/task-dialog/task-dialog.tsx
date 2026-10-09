@@ -45,6 +45,7 @@ import {
 import type { TaskDetailDTO, UserLite } from "@/server/services/types";
 import { ActivitySection } from "./activity";
 import { DescriptionEditor } from "./description-editor";
+import { LinkedDocs } from "./linked-docs";
 import { PropertiesColumn } from "./properties-column";
 import { Subtasks } from "./subtasks";
 
@@ -251,6 +252,7 @@ export function TaskDialog({ spaceId, members, me, taskId, open, onClose, onOpen
                 />
               </div>
               <Subtasks task={task} onOpenTask={onOpenTask} />
+              <LinkedDocs task={task} />
               <ActivitySection taskId={task.id} me={me} />
             </div>
             <PropertiesColumn

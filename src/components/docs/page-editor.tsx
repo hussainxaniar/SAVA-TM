@@ -16,6 +16,8 @@ import type { DocPageDTO, UserLite } from "@/server/services/types";
 import { imageEditorProps } from "@/components/rich-text/image-handlers";
 import { imageExtensions } from "@/components/rich-text/resizable-image";
 import { PageToolbar } from "./page-toolbar";
+import { TaskLink } from "./task-link-node";
+import { TaskLinkInsert } from "./task-link-insert";
 
 /*
  * The page editor (Sections 11.1 / 11.2): title, Tiptap body, selection toolbar, conflict
@@ -54,6 +56,7 @@ function EditorBody({
       Link.configure({ openOnClick: false, autolink: true }),
       Placeholder.configure({ placeholder: "Start writing…" }),
       ...imageExtensions,
+      TaskLink,
     ],
     content: (content ?? "") as Content,
     immediatelyRender: false,
@@ -88,6 +91,11 @@ function EditorBody({
   return (
     <div onBlur={onFlush}>
       {editor && <PageToolbar editor={editor} spaceId={spaceId} />}
+      {editor && (
+        <div className="mb-2 flex justify-end">
+          <TaskLinkInsert editor={editor} />
+        </div>
+      )}
       <EditorContent editor={editor} />
     </div>
   );

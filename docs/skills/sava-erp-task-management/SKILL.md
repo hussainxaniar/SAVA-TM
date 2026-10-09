@@ -94,7 +94,7 @@ Tasks keep the story; **documents say how the product is**. Any major change, st
 | Design direction and design-to-code process | `docs/DESIGN_DIRECTION.md`, `docs/DESIGN_TO_CODE.md` |
 | An open question, a known problem, a pending decision with options | `docs/NOTE.md` |
 
-Linking a Sava TM task from a document (and the document feature itself) is not supported yet; mention the task title in the document when it helps. Sava TM documents are reachable through the MCP (tools in section 7): you can list and read them, create docs and pages and edit pages in Markdown. Read a page before editing it, prefer `append` when you only add, and keep this repository's `docs/` files as the technical record. Deleting, moving or archiving documents is done in the app.
+Sava TM documents and tasks link to each other: **Link the tasks a page is about** with `[Task title](task:<taskId>)`: it becomes a chip in the page that shows the task's current title and status and opens the task, and the task lists the page under "Documents" (`get_task` returns them as `documents`; `get_page` shows the task's current title). A task must be in the same space; a task id that does not exist is refused. Sava TM documents are reachable through the MCP (tools in section 7): you can list and read them, create docs and pages and edit pages in Markdown. Read a page before editing it, prefer `append` when you only add, and keep this repository's `docs/` files as the technical record. Deleting, moving or archiving documents is done in the app.
 
 ## 6. Reporting ("what's on my plate")
 

@@ -55,6 +55,7 @@ Work tracked on tm.sava.af (project SAVA TM; the owner's own tasks, planned 2026
 | I-14 | MCP: `add_task_to_list` and `remove_task_from_list` (agents can plan a task into Weekly Tasks); skills updated | `I-14-mcp-add-to-list.md` | ✅ built and tested locally (300 tests); not pushed |
 | I-15 | Images for agents: `get_image`, `images` lists on `get_task` / `get_page`, Bearer access to `/api/images/<id>`, pages may embed only the space's own pictures | `I-15-mcp-images.md` | ✅ built and tested locally; not pushed |
 | I-16 | Status icon centred on the task title in every row (was 3.3px too high): icon button and its wrapper are flex boxes | `I-16-status-icon-alignment.md` | ✅ fixed, measured before/after; 304 tests + e2e 11/11 locally; not pushed |
+| I-17 | Documents link tasks: inline task chips (insert from a search), the task's Documents section, `DocTaskLink` index (migration `doc_task_links`), Markdown `[Title](task:ID)` and MCP support | `I-17-doc-task-links.md` (+ `I-17a-editor.md`, `I-17b-dialog.md`) | ✅ built, browser-tested, 314 tests + e2e 11/11 locally; **awaiting "push"** (runs a migration on production) |
 
 Notes:
 - Google OAuth client configured locally (2026-10-01); T-18 built and tested with Google faked; a real consent test by the human is pending.
