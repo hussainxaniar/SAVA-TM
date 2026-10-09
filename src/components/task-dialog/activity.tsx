@@ -46,9 +46,13 @@ function firstName(name: string): string {
 export function ActivitySection({ taskId, me }: { taskId: string; me: UserLite }) {
   const { data: feed } = useFeed(taskId);
   const addComment = useAddComment(taskId, me);
-  const [filter, setFilter] = useState<"all" | "comments">("all");
+  const [chosen, setChosen] = useState<"all" | "comments" | null>(null);
 
   const items = feed ?? [];
+  // With comments the dialog opens on "Comments" so a conversation isn't buried in activity; the
+  // choice is made once, when the feed first arrives, and after that only the toggle changes it.
+  if (chosen === null && feed) setChosen(feed.some((i) => i.kind === "comment" && !i.deleted) ? "comments" : "all");
+  const filter = chosen ?? "all";
   const shown = filter === "all" ? items : items.filter((i) => i.kind === "comment");
 
   return (
@@ -57,11 +61,11 @@ export function ActivitySection({ taskId, me }: { taskId: string; me: UserLite }
         <div className="flex h-7 items-center gap-2.5">
           <h3 className="grow text-sm font-semibold">Activity</h3>
           <div className="flex shrink-0 rounded-md bg-pill p-0.5">
-            <FilterButton label="All" active={filter === "all"} onClick={() => setFilter("all")} />
+            <FilterButton label="All" active={filter === "all"} onClick={() => setChosen("all")} />
             <FilterButton
               label="Comments"
               active={filter === "comments"}
-              onClick={() => setFilter("comments")}
+              onClick={() => setChosen("comments")}
             />
           </div>
         </div>
@@ -120,8 +124,7 @@ function ViaChip() {
 
 function ActivityRow({ item }: { item: ActivityItem }) {
   return (
-    <li className="flex items-start gap-2.5">
-      <Avatar user={item.actor} />
+    <li>
       <p className="text-[13px] leading-[18px] text-foreground/75">
         {firstName(item.actor.name)}
         {item.payload.via === "mcp" && <ViaChip />} {formatActivity(item)} · {relativeTime(item.createdAt)}

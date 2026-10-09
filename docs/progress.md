@@ -39,6 +39,12 @@ Follow-up improvements (2026-10-02, requested by the owner; all built, reviewed 
 | I-04 | In-progress statuses choose their icon (circle, ¼, ½, ¾); icons use the status color | `I-04-status-icons.md` | ✅ |
 | — | Wider dropdown menus (labels never wrap) | (Architect, `ui/dropdown-menu.tsx`) | ✅ |
 
+Work tracked on tm.sava.af (project SAVA TM; the owner's own tasks, planned 2026-10-09; order: I-05, Notification, calendar sidebar bug, list rename bug, AI MCP documents, table columns):
+
+| ID | What | Ticket | State |
+|----|------|--------|-------|
+| I-05 | Activity logs: no subtask lines on the parent, no avatars on activity, Comments first when there are comments | `I-05-activity-logs.md` | ✅ built, browser-tested locally; not pushed |
+
 Notes:
 - Google OAuth client configured locally (2026-10-01); T-18 built and tested with Google faked; a real consent test by the human is pending.
 - Local development and tests use Postgres in Docker (`pnpm db:up`, docker-compose.yml); the full test suite runs in ~10 s.

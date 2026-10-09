@@ -76,7 +76,7 @@ describe("createTask", () => {
     expect(await titles(general)).toEqual(["A", "B", "C"]);
   });
 
-  it("creates subtasks that inherit placement, up to three levels, logging SUBTASK_ADDED", async () => {
+  it("creates subtasks that inherit placement, up to three levels, without logging on the parent", async () => {
     const parent = await createTask(me, { listId: general, title: "Parent" });
     // listId is ignored when a parent is given: the subtask lives in the parent's home list.
     const child = await createTask(me, { listId: other, parentId: parent.id, title: "Child" });
@@ -86,10 +86,7 @@ describe("createTask", () => {
     await expect(createTask(me, { listId: general, parentId: grandchild.id, title: "Too deep" })).rejects.toMatchObject({
       code: "VALIDATION",
     });
-    expect(await activity(parent.id)).toEqual([
-      { type: "TASK_CREATED", payload: {}, actorId: me.userId },
-      { type: "SUBTASK_ADDED", payload: { subtaskId: child.id }, actorId: me.userId },
-    ]);
+    expect(await activity(parent.id)).toEqual([{ type: "TASK_CREATED", payload: {}, actorId: me.userId }]);
   });
 
   it("takes all fields, assigns members only, and completes when created into DONE", async () => {
@@ -376,7 +373,7 @@ describe("deleteTask / restoreTask", () => {
 
     await restoreTask(me, { taskId: parent.id });
     expect((await titles(general)).sort()).toEqual(["Child", "Parent"]);
-    expect(await types(parent.id)).toEqual(["TASK_CREATED", "SUBTASK_ADDED", "SUBTASK_ADDED", "TASK_DELETED", "TASK_RESTORED"]);
+    expect(await types(parent.id)).toEqual(["TASK_CREATED", "TASK_DELETED", "TASK_RESTORED"]);
     await restoreTask(me, { taskId: parent.id }); // already live: no-op
     await expect(deleteTask(me, { taskId: earlier.id })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });

@@ -14,7 +14,7 @@ import { cleanName, serializableTransaction } from "./util";
 /*
  * Section 8.4 (all [A]); rules in Section 6. Every mutation checks membership first and writes
  * its Activity rows inside the same transaction. Payload shapes (6.9.3):
- *   TASK_CREATED {} · SUBTASK_ADDED { subtaskId } (on the parent) · TASK_RENAMED { from, to }
+ *   TASK_CREATED {} · TASK_RENAMED { from, to } (SUBTASK_ADDED is no longer written: a subtask's history lives on the subtask)
  *   TASK_DESCRIPTION_CHANGED {} · STATUS_CHANGED { from, to } (status ids)
  *   PRIORITY_CHANGED { from, to } · START_DATE_CHANGED { from, to } (ISO | null)
  *   DUE_DATE_CHANGED { from, to, fromHasTime, toHasTime } (so the feed can show times in the viewer's zone)
@@ -263,9 +263,6 @@ export async function createTask(ctx: Ctx, input: CreateTaskInput): Promise<Task
     const base = { spaceId: placement.spaceId, actorId: ctx.userId };
     await logActivities(tx, [
       { ...base, taskId: task.id, type: "TASK_CREATED" },
-      ...(placement.parentId
-        ? [{ ...base, taskId: placement.parentId, type: "SUBTASK_ADDED" as const, payload: { subtaskId: task.id } }]
-        : []),
       ...assigneeIds.map((userId) => ({ ...base, taskId: task.id, type: "ASSIGNEE_ADDED" as const, payload: { userId } })),
       ...(status.category === "DONE" ? [{ ...base, taskId: task.id, type: "TASK_COMPLETED" as const }] : []),
     ]);

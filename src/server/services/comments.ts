@@ -84,7 +84,7 @@ export async function getFeed(ctx: Ctx, input: { taskId: string; filter?: "all" 
 
   if (input.filter !== "comments") {
     const rows = await db.activity.findMany({
-      where: { taskId: task.id, type: { not: "COMMENT_ADDED" } },
+      where: { taskId: task.id, type: { notIn: ["COMMENT_ADDED", "SUBTASK_ADDED"] } },
       orderBy: [{ createdAt: "asc" }, { id: "asc" }],
       select: { id: true, type: true, payload: true, createdAt: true, actor: userLite },
     });
