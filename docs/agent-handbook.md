@@ -62,8 +62,8 @@ Loop additions:
 3. **Finish**: set the task (and its subtasks) to **Review**, add one comment with the commit, the ticket path, the checks and what is not
    verified. The owner moves it to **Done** (or asks you to, after pushing). Subtasks you create to split work are marked Done when done.
 4. **New work you discover** (a bug, a follow-up) becomes a new task in the right SAVA TM list instead of staying only in chat or a TODO.
-5. Statuses: To do (backlog) · Planned (queued for the week) · In progress (one at a time) · Review (built, committed, awaiting the owner) ·
-   Update (owner asked for changes) · Done (owner confirmed).
+5. **The full task workflow (lists, statuses incl. Hold and Canceled, what to write in descriptions and comments, planning, reporting) is the skill
+   `.claude/skills/task-management/SKILL.md`; it is the single source for those rules. Follow it and keep this section to the repository side.**
 6. If the MCP is unreachable or the token is missing, say so and continue from `docs/progress.md`; do not invent task state.
 
 ### Ticket template (the handoff)
