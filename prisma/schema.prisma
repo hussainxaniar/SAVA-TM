@@ -267,6 +267,7 @@ model Task {
   timeBlocks TimeBlock[]
 
   notifications Notification[]
+  docLinks      DocTaskLink[]
 
   @@index([homeListId, parentId, position])
   @@index([parentId])
@@ -389,21 +390,33 @@ model Doc {
 }
 
 model DocPage {
-  id          String    @id @default(cuid(2))
+  id          String        @id @default(cuid(2))
   docId       String
   parentId    String? // nested pages, max depth 3
-  title       String    @default("Untitled")
+  title       String        @default("Untitled")
   content     Json // Tiptap JSON
   position    String
   createdById String
   updatedById String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  doc         Doc       @relation(fields: [docId], references: [id], onDelete: Cascade)
-  parent      DocPage?  @relation("PageTree", fields: [parentId], references: [id], onDelete: Cascade)
-  children    DocPage[] @relation("PageTree")
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  doc         Doc           @relation(fields: [docId], references: [id], onDelete: Cascade)
+  parent      DocPage?      @relation("PageTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children    DocPage[]     @relation("PageTree")
+  taskLinks   DocTaskLink[]
 
   @@index([docId, parentId, position])
+}
+
+model DocTaskLink {
+  // a doc page links a task (Section 11.4); rewritten from the page's content on every save
+  pageId String
+  taskId String
+  page   DocPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  task   Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@id([pageId, taskId])
+  @@index([taskId])
 }
 
 // ---------- Images in descriptions and docs ----------

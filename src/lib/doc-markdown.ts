@@ -3,6 +3,7 @@
 // inline code, links, bullet / numbered / task lists (nested), blockquotes, code blocks, rules and
 // block images. The editor has no tables, so a pipe table is kept as a code block (nothing is lost).
 // A single newline inside a paragraph is a line break, like plainToDoc does for tasks.
+// A task link (11.4) is `[Task title](task:<taskId>)`; it becomes a taskLink node (attrs taskId, title) and back.
 
 type Mark = { type: string; attrs?: Record<string, unknown> };
 export type DocNode = { type: string; attrs?: Record<string, unknown>; content?: DocNode[]; text?: string; marks?: Mark[] };
@@ -14,6 +15,7 @@ export function markdownToDoc(markdown: string): DocJson {
   return { type: "doc", content: parseBlocks(markdown.replace(/\r\n?/g, "\n").split("\n")) };
 }
 
+const TASK_HREF = "task:";
 const FENCE = /^\s*(`{3,}|~{3,})\s*([\w+#.-]*)\s*$/;
 const HEADING = /^\s{0,3}(#{1,6})\s+(.*?)(?:\s+#+)?\s*$/;
 const RULE = /^\s{0,3}([-*_])(?:\s*\1){2,}\s*$/;
@@ -198,7 +200,9 @@ function inline(text: string, marks: Mark[] = []): DocNode[] {
     const mark = best.pattern.mark(best.m);
     const inner = best.m[best.pattern.group];
     if (mark?.type === "code") out.push(textNode(inner, [...marks, mark]));
-    else out.push(...inline(inner, mark ? [...marks, mark] : marks));
+    else if (mark?.type === "link" && typeof mark.attrs?.href === "string" && mark.attrs.href.startsWith(TASK_HREF) && mark.attrs.href.length > TASK_HREF.length) {
+      out.push({ type: "taskLink", attrs: { taskId: mark.attrs.href.slice(TASK_HREF.length), title: inner } });
+    } else out.push(...inline(inner, mark ? [...marks, mark] : marks));
     rest = rest.slice(best.index + best.m[0].length);
   }
   return out;
@@ -266,6 +270,10 @@ function renderInline(nodes: DocNode[] | undefined): string {
     .map((n) => {
       if (n.type === "hardBreak") return "\n";
       if (n.type === "image") return `![${String(n.attrs?.alt ?? "image")}](${String(n.attrs?.src ?? "")})`;
+      if (n.type === "taskLink") {
+        const title = String(n.attrs?.title ?? "task").replace(/[[\]\n]/g, " ").trim() || "task";
+        return `[${title}](${TASK_HREF}${String(n.attrs?.taskId ?? "")})`;
+      }
       if (n.type !== "text") return n.content ? renderInline(n.content) : "";
       let s = n.text ?? "";
       const has = (t: string) => n.marks?.find((m) => m.type === t);

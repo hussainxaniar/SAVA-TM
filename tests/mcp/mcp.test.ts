@@ -529,3 +529,37 @@ describe("images for agents", () => {
     expect((await get(`Bearer ${foreignToken}`)).status).toBe(404);
   });
 });
+
+describe("task links in documents", () => {
+  it("writes and reads [title](task:id), shows current titles, lists the documents on get_task and refuses foreign tasks", async () => {
+    const t = client(writeToken);
+    const task = (await t.create_task({ title: "Write the brief", listId })).data;
+    const { docId, firstPageId } = (await t.create_doc({ projectId, title: "Plan", content: `Start with [the brief](task:${task.id}).` })).data;
+
+    // the index and the stored node
+    expect((await db.docTaskLink.findMany({ where: { pageId: firstPageId } })).map((l) => l.taskId)).toEqual([task.id]);
+    // reading shows the task's CURRENT title, not the snapshot from writing
+    await t.update_task({ taskId: task.id, title: "Write the launch brief" });
+    expect((await t.get_page({ pageId: firstPageId })).data.content).toBe(`Start with [Write the launch brief](task:${task.id}).`);
+
+    const got = (await t.get_task({ taskId: task.id })).data;
+    expect(got.documents).toEqual([{ pageId: firstPageId, pageTitle: "Plan", docId, doc: "Plan" }]);
+
+    // append keeps the existing link and adds another page's
+    const second = (await t.create_page({ docId, title: "More", content: `Also [it](task:${task.id})` })).data;
+    expect((await t.get_task({ taskId: task.id })).data.documents.map((d: { pageId: string }) => d.pageId).sort()).toEqual([firstPageId, second.pageId].sort());
+
+    // a task of another space, or an invented id, is refused and nothing is created
+    const other = await makeSpace({ boss: "OWNER" });
+    const op = await createProject(as(other.users.boss.id), { spaceId: other.space.id, name: "Theirs" });
+    const foreign = await createTask(as(other.users.boss.id), { listId: op.firstListId, title: "Secret" });
+    const docs = await db.doc.count();
+    for (const id of [foreign.id, "invented"]) {
+      const r = await t.create_doc({ projectId, title: "Bad", content: `[x](task:${id})` });
+      expect(r.isError).toBe(true);
+      expect(r.text).toContain("NOT_FOUND");
+    }
+    expect(await db.doc.count()).toBe(docs);
+    expect((await t.update_page({ pageId: firstPageId, content: `[x](task:${foreign.id})`, mode: "append" })).isError).toBe(true);
+  });
+});

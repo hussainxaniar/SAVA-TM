@@ -3,6 +3,7 @@ import { positionAfter } from "@/lib/position";
 import { db } from "../db";
 import { AppError } from "../errors";
 import { requireMember, spaceIdOfDoc, spaceIdOfDocPage, spaceIdOfProject } from "../guards";
+import { syncPageTaskLinks } from "./task-links";
 import { positionForMove, type MoveTarget } from "./ordering";
 import type { Ctx, DocPageDTO, DocViewDTO, PageTreeNodeDTO, SavePageResult, UserLite } from "./types";
 import { cleanName } from "./util";
@@ -164,14 +165,20 @@ export async function savePage(
   ctx: Ctx,
   input: { pageId: string; title?: string; content?: unknown; baseUpdatedAt: string },
 ): Promise<SavePageResult> {
-  await requireMember(ctx.userId, await spaceIdOfDocPage(input.pageId));
+  const spaceId = await spaceIdOfDocPage(input.pageId);
+  await requireMember(ctx.userId, spaceId);
   const base = new Date(input.baseUpdatedAt);
   if (Number.isNaN(base.getTime())) throw new AppError("VALIDATION", "Missing page version");
   const data: Prisma.DocPageUncheckedUpdateManyInput = { updatedById: ctx.userId };
   if (input.title !== undefined) data.title = cleanName(input.title, "Page title", TITLE_MAX);
   if (input.content !== undefined) data.content = checkContent(input.content);
 
-  const written = await db.docPage.updateMany({ where: { id: input.pageId, updatedAt: base }, data });
+  // The conditional write and the task-link index (11.4) change together or not at all.
+  const written = await db.$transaction(async (tx) => {
+    const result = await tx.docPage.updateMany({ where: { id: input.pageId, updatedAt: base }, data });
+    if (result.count === 1 && input.content !== undefined) await syncPageTaskLinks(tx, { pageId: input.pageId, spaceId, content: input.content });
+    return result;
+  });
   const page = await db.docPage.findUniqueOrThrow({
     where: { id: input.pageId },
     select: { updatedAt: true, updatedById: true },

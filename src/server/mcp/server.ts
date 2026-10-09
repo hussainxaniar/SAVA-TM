@@ -21,6 +21,7 @@ import {
 } from "../services/tasks";
 import type { Ctx, TaskRowDTO } from "../services/types";
 import { docToMarkdown, markdownToDoc } from "@/lib/doc-markdown";
+import { taskLinkIds, withTaskLinkTitles } from "@/lib/doc-task-links";
 import { MAX_INLINE_IMAGE_BYTES, absolutizeImages, assertImagesInSpace, imageRefs, imageUrl, relativizeImages } from "./images";
 import { docToPlain, plainToDoc } from "@/lib/plain-to-doc";
 import { parseQuickAdd } from "@/lib/quick-add-parser";
@@ -117,6 +118,10 @@ export function buildMcpServer(auth: McpAuth): McpServer {
   const pageContent = async (markdown: string) => {
     const doc = markdownToDoc(relativizeImages(markdown));
     await assertImagesInSpace(doc, spaceId);
+    const linked = taskLinkIds(doc);
+    if (linked.length && (await db.task.count({ where: { id: { in: linked }, spaceId, deletedAt: null } })) !== linked.length) {
+      throw new AppError("NOT_FOUND", "A linked task was not found in this space ([title](task:<taskId>))");
+    }
     return doc;
   };
 
@@ -190,6 +195,7 @@ export function buildMcpServer(auth: McpAuth): McpServer {
       ...compactTask(task),
       description: docToPlain(task.description),
       images: imageRefs(task.description),
+      documents: task.linkedDocs.map((d) => ({ pageId: d.pageId, pageTitle: d.pageTitle, docId: d.docId, doc: d.docTitle })),
       project: task.project.name,
       list: task.homeList.name,
       linkedLists: task.linkedLists.map((l) => l.name),
@@ -226,11 +232,14 @@ export function buildMcpServer(auth: McpAuth): McpServer {
   tool("get_page", "One document page: title and content as Markdown (images show as ![alt](src)), with the version to pass back when editing.", "READ", { pageId: z.string() }, async ({ pageId }) => {
     await pageOk(pageId);
     const page = await getPage(ctx, { pageId });
+    // task links show their tasks' current titles, not the snapshot stored when they were inserted
+    const linked = taskLinkIds(page.content);
+    const titles = new Map(linked.length ? (await db.task.findMany({ where: { id: { in: linked }, spaceId, deletedAt: null }, select: { id: true, title: true } })).map((t) => [t.id, t.title]) : []);
     return {
       id: page.id,
       docId: page.docId,
       title: page.title,
-      content: absolutizeImages(docToMarkdown(page.content)),
+      content: absolutizeImages(docToMarkdown(withTaskLinkTitles(page.content, titles))),
       images: imageRefs(page.content),
       updatedAt: page.updatedAt,
       updatedBy: page.updatedBy.name,

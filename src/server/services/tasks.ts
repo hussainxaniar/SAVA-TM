@@ -7,6 +7,7 @@ import { logActivities, logActivity, type ActivityInput } from "./activity";
 import { pushTaskRename, pushTasks, unpushTasks } from "./google-calendar";
 import { positionForMove, type MoveTarget } from "./ordering";
 import { toStatusDTO } from "./statuses";
+import { docsLinkingTask } from "./task-links";
 import { loadTaskRows, taskRowSelect, toTaskRow, type DbClient } from "./task-rows";
 import type { Ctx, ListViewDTO, MyTasksDTO, TaskDetailDTO, TaskRowDTO } from "./types";
 import { cleanName, serializableTransaction } from "./util";
@@ -92,7 +93,7 @@ export async function getTask(ctx: Ctx, input: { taskId: string }): Promise<Task
   });
   if (!task) throw notFound();
 
-  const [{ rows: subtasks }, open, createdBy, project] = await Promise.all([
+  const [{ rows: subtasks }, open, createdBy, project, linkedDocs] = await Promise.all([
     loadTaskRows(db, { parentId: task.id }),
     db.task.count({ where: { parentId: task.id, deletedAt: null, completedAt: null } }),
     db.user.findUnique({ where: { id: task.createdById }, select: { id: true, name: true, image: true } }),
@@ -106,6 +107,7 @@ export async function getTask(ctx: Ctx, input: { taskId: string }): Promise<Task
         lists: { where: { archivedAt: null }, orderBy: { position: "asc" }, select: { id: true, name: true } },
       },
     }),
+    docsLinkingTask(task.id),
   ]);
 
   const breadcrumb: { id: string; title: string }[] = [];
@@ -133,6 +135,7 @@ export async function getTask(ctx: Ctx, input: { taskId: string }): Promise<Task
     createdBy: createdBy ?? { id: task.createdById, name: "Deleted user", image: null },
     createdAt: task.createdAt.toISOString(),
     updatedAt: task.updatedAt.toISOString(),
+    linkedDocs,
   };
 }
 

@@ -118,6 +118,22 @@ export type TaskDetailDTO = TaskRowDTO & {
   createdBy: UserLite;
   createdAt: string;
   updatedAt: string;
+  /** Doc pages that link this task (Section 11.4), for the dialog's Documents section. */
+  linkedDocs: DocLinkDTO[];
+};
+
+/** A doc page that links a task. */
+export type DocLinkDTO = { pageId: string; pageTitle: string; docId: string; docTitle: string; projectId: string };
+
+/** What a task link chip and the insert popover need about a task (Section 11.4). */
+export type TaskLabelDTO = {
+  id: string;
+  title: string;
+  projectId: string;
+  /** The task's home list, for the URL that opens it. */
+  listId: string;
+  completed: boolean;
+  status: { id: string; name: string; color: string; category: StatusCategoryName; icon: string | null };
 };
 
 /** Section 8.4 getListView: Visible(L) (6.7), completed included; the client renders and sorts. */

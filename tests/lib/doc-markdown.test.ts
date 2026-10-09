@@ -95,3 +95,37 @@ describe("docToPlain with images", () => {
     expect(docToPlain(doc)).toBe("See:\n[image: Table columns]\n[image]");
   });
 });
+
+describe("task links", () => {
+  it("reads [title](task:id) as a taskLink node, also inside text and lists, and writes it back", () => {
+    const md = "See [Write the brief](task:abc123) for details.\n\n- [Fix bug](task:def456)";
+    const doc = markdownToDoc(md);
+    const [p, list] = doc.content;
+    expect(p.content).toEqual([
+      { type: "text", text: "See " },
+      { type: "taskLink", attrs: { taskId: "abc123", title: "Write the brief" } },
+      { type: "text", text: " for details." },
+    ]);
+    expect(list.content![0].content![0].content).toEqual([{ type: "taskLink", attrs: { taskId: "def456", title: "Fix bug" } }]);
+    expect(docToMarkdown(doc)).toBe(md);
+  });
+
+  it("keeps ordinary links as links and cleans brackets out of a stored title", () => {
+    expect(markdownToDoc("[site](https://x.test)").content[0].content![0].marks).toEqual([{ type: "link", attrs: { href: "https://x.test" } }]);
+    const md = docToMarkdown({ type: "doc", content: [{ type: "paragraph", content: [{ type: "taskLink", attrs: { taskId: "t1", title: "Fix [urgent] bug" } }] }] });
+    expect(md).toBe("[Fix  urgent  bug](task:t1)");
+    expect(markdownToDoc("[x](task:)").content[0].content![0].type).toBe("text"); // an empty id is not a link
+  });
+});
+
+describe("taskLinkIds / withTaskLinkTitles", () => {
+  it("lists linked ids once and refreshes titles without touching the input", async () => {
+    const { taskLinkIds, withTaskLinkTitles } = await import("@/lib/doc-task-links");
+    const doc = { type: "doc", content: [{ type: "paragraph", content: [{ type: "taskLink", attrs: { taskId: "a", title: "Old" } }, { type: "taskLink", attrs: { taskId: "a", title: "Old" } }, { type: "taskLink", attrs: { taskId: "b", title: "Keep" } }] }] };
+    expect(taskLinkIds(doc)).toEqual(["a", "b"]);
+    const fresh = withTaskLinkTitles(doc, new Map([["a", "New"]]));
+    expect(JSON.stringify(fresh)).toContain('"title":"New"');
+    expect(JSON.stringify(fresh)).toContain('"title":"Keep"');
+    expect(JSON.stringify(doc)).not.toContain("New");
+  });
+});
