@@ -4,6 +4,8 @@ The single source of truth for this project is [docs/blueprint.md](docs/blueprin
 
 **Build progress:** check [docs/progress.md](docs/progress.md) to see which tickets are done and which is next. Update it and the matching `docs/tickets/T-XX.md` when you finish a ticket.
 
+**Tasks are managed in Sava TM itself** (project "SAVA TM" on tm.sava.af, through the `sava` MCP server; the token is in the user's Claude config). Find work there (`list_projects` for list and status ids, then `list_tasks` / `get_my_tasks`), move a task to In progress when you start it and to Review when it is built and committed, and describe what you did in a comment. Every task you work on is also recorded as a ticket in `docs/tickets/` (see [docs/agent-handbook.md](docs/agent-handbook.md) section 2a). Never mark a task Done without the owner's OK.
+
 **Orchestrators and implementers: read [docs/agent-handbook.md](docs/agent-handbook.md)** (the ticket loop, how to dispatch GLM Flash, review checklist, browser QA recipe, rules and pitfalls learned so far) and **[docs/orchestrator-decisions.md](docs/orchestrator-decisions.md)** (every orchestrator decision so far, with its reason).
 
 See [docs/model-routing.md](docs/model-routing.md) for how to switch between `claude` (Opus, architecture/review) and `claude-or` (OpenRouter implementer models), and [docs/orchestration.md](docs/orchestration.md) for how an Opus session dispatches individual tickets to a GLM implementer session.

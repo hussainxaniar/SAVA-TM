@@ -25,7 +25,8 @@ belongs to the Architect, written as a tested pure function or hook, never left 
 
 ## 2. The ticket loop
 
-1. Read `docs/progress.md` (state of all 22 tickets) and the ticket's blueprint sections (Section 12 lists them).
+0. Pick the task in Sava TM and set it In progress (section 2a).
+1. Read `docs/progress.md` (state of all tickets) and the ticket's blueprint sections (Section 12 lists them).
 2. **Architect part first**: services, actions, hooks, helpers, tests. Run `pnpm typecheck && pnpm lint && pnpm test`. Commit.
 3. **Write the handoff** `docs/tickets/T-XX.md` (template below). For big UIs write several small tickets
    (`T-XX-part.md`), see section 4 for why.
@@ -38,6 +39,32 @@ belongs to the Architect, written as a tested pure function or hook, never left 
    ticket without their go-ahead unless they said "move on" / "start T-xx". **Never push unless told to** ("push").
 
 Report style the owner likes: plain language, what *they* can now do, honest about what wasn't verified, no jargon walls.
+
+### 2a. Tasks live in Sava TM, details live in the repository (since 2026-10-09)
+
+The owner tracks this project's own work in the app they are building: project **SAVA TM** on `https://tm.sava.af` (lists: Weekly Tasks,
+Features, Test & Debug). The `sava` MCP server (tools `whoami`, `list_projects`, `list_tasks`, `get_my_tasks`, `get_task`, `create_task`,
+`update_task`, `set_task_status`, `assign_task`, `add_comment`, `quick_add`, `list_members`) reads and writes it as the owner, and every change
+shows "via AI". The two places have different jobs:
+
+| Sava TM (tm.sava.af) | Repository (`docs/`) |
+| --- | --- |
+| What to work on, in what order (priority, status, due date, subtasks, assignee) | How it was built: the ticket (`docs/tickets/I-xx-*.md` or `T-xx*.md`), `progress.md`, decisions |
+| The owner's own words (task descriptions, comments) | Architecture, acceptance checklist, review fixes, QA results, what was not verified |
+
+Loop additions:
+
+1. **Start**: `list_projects` (status ids differ per project; never hard-code them) and `list_tasks` for the SAVA TM lists; pick the task by
+   priority and status (Urgent/High, then due date). Read it with `get_task` (the description is plain text: **images in descriptions are not
+   returned**, ask the owner for the content). Set it **In progress**.
+2. **Ticket**: create `docs/tickets/I-xx-<slug>.md` (follow-ups and bugs) or `T-xx` (planned build tickets) quoting the owner's task text, then
+   build as in the loop above. Put the Sava TM task title in the ticket header so both sides can be matched.
+3. **Finish**: set the task (and its subtasks) to **Review**, add one comment with the commit, the ticket path, the checks and what is not
+   verified. The owner moves it to **Done** (or asks you to, after pushing). Subtasks you create to split work are marked Done when done.
+4. **New work you discover** (a bug, a follow-up) becomes a new task in the right SAVA TM list instead of staying only in chat or a TODO.
+5. Statuses: To do (backlog) · Planned (queued for the week) · In progress (one at a time) · Review (built, committed, awaiting the owner) ·
+   Update (owner asked for changes) · Done (owner confirmed).
+6. If the MCP is unreachable or the token is missing, say so and continue from `docs/progress.md`; do not invent task state.
 
 ### Ticket template (the handoff)
 

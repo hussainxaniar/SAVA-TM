@@ -22,6 +22,11 @@ trade: explain outcomes plainly, say what they can now *do*, and be honest about
 6. **Stop and say so when blocked** on something only the human can do (real Google consent, Vercel env, Google Cloud console).
    Give them exact steps; never ask for secrets in chat.
 7. **Tell the truth in reports**: what failed, what you fixed in review, what you did not verify.
+8. **Tasks are followed and managed in Sava TM** (decided 2026-10-09): the owner's SAVA TM project on tm.sava.af, read and written through the `sava`
+   MCP, is where work is chosen, prioritised and status-tracked (In progress / Review; the owner marks Done); every task is also written up as a
+   ticket in `docs/tickets/` with the details. See agent-handbook section 2a. On 2026-10-09 the owner also let the orchestrator set priorities and
+   statuses itself ("I want you to do the planning and update their status") and said "push the changes and move on to the next task", which is the
+   explicit go-ahead the "one ticket per check-in" and "never push" rules ask for.
 
 ## 2. Decisions about the process and delegation
 
