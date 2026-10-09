@@ -3,6 +3,7 @@ import { db } from "@/server/db";
 import { handleMcpRequest } from "@/server/mcp/handler";
 import { RATE_LIMIT, allowRequest, resetRateLimit } from "@/server/mcp/rate-limit";
 import { createApiToken, revokeApiToken } from "@/server/services/api-tokens";
+import { createDoc } from "@/server/services/docs";
 import { createList } from "@/server/services/lists";
 import { createProject } from "@/server/services/projects";
 import { createTask } from "@/server/services/tasks";
@@ -116,9 +117,9 @@ describe("tools by scope", () => {
     const names = async (token: string) => (await rpc(token, "tools/list")).body.result.tools.map((t: { name: string }) => t.name).sort();
     const read = await names(readToken);
     const write = await names(writeToken);
-    expect(read).toEqual(["get_my_tasks", "get_task", "list_members", "list_projects", "list_tasks", "whoami"]);
+    expect(read).toEqual(["get_my_tasks", "get_page", "get_task", "list_docs", "list_members", "list_projects", "list_tasks", "whoami"]);
     expect(write).toEqual(
-      [...read, "add_comment", "assign_task", "create_task", "quick_add", "set_task_status", "update_task"].sort(),
+      [...read, "add_comment", "assign_task", "create_doc", "create_page", "create_task", "quick_add", "set_task_status", "update_page", "update_task"].sort(),
     );
     expect(write.some((n: string) => /delete|move|archive/.test(n))).toBe(false);
   });
@@ -276,5 +277,84 @@ describe("space and permission boundaries", () => {
     );
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
+  });
+});
+
+describe("document tools", () => {
+  const md = "# Plan\n\nSome **bold** text.\n\n- one\n- two";
+
+  it("creates a doc and a nested page, reads them as Markdown and lists the tree", async () => {
+    const t = client(writeToken);
+    const doc = (await t.create_doc({ projectId, title: "Handbook", content: md })).data;
+    expect(doc).toMatchObject({ docId: expect.any(String), firstPageId: expect.any(String) });
+    const child = (await t.create_page({ docId: doc.docId, title: "Child", parentId: doc.firstPageId, content: "Hello" })).data;
+
+    const first = (await t.get_page({ pageId: doc.firstPageId })).data;
+    expect(first).toMatchObject({ title: "Handbook", docId: doc.docId, updatedBy: expect.any(String) });
+    expect(first.content).toBe(md);
+    expect((await t.get_page({ pageId: child.pageId })).data).toMatchObject({ title: "Child", content: "Hello" });
+
+    const docs = (await client(readToken).list_docs({ projectId })).data;
+    expect(docs).toHaveLength(1);
+    expect(docs[0]).toMatchObject({ title: "Handbook", project: "Site" });
+    expect(docs[0].pages.map((p: { title: string; depth: number }) => [p.title, p.depth])).toEqual([["Handbook", 0], ["Child", 1]]);
+    // pages are stored as editor JSON: the Markdown became real structure
+    const row = await db.docPage.findUniqueOrThrow({ where: { id: doc.firstPageId } });
+    expect((row.content as { content: { type: string }[] }).content.map((n) => n.type)).toEqual(["heading", "paragraph", "bulletList"]);
+    expect(row.updatedById).toBe(s.users.member.id);
+  });
+
+  it("replaces or appends content and renames, and refuses a stale version", async () => {
+    const t = client(writeToken);
+    const { firstPageId } = (await t.create_doc({ projectId, title: "Notes", content: "First" })).data;
+    const read = (await t.get_page({ pageId: firstPageId })).data;
+
+    expect((await t.update_page({ pageId: firstPageId, content: "Second", mode: "append" })).isError).toBe(false);
+    expect((await t.get_page({ pageId: firstPageId })).data.content).toBe("First\n\nSecond");
+    expect((await t.update_page({ pageId: firstPageId, title: "Renamed", content: "Only this" })).isError).toBe(false);
+    expect((await t.get_page({ pageId: firstPageId })).data).toMatchObject({ title: "Renamed", content: "Only this" });
+
+    // someone else (or an earlier call) changed it after `read`: nothing is written
+    const stale = await t.update_page({ pageId: firstPageId, content: "Overwrite attempt", baseUpdatedAt: read.updatedAt });
+    expect(stale.isError).toBe(true);
+    expect(stale.text).toContain("CONFLICT");
+    expect((await t.get_page({ pageId: firstPageId })).data.content).toBe("Only this");
+
+    const nothing = await t.update_page({ pageId: firstPageId });
+    expect(nothing.isError).toBe(true);
+    expect(nothing.text).toContain("VALIDATION");
+  });
+
+  it("keeps a pipe table as a code block and shows images as Markdown images", async () => {
+    const t = client(writeToken);
+    const { firstPageId } = (await t.create_doc({ projectId, title: "Tables", content: "| a | b |\n| - | - |\n| 1 | 2 |\n\n![shot](/api/images/abc)" })).data;
+    expect((await t.get_page({ pageId: firstPageId })).data.content).toBe("```\n| a | b |\n| - | - |\n| 1 | 2 |\n```\n\n![shot](/api/images/abc)");
+  });
+
+  it("refuses write tools for a READ token and docs, pages and projects from another space", async () => {
+    const t = client(writeToken);
+    expect((await client(readToken).create_doc({ projectId, title: "Nope" })).isError).toBe(true);
+    expect(await db.doc.count({ where: { title: "Nope" } })).toBe(0);
+
+    const other = await makeSpace({ boss: "OWNER" });
+    const op = await createProject(as(other.users.boss.id), { spaceId: other.space.id, name: "Elsewhere" });
+    const foreign = await createDoc(as(other.users.boss.id), { projectId: op.projectId, title: "Secret doc" });
+    for (const call of [
+      () => t.get_page({ pageId: foreign.firstPageId }),
+      () => t.update_page({ pageId: foreign.firstPageId, content: "x" }),
+      () => t.create_page({ docId: foreign.docId, title: "x" }),
+      () => t.create_doc({ projectId: op.projectId, title: "x" }),
+      () => t.list_docs({ projectId: op.projectId }),
+    ]) {
+      const r = await call();
+      expect(r.isError).toBe(true);
+      expect(r.text).toContain("NOT_FOUND");
+    }
+    expect((await db.docPage.findUniqueOrThrow({ where: { id: foreign.firstPageId } })).title).toBe("Untitled");
+  });
+
+  it("offers no delete, move or archive for docs either", async () => {
+    const names: string[] = (await rpc(writeToken, "tools/list")).body.result.tools.map((x: { name: string }) => x.name);
+    expect(names.filter((n) => /doc|page/.test(n)).sort()).toEqual(["create_doc", "create_page", "get_page", "list_docs", "update_page"]);
   });
 });

@@ -48,6 +48,7 @@ Work tracked on tm.sava.af (project SAVA TM; the owner's own tasks, planned 2026
 | I-07 | Calendar: scheduled tasks stay in the left rail ("My tasks") with their next slot, so they can take more slots | `I-07-calendar-rail.md` | ✅ built, browser-tested, e2e 11/11 locally, pushed (2026-10-09) |
 | I-08 | TaskManagement skill: the Sava TM workflow for agents (`.claude/skills/task-management/SKILL.md`) | `I-08-task-management-skill.md` | ✅ written, awaiting the owner's additions; not pushed |
 | I-09 | Sava ERP task-management skill (lives in the ERP repo: `React/sava/.claude/skills/sava-erp-tasks/SKILL.md`, uncommitted there) | `I-09-sava-erp-task-skill.md` | ✅ written; awaiting the owner's review and a commit in the ERP repo |
+| I-10 | Documents in the MCP: `list_docs`, `get_page`, `create_doc`, `create_page`, `update_page` (Markdown in and out), image placeholders | `I-10-mcp-documents.md` | ✅ built, tested (295 tests) and checked in the editor locally; **awaiting "push"** (no migration) |
 
 Notes:
 - Google OAuth client configured locally (2026-10-01); T-18 built and tested with Google faked; a real consent test by the human is pending.

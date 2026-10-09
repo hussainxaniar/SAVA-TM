@@ -1254,12 +1254,19 @@ resolveApiToken(rawToken): Promise<{ userId; spaceId; scope; tokenId } | null>  
 | `list_tasks` | READ | `listId`, `includeCompleted?` | Tasks of a list as in the list view (title, status, assignees, due date, priority, subtask count) |
 | `get_my_tasks` | READ | none | The user's open tasks across the space, grouped by due date |
 | `get_task` | READ | `taskId` | One task: description as plain text, subtasks, linked lists, last 20 comments and activity entries |
+| `list_docs` | READ | `projectId?` | The space's (or one project's) docs, each with its pages in tree order (`id`, `title`, `parentId`, `depth`) |
+| `get_page` | READ | `pageId` | One page: title, content as Markdown, `updatedAt` (the version to pass back when editing), `updatedBy` |
 | `create_task` | WRITE | `title`, `listId`, `statusId?`, `description?`, `priority?` (1-4), `dueDate?` (ISO, date or datetime), `assigneeIds?`, `parentId?` | Creates a task (or subtask) |
 | `quick_add` | WRITE | `text`, `listId?` | Same parser as the quick-add dialog (`Write brief tomorrow p1 @ada #design`); without `listId` and a `#list` token it goes to the first list of the first project (the server has no "last used list") |
 | `update_task` | WRITE | `taskId`, any of `title`, `description`, `priority`, `dueDate`, `startDate` | Edits fields (`null` clears a date) |
 | `set_task_status` | WRITE | `taskId`, `statusId` or `completed: boolean` | Moves a task to a status, or completes/reopens it |
 | `assign_task` | WRITE | `taskId`, `userIds` | Replaces the assignees |
 | `add_comment` | WRITE | `taskId`, `text` | Adds a comment |
+| `create_doc` | WRITE | `projectId`, `title`, `content?` (Markdown) | Creates a doc with one page named like it; returns `docId`, `firstPageId` |
+| `create_page` | WRITE | `docId`, `title`, `parentId?`, `content?` | Adds a page (top level or under `parentId`, depth ≤ 3); returns `pageId` |
+| `update_page` | WRITE | `pageId`, `title?`, `content?`, `mode?` (`replace` default, or `append`), `baseUpdatedAt?` | Edits a page through `savePage` (11.2): if the page changed since `baseUpdatedAt` (default: the version just read) nothing is written and the result is `CONFLICT` with the editor's name |
+
+**Documents (added 2026-10-09, I-10).** Page content crosses the API as **Markdown**, converted by `src/lib/doc-markdown.ts` (tested both ways): headings 1-3, bold, italic, strike, inline code, links, bullet / numbered / task lists (nested), quotes, code blocks, rules and block images (`![alt](src)`). The docs editor has no tables (11.1), so a pipe table is stored as a code block. A single newline inside a paragraph is a line break. There is no tool to delete, move, rename a doc or archive; the page tree and doc list are changed in the app. Edits show as made by the token's owner ("Edited by"); docs have no activity log, so there is no "via AI" label on them. Images in task descriptions and comments read as `[image: alt]` / `[image]` placeholders (`docToPlain`) instead of vanishing; their bytes are not served to tokens.
 
 Descriptions and comments are plain text or simple Markdown paragraphs on the way in (converted to Tiptap JSON by a small tested helper, `src/lib/plain-to-doc.ts`) and plain text on the way out. Results are compact JSON as text content. A service error becomes a tool result with `isError: true` and the error's message (`NOT_FOUND`, `FORBIDDEN`, `VALIDATION`, `CONFLICT` as the code in the text); a missing or bad token is HTTP 401 with `WWW-Authenticate: Bearer`.
 
@@ -1280,7 +1287,7 @@ The activity feed and comments show a small "via AI" label on anything written t
 
 ### 15.7 Out of scope for T-23
 
-Deleting or moving tasks, editing docs, managing members/lists/statuses, MCP resources and prompts, OAuth sign-in for MCP, webhooks, a public REST API. (A REST API would reuse `resolveApiToken` and the same services.)
+Deleting or moving tasks, deleting/moving/archiving docs and pages (reading, creating and editing pages is in, see 15.4), adding a task to a second list, managing members/lists/statuses, MCP resources and prompts, OAuth sign-in for MCP, webhooks, a public REST API. (A REST API would reuse `resolveApiToken` and the same services.)
 
 ## 16. In-app notifications (I-06)
 

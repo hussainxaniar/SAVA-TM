@@ -3,8 +3,9 @@ import type { ApiTokenScope } from "@prisma/client";
 import { z } from "zod";
 import { db } from "../db";
 import { AppError } from "../errors";
-import { spaceIdOfList, spaceIdOfStatus, spaceIdOfTask } from "../guards";
+import { spaceIdOfDoc, spaceIdOfDocPage, spaceIdOfList, spaceIdOfProject, spaceIdOfStatus, spaceIdOfTask } from "../guards";
 import { addComment, getFeed } from "../services/comments";
+import { createDoc, createPage, getPage, getPageTree, savePage } from "../services/docs";
 import { getProjectSettings, getSidebar } from "../services/projects";
 import { listMembers } from "../services/spaces";
 import {
@@ -17,6 +18,7 @@ import {
   updateTask,
 } from "../services/tasks";
 import type { Ctx, TaskRowDTO } from "../services/types";
+import { docToMarkdown, markdownToDoc } from "@/lib/doc-markdown";
 import { docToPlain, plainToDoc } from "@/lib/plain-to-doc";
 import { parseQuickAdd } from "@/lib/quick-add-parser";
 
@@ -33,8 +35,9 @@ export type McpAuth = { userId: string; spaceId: string; scope: ApiTokenScope };
 const INSTRUCTIONS =
   "Sava TM is a team task manager. Call whoami first, then list_projects to learn the list and status ids. " +
   "Tasks live in lists inside projects; every id you pass comes from these tools. Dates are ISO: " +
-  "'2026-10-12' for a day, '2026-10-12T15:00:00Z' for a moment. Changes you make are shown in the app as made by the " +
-  "token's owner, labelled 'via AI'.";
+  "'2026-10-12' for a day, '2026-10-12T15:00:00Z' for a moment. Documents (projects hold docs of pages): list_docs shows " +
+  "them, get_page reads a page as Markdown, update_page edits it. Changes you make are shown in the app as made by the " +
+  "token's owner; tasks and comments are labelled 'via AI'.";
 
 const priority = z.number().int().min(1).max(4).describe("1 = urgent, 2 = high, 3 = medium, 4 = none");
 const dateText = z.string().describe("ISO date '2026-10-12' (a day) or datetime '2026-10-12T15:00:00Z' (a moment)");
@@ -99,6 +102,9 @@ export function buildMcpServer(auth: McpAuth): McpServer {
   };
   const taskOk = (taskId: string) => inSpace(spaceIdOfTask(taskId), "Task");
   const listOk = (listId: string) => inSpace(spaceIdOfList(listId), "List");
+  const projectOk = (projectId: string) => inSpace(spaceIdOfProject(projectId), "Project");
+  const docOk = (docId: string) => inSpace(spaceIdOfDoc(docId), "Doc");
+  const pageOk = (pageId: string) => inSpace(spaceIdOfDocPage(pageId), "Page");
 
   function tool<S extends z.ZodRawShape>(
     name: string,
@@ -182,6 +188,30 @@ export function buildMcpServer(auth: McpAuth): McpServer {
           : { kind: "activity", type: item.type, by: item.actor.name, at: item.createdAt, details: item.payload },
       ),
     };
+  });
+
+  tool(
+    "list_docs",
+    "Documents of the space (or one project's), each with its pages in tree order (id, title, parentId, depth). Read a page with get_page.",
+    "READ",
+    { projectId: z.string().optional().describe("Only the docs of this project") },
+    async ({ projectId }) => {
+      if (projectId) await projectOk(projectId);
+      const { projects } = await getSidebar(ctx, { spaceId });
+      return Promise.all(
+        projects
+          .filter((p) => !projectId || p.id === projectId)
+          .flatMap((p) =>
+            p.docs.map(async (d) => ({ id: d.id, title: d.title, projectId: p.id, project: p.name, pages: inTreeOrder(await getPageTree(ctx, { docId: d.id })) })),
+          ),
+      );
+    },
+  );
+
+  tool("get_page", "One document page: title and content as Markdown (images show as ![alt](src)), with the version to pass back when editing.", "READ", { pageId: z.string() }, async ({ pageId }) => {
+    await pageOk(pageId);
+    const page = await getPage(ctx, { pageId });
+    return { id: page.id, docId: page.docId, title: page.title, content: docToMarkdown(page.content), updatedAt: page.updatedAt, updatedBy: page.updatedBy.name };
   });
 
   // ---------- write ----------
@@ -317,5 +347,82 @@ export function buildMcpServer(auth: McpAuth): McpServer {
     return { id: item.id, createdAt: item.createdAt };
   });
 
+  const markdown = z.string().describe("Markdown: headings 1-3, bold, italic, strike, `code`, links, bullet / numbered / - [ ] task lists, > quotes, ``` code blocks, ---. Tables are kept as code blocks.");
+
+  tool(
+    "create_doc",
+    "Creates a document in a project with one page (named like the doc), optionally with Markdown content. Returns the doc id and its first page id.",
+    "WRITE",
+    { projectId: z.string(), title: z.string().min(1), content: markdown.optional() },
+    async ({ projectId, title, content }) => {
+      await projectOk(projectId);
+      const { docId, firstPageId } = await createDoc(ctx, { projectId, title });
+      const page = await getPage(ctx, { pageId: firstPageId });
+      await savePage(ctx, { pageId: firstPageId, title, content: content ? markdownToDoc(content) : undefined, baseUpdatedAt: page.updatedAt });
+      return { docId, firstPageId };
+    },
+  );
+
+  tool(
+    "create_page",
+    "Adds a page to a document (under parentId, else at the top level; pages nest up to three levels), optionally with Markdown content. Returns the page id.",
+    "WRITE",
+    { docId: z.string(), title: z.string().min(1), parentId: z.string().optional().describe("A page of the same doc"), content: markdown.optional() },
+    async ({ docId, title, parentId, content }) => {
+      await docOk(docId);
+      if (parentId) await pageOk(parentId);
+      const { pageId } = await createPage(ctx, { docId, parentId: parentId ?? null, title });
+      if (content) {
+        const page = await getPage(ctx, { pageId });
+        await savePage(ctx, { pageId, content: markdownToDoc(content), baseUpdatedAt: page.updatedAt });
+      }
+      return { pageId };
+    },
+  );
+
+  tool(
+    "update_page",
+    "Changes a page's title and/or content. content replaces the page unless mode is 'append' (adds after the existing content). If the page was changed since you read it (pass updatedAt from get_page as baseUpdatedAt), nothing is written and you get a CONFLICT: read it again and retry.",
+    "WRITE",
+    {
+      pageId: z.string(),
+      title: z.string().min(1).optional(),
+      content: markdown.optional(),
+      mode: z.enum(["replace", "append"]).optional().describe("Default replace"),
+      baseUpdatedAt: z.string().optional().describe("The updatedAt you read; default: the page's current version"),
+    },
+    async ({ pageId, title, content, mode, baseUpdatedAt }) => {
+      if (title === undefined && content === undefined) throw new AppError("VALIDATION", "Pass a title or content to change");
+      await pageOk(pageId);
+      const current = await getPage(ctx, { pageId });
+      let next: unknown;
+      if (content !== undefined) {
+        const added = markdownToDoc(content);
+        const existing = (current.content as { content?: unknown[] } | null)?.content ?? [];
+        next = mode === "append" ? { type: "doc", content: [...existing, ...added.content] } : added;
+      }
+      const result = await savePage(ctx, { pageId, title, content: next, baseUpdatedAt: baseUpdatedAt ?? current.updatedAt });
+      if (result.conflict) {
+        throw new AppError("CONFLICT", `${result.updatedBy.name} changed this page after you read it. Read it again with get_page and retry.`);
+      }
+      return { updatedAt: result.updatedAt };
+    },
+  );
+
   return server;
+}
+
+/** A doc's pages depth-first in sibling order, with their depth (0 = top level). */
+function inTreeOrder(pages: { id: string; title: string; parentId: string | null; position: string }[]) {
+  const byParent = new Map<string | null, typeof pages>();
+  for (const p of pages) byParent.set(p.parentId, [...(byParent.get(p.parentId) ?? []), p]);
+  const out: { id: string; title: string; parentId: string | null; depth: number }[] = [];
+  const walk = (parentId: string | null, depth: number) => {
+    for (const p of (byParent.get(parentId) ?? []).sort((a, b) => (a.position < b.position ? -1 : a.position > b.position ? 1 : 0))) {
+      out.push({ id: p.id, title: p.title, parentId: p.parentId, depth });
+      walk(p.id, depth + 1);
+    }
+  };
+  walk(null, 0);
+  return out;
 }

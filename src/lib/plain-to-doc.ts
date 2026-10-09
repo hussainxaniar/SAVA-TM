@@ -3,7 +3,7 @@
 // lines starting with "- " or "* " become a bullet list. Out: blocks on their own lines, list
 // items prefixed with "- ".
 
-type Node = { type: string; content?: Node[]; text?: string };
+type Node = { type: string; content?: Node[]; text?: string; attrs?: Record<string, unknown> };
 
 const BULLET = /^\s*[-*]\s+(.*)$/;
 
@@ -79,6 +79,11 @@ function blocks(node: unknown): string[] {
     case "codeBlock":
     case "blockquote": {
       return [inlineText(n)];
+    }
+    case "image": {
+      // Not readable as text, but an agent should know it is there (and what it is called).
+      const alt = typeof n.attrs?.alt === "string" && n.attrs.alt.trim() ? n.attrs.alt.trim() : "";
+      return [alt ? `[image: ${alt}]` : "[image]"];
     }
     default:
       return n.content ? n.content.flatMap((c) => blocks(c)) : [];
