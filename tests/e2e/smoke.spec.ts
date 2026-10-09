@@ -228,6 +228,9 @@ test("10. an API token lets an MCP client create a task that shows up labelled v
   await page.goto(spaceUrl);
   const dialog2 = await openTask(page, "Made by the assistant");
   await expect(dialog2.getByText("Hello from the assistant")).toBeVisible();
+  // A task with comments opens on "Comments" (I-05): only the comment's label shows; "All" adds the activity's.
+  await expect(dialog2.getByText("via AI")).toHaveCount(1);
+  await dialog2.getByRole("button", { name: "All", exact: true }).click();
   await expect(dialog2.getByText("via AI")).toHaveCount(2);
   await page.keyboard.press("Escape");
   await expect(dialog2).toBeHidden();

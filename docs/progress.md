@@ -44,7 +44,8 @@ Work tracked on tm.sava.af (project SAVA TM; the owner's own tasks, planned 2026
 | ID | What | Ticket | State |
 |----|------|--------|-------|
 | I-05 | Activity logs: no subtask lines on the parent, no avatars on activity, Comments first when there are comments | `I-05-activity-logs.md` | ✅ built, browser-tested, pushed |
-| I-06 | In-app notifications: bell with unread badge, list, mark read (blueprint Section 16; new `Notification` table, migration `20261009012006_notifications`) | `I-06-notifications.md` | ✅ built, reviewed, browser-tested locally; **awaiting "push"** (runs a migration on production) |
+| I-06 | In-app notifications: bell with unread badge, list, mark read (blueprint Section 16; new `Notification` table, migration `20261009012006_notifications`) | `I-06-notifications.md` | ✅ built, browser-tested, pushed (2026-10-09; the deploy applies the migration) |
+| I-07 | Calendar: scheduled tasks stay in the left rail ("My tasks") with their next slot, so they can take more slots | `I-07-calendar-rail.md` | ✅ built, browser-tested, e2e 11/11 locally; not pushed |
 
 Notes:
 - Google OAuth client configured locally (2026-10-01); T-18 built and tested with Google faked; a real consent test by the human is pending.

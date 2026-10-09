@@ -41,6 +41,25 @@ Do not touch: prisma/, src/server/, src/lib/, src/hooks/, package.json
 
 ## Acceptance
 
-- [ ] The calendar's left rail is titled "My tasks" and lists every open task assigned to me.
-- [ ] After dragging a task into the grid its row stays in the rail, now with a clock and its next slot, and it can be dragged again into another slot.
-- [ ] `pnpm typecheck && pnpm lint && pnpm test` pass with no warnings.
+- [x] The calendar's left rail is titled "My tasks" and lists every open task assigned to me.
+- [x] After dragging a task into the grid its row stays in the rail, now with a clock and its next slot, and it can be dragged again into another slot.
+- [x] `pnpm typecheck && pnpm lint && pnpm test` pass with no warnings.
+
+## Completion record (2026-10-09)
+
+**Models:** Architect (Sonnet 5.5): service change (`listCalendarTasks` with `nextBlockStart`), rename of the service/action/hook/component, DTO, hook
+optimism, tests, blueprint 10.1 / 8.6 / acceptance list, e2e update. UI: GLM 5.3 Flash (one dispatch, no re-dispatch; diff touched only `task-rail.tsx`).
+
+**Review:** the diff matched the ticket; no fixes needed. (`slotLabel` renders only after the query resolves on the client, so there is no hydration mismatch.)
+
+**Decision:** the rail heading is "My tasks" (not "Unscheduled", which would be wrong now). Scheduled rows sort after unscheduled ones by next slot, and a
+block that has already ended does not count as scheduled. Only the caller's own blocks mark a row.
+
+**Checks:** `pnpm typecheck`, `pnpm lint`, `pnpm test` (281 tests) pass. `pnpm e2e`: all 11 smoke flows pass. Two e2e edits were needed: flow 8 now expects a
+scheduled task to stay on the rail (its selector is the "My tasks" heading), and flow 10 clicks "All" before counting the "via AI" labels, because since I-05 a task
+with comments opens on "Comments".
+
+**Browser QA** (local, seed user Ben): the rail showed all 7 open tasks; dragging "Email marketing team" into Saturday 10:00 created the block and the row stayed, moved below the
+unscheduled ones and labelled "Tomorrow 10:15"; dragging the same row into Sunday 14:00 created a second block; no console errors. The two QA blocks were deleted afterwards.
+
+**Not verified:** a real Google Calendar sync of the new second slot (Google is faked in tests; awaiting the owner's consent test, see T-18/T-19), phone width. **Not pushed.**
