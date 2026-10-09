@@ -1262,6 +1262,8 @@ resolveApiToken(rawToken): Promise<{ userId; spaceId; scope; tokenId } | null>  
 | `update_task` | WRITE | `taskId`, any of `title`, `description`, `priority`, `dueDate`, `startDate` | Edits fields (`null` clears a date) |
 | `set_task_status` | WRITE | `taskId`, `statusId` or `completed: boolean` | Moves a task to a status, or completes/reopens it |
 | `assign_task` | WRITE | `taskId`, `userIds` | Replaces the assignees |
+| `add_task_to_list` | WRITE | `taskId`, `listId` | Also shows the task in another list of its project (6.6), e.g. Weekly Tasks; it stays one task with its home list; same project only, no duplicates; logs `ADDED_TO_LIST` |
+| `remove_task_from_list` | WRITE | `taskId`, `listId` | Undoes the link (6.6.4); the task is never deleted and cannot leave its home list; logs `REMOVED_FROM_LIST` |
 | `add_comment` | WRITE | `taskId`, `text` | Adds a comment |
 | `create_doc` | WRITE | `projectId`, `title`, `content?` (Markdown) | Creates a doc with one page named like it; returns `docId`, `firstPageId` |
 | `rename_doc` | WRITE | `docId`, `title` | Renames the doc (sidebar and doc header); pages keep their own titles (`update_page`) |
@@ -1289,7 +1291,7 @@ The activity feed and comments show a small "via AI" label on anything written t
 
 ### 15.7 Out of scope for T-23
 
-Deleting or moving tasks, deleting/moving/archiving docs and pages (reading, creating and editing pages is in, see 15.4), adding a task to a second list, managing members/lists/statuses, MCP resources and prompts, OAuth sign-in for MCP, webhooks, a public REST API. (A REST API would reuse `resolveApiToken` and the same services.)
+Deleting or moving tasks, deleting/moving/archiving docs and pages (reading, creating and editing pages is in, see 15.4), managing members/lists/statuses, MCP resources and prompts, OAuth sign-in for MCP, webhooks, a public REST API. (A REST API would reuse `resolveApiToken` and the same services.)
 
 ## 16. In-app notifications (I-06)
 

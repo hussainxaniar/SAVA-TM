@@ -119,9 +119,9 @@ describe("tools by scope", () => {
     const write = await names(writeToken);
     expect(read).toEqual(["get_my_tasks", "get_page", "get_task", "list_docs", "list_members", "list_projects", "list_tasks", "whoami"]);
     expect(write).toEqual(
-      [...read, "add_comment", "assign_task", "create_doc", "create_page", "create_task", "quick_add", "rename_doc", "set_task_status", "update_page", "update_task"].sort(),
+      [...read, "add_comment", "add_task_to_list", "assign_task", "create_doc", "create_page", "create_task", "quick_add", "remove_task_from_list", "rename_doc", "set_task_status", "update_page", "update_task"].sort(),
     );
-    expect(write.some((n: string) => /delete|move|archive/.test(n))).toBe(false);
+    expect(write.some((n: string) => /delete|archive|^move/.test(n))).toBe(false); // remove_task_from_list only unlinks; nothing deletes, moves between projects or archives
   });
 
   it("refuses a write tool for a READ token and changes nothing", async () => {
@@ -380,5 +380,59 @@ describe("rename_doc", () => {
     expect(denied.isError).toBe(true);
     expect(denied.text).toContain("NOT_FOUND");
     expect((await db.doc.findUniqueOrThrow({ where: { id: foreign.docId } })).title).toBe("Theirs");
+  });
+});
+
+describe("add_task_to_list / remove_task_from_list", () => {
+  it("shows a task in a second list of its project and undoes it, with the service's rules", async () => {
+    const t = client(writeToken);
+    const task = (await t.create_task({ title: "Plan the week", listId })).data;
+
+    const added = await t.add_task_to_list({ taskId: task.id, listId: secondList });
+    expect(added.data).toEqual({ taskId: task.id, homeList: "General", alsoIn: ["Design"] });
+    // it is one task shown in both lists, and the activity says so (labelled via AI)
+    expect((await t.list_tasks({ listId: secondList })).data.tasks.map((x: { id: string }) => x.id)).toEqual([task.id]);
+    expect(await db.task.count({ where: { title: "Plan the week" } })).toBe(1);
+    const log = await db.activity.findFirstOrThrow({ where: { taskId: task.id, type: "ADDED_TO_LIST" } });
+    expect(log.payload).toMatchObject({ listId: secondList, via: "mcp" });
+
+    // a subtask can be linked too
+    const sub = (await t.create_task({ title: "Sub", listId, parentId: task.id })).data;
+    expect((await t.add_task_to_list({ taskId: sub.id, listId: secondList })).isError).toBe(false);
+
+    // refused: twice, the home list, another project's list
+    expect((await t.add_task_to_list({ taskId: task.id, listId: secondList })).text).toContain("already");
+    expect((await t.add_task_to_list({ taskId: task.id, listId })).isError).toBe(true);
+    const p2 = await createProject(as(s.users.owner.id), { spaceId: s.space.id, name: "Elsewhere" });
+    const otherProjectList = await t.add_task_to_list({ taskId: task.id, listId: p2.firstListId });
+    expect(otherProjectList.isError).toBe(true);
+    expect(otherProjectList.text).toContain("VALIDATION");
+
+    // undo: only the link goes; the home list cannot be left
+    const removed = await t.remove_task_from_list({ taskId: task.id, listId: secondList });
+    expect(removed.data).toEqual({ taskId: task.id, homeList: "General", alsoIn: [] });
+    expect((await t.list_tasks({ listId: secondList })).data.tasks.map((x: { id: string }) => x.id)).toEqual([sub.id]);
+    expect((await t.remove_task_from_list({ taskId: task.id, listId })).isError).toBe(true);
+    expect((await t.remove_task_from_list({ taskId: task.id, listId: secondList })).isError).toBe(true); // no longer linked
+    expect(await db.task.count({ where: { id: task.id, deletedAt: null } })).toBe(1);
+  });
+
+  it("is refused for a READ token and for tasks or lists of another space", async () => {
+    const task = await createTask(as(s.users.member.id), { listId, title: "Mine" });
+    expect((await client(readToken).add_task_to_list({ taskId: task.id, listId: secondList })).isError).toBe(true);
+    expect(await db.taskListLink.count({ where: { taskId: task.id } })).toBe(0);
+
+    const other = await makeSpace({ boss: "OWNER" });
+    const op = await createProject(as(other.users.boss.id), { spaceId: other.space.id, name: "Theirs" });
+    const foreignTask = await createTask(as(other.users.boss.id), { listId: op.firstListId, title: "Secret" });
+    const t = client(writeToken);
+    for (const r of [
+      await t.add_task_to_list({ taskId: foreignTask.id, listId: secondList }),
+      await t.add_task_to_list({ taskId: task.id, listId: op.firstListId }),
+      await t.remove_task_from_list({ taskId: foreignTask.id, listId: op.firstListId }),
+    ]) {
+      expect(r.isError).toBe(true);
+      expect(r.text).toContain("NOT_FOUND");
+    }
   });
 });

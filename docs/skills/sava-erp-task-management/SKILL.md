@@ -46,7 +46,7 @@ The team plans and tracks Sava ERP in **Sava TM** (project **"Sava ERP"** on tm.
 
 **Create (backlog).** Choose the list by the nature of the task (table above). Status **To do**, a clear and concise title, and a description a teammate can act on without asking: what, why, what "done" looks like, links to the related task or document. Quote the owner's words when he gave them. Do not invent priority, assignee or dates for something you only noted.
 
-**Plan.** When decided: set **Planned**; assign the right person (`assign_task`; ids from `list_members`), a proper due date and a proper priority (1 urgent, 2 high, 3 medium, 4 none); make the description concrete. If it is for this week it must also be in **Weekly Task**: the MCP cannot add a task to a second list yet, so tell the owner to add it in the app (or create it there directly only when the owner asks for a weekly-only item). Planned needs **no comment**.
+**Plan.** When decided: set **Planned**; assign the right person (`assign_task`; ids from `list_members`), a proper due date and a proper priority (1 urgent, 2 high, 3 medium, 4 none); make the description concrete. If it is for this week it must also be in **Weekly Task**: use `add_task_to_list` with that list's id (the task keeps its own list; `remove_task_from_list` undoes it). Planned needs **no comment**.
 
 **Work.** Start = **In progress** (only what you are actually doing). Finish = **Review**. Changes needed = **Update**. Blocked = **Hold**. Dropped = **Canceled**. Validated = **Done** (the reviewer's call: never set Done on your own work unless the owner says so).
 
@@ -102,11 +102,11 @@ Linking a Sava TM task from a document (and the document feature itself) is not 
 
 ## 7. Technical notes (the `sava` MCP)
 
-- Tools: `whoami`, `list_projects`, `list_members`, `list_tasks` (one list; `includeCompleted` optional), `get_my_tasks`, `get_task`, `create_task` (`listId`, optional `parentId`, `statusId`, `priority`, `assigneeIds`, dates, `description`), `update_task`, `set_task_status` (a `statusId`, or `completed: true/false`; exactly one), `assign_task` (replaces all assignees), `add_comment`, `quick_add` ("Write brief tomorrow p1 @ada #design"), `list_docs` (a project's docs and their page trees), `get_page` (a page as Markdown with its `updatedAt`), `create_doc`, `create_page`, `rename_doc`, `update_page` (replace or append; pass the `updatedAt` you read as `baseUpdatedAt` and a stale edit is refused with a CONFLICT: read again and retry).
+- Tools: `whoami`, `list_projects`, `list_members`, `list_tasks` (one list; `includeCompleted` optional), `get_my_tasks`, `get_task`, `create_task` (`listId`, optional `parentId`, `statusId`, `priority`, `assigneeIds`, dates, `description`), `update_task`, `set_task_status` (a `statusId`, or `completed: true/false`; exactly one), `assign_task` (replaces all assignees), `add_task_to_list` / `remove_task_from_list` (`taskId`, `listId`: show a task also in another list of its project, for example Weekly Tasks, or undo it; the task keeps its home list), `add_comment`, `quick_add` ("Write brief tomorrow p1 @ada #design"), `list_docs` (a project's docs and their page trees), `get_page` (a page as Markdown with its `updatedAt`), `create_doc`, `create_page`, `rename_doc`, `update_page` (replace or append; pass the `updatedAt` you read as `baseUpdatedAt` and a stale edit is refused with a CONFLICT: read again and retry).
 - Dates are ISO (`2026-10-12` or `2026-10-12T15:00:00Z`). Priority is 1 urgent to 4 none. Descriptions and comments are plain text (blank line = new paragraph, `- ` = bullet).
 - `completed: true` jumps to the first Done status of the project; use it only when Done is really meant (and allowed).
 - A READ token cannot change anything; a WRITE token acts as its owner and everything it writes is labelled "via AI".
-- **Not available** (say so, do not work around): delete or move a task, add a task to a second list, edit lists / statuses / members, delete or move documents and pages, attachments, opening an image (images show as an `[image]` placeholder in task text and as `![alt](src)` in pages; ask the owner to describe a screenshot).
+- **Not available** (say so, do not work around): delete or move a task, edit lists / statuses / members, delete or move documents and pages, attachments, opening an image (images show as an `[image]` placeholder in task text and as `![alt](src)` in pages; ask the owner to describe a screenshot).
 
 ## 8. Not decided yet (ask the owner, do not guess)
 

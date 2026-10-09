@@ -48,7 +48,7 @@ Tasks are the team's day-to-day source of ground truth: what we plan, what we de
 When the task is decided:
 1. Set status **Planned**.
 2. Assign the **right person** (`assign_task`, ids from `list_members`), a proper **due date** and a proper **priority** (1 urgent, 2 high, 3 medium, 4 none; `update_task`).
-3. If it is to be done this week, it must also appear in **Weekly Tasks** (it is added there as a link; the task keeps its own list). The MCP has no "add to list" tool yet: say so and ask the owner to add it in the app, or create it in Weekly Tasks only when the owner asks for a weekly-only item.
+3. If it is to be done this week, it must also appear in **Weekly Tasks**: use `add_task_to_list` with that list's id (the task keeps its own list; `remove_task_from_list` undoes it). Planned needs **no comment**.
 4. Improve the description if planning taught you something. Moving To do → Planned needs **no comment**.
 
 ## 4. Doing and closing a task
@@ -87,11 +87,11 @@ Start with `whoami`, then `get_my_tasks` (or `list_tasks` for a list). Answer in
 ## 8. Technical notes (the `sava` MCP)
 
 - First calls: `whoami` (who you act as, space, whether you can write), `list_projects` (projects, their lists with ids, their statuses with ids). Every id you pass must come from these tools.
-- Tools: `list_tasks` (one list; `includeCompleted` optional), `get_my_tasks`, `get_task` (description, subtasks, latest comments and activity), `create_task` (`listId`; `parentId` for a subtask; `statusId`, `priority`, `assigneeIds`, dates, `description`), `update_task`, `set_task_status` (a `statusId`, or `completed: true/false`; exactly one), `assign_task` (replaces all assignees), `add_comment`, `list_docs` (a project's docs and their page trees), `get_page` (a page as Markdown with its `updatedAt`), `create_doc`, `create_page`, `rename_doc`, `update_page` (replace or append; pass the `updatedAt` you read as `baseUpdatedAt` and a stale edit is refused with a CONFLICT: read again and retry), `quick_add` (one-line natural text such as "Write brief tomorrow p1 @ada #design"), `list_members`.
+- Tools: `list_tasks` (one list; `includeCompleted` optional), `get_my_tasks`, `get_task` (description, subtasks, latest comments and activity), `create_task` (`listId`; `parentId` for a subtask; `statusId`, `priority`, `assigneeIds`, dates, `description`), `update_task`, `set_task_status` (a `statusId`, or `completed: true/false`; exactly one), `assign_task` (replaces all assignees), `add_task_to_list` / `remove_task_from_list` (`taskId`, `listId`: show a task also in another list of its project, for example Weekly Tasks, or undo it; the task keeps its home list), `add_comment`, `list_docs` (a project's docs and their page trees), `get_page` (a page as Markdown with its `updatedAt`), `create_doc`, `create_page`, `rename_doc`, `update_page` (replace or append; pass the `updatedAt` you read as `baseUpdatedAt` and a stale edit is refused with a CONFLICT: read again and retry), `quick_add` (one-line natural text such as "Write brief tomorrow p1 @ada #design"), `list_members`.
 - Dates are ISO: `2026-10-12` for a day, `2026-10-12T15:00:00Z` for a moment. Priority is 1 urgent, 2 high, 3 medium, 4 none.
 - Descriptions and comments are **plain text**: blank lines separate paragraphs, lines starting `- ` are bullets. **Images in a description are not returned**, so ask the owner when a task says "see screenshot".
 - Your changes appear in the app as made by the token's owner, labelled "via AI". A READ token cannot change anything.
-- **Not available** (say so instead of working around it): delete or move a task, add a task to a second list (Weekly Tasks), edit lists / statuses / members, delete or move documents and pages, attachments, opening an image (images show as an `[image]` placeholder in task text and as `![alt](src)` in pages; ask the owner to describe a screenshot).
+- **Not available** (say so instead of working around it): delete or move a task, edit lists / statuses / members, delete or move documents and pages, attachments, opening an image (images show as an `[image]` placeholder in task text and as `![alt](src)` in pages; ask the owner to describe a screenshot).
 - `set_task_status` with `completed: true` jumps to the project's first Done status; use it only when Done is really meant.
 
 ## 9. For a software project with a repository (Sava TM itself)

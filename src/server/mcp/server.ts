@@ -9,10 +9,12 @@ import { createDoc, createPage, getPage, getPageTree, renameDoc, savePage } from
 import { getProjectSettings, getSidebar } from "../services/projects";
 import { listMembers } from "../services/spaces";
 import {
+  addTaskToList,
   createTask,
   getListView,
   getMyTasks,
   getTask,
+  removeTaskFromList,
   setAssignees,
   setCompleted,
   updateTask,
@@ -338,6 +340,37 @@ export function buildMcpServer(auth: McpAuth): McpServer {
       await taskOk(taskId);
       await setAssignees(ctx, { taskId, userIds });
       return compactTask(await getTask(ctx, { taskId }));
+    },
+  );
+
+  const listsOf = async (taskId: string) => {
+    const t = await getTask(ctx, { taskId });
+    return { taskId, homeList: t.homeList.name, alsoIn: t.linkedLists.map((l) => l.name) };
+  };
+
+  tool(
+    "add_task_to_list",
+    "Also shows a task in another list of its project (for example Weekly Tasks); the task keeps its home list and stays one task. Same project only; subtasks can be linked too.",
+    "WRITE",
+    { taskId: z.string(), listId: z.string().describe("A list of the task's project, from list_projects") },
+    async ({ taskId, listId }) => {
+      await taskOk(taskId);
+      await listOk(listId);
+      await addTaskToList(ctx, { taskId, listId });
+      return listsOf(taskId);
+    },
+  );
+
+  tool(
+    "remove_task_from_list",
+    "Undoes add_task_to_list: removes the task from a list it was added to. The task itself is never deleted and cannot leave its home list.",
+    "WRITE",
+    { taskId: z.string(), listId: z.string() },
+    async ({ taskId, listId }) => {
+      await taskOk(taskId);
+      await listOk(listId);
+      await removeTaskFromList(ctx, { taskId, listId });
+      return listsOf(taskId);
     },
   );
 
