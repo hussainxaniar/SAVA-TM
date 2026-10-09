@@ -55,8 +55,7 @@ shows "via AI". The two places have different jobs:
 Loop additions:
 
 1. **Start**: `list_projects` (status ids differ per project; never hard-code them) and `list_tasks` for the SAVA TM lists; pick the task by
-   priority and status (Urgent/High, then due date). Read it with `get_task` (the description is plain text: **images in descriptions are not
-   returned**, ask the owner for the content). Set it **In progress**.
+   priority and status (Urgent/High, then due date). Read it with `get_task` (the description is plain text; pictures show as `[image: alt]` and are listed in `images`: open them with `get_image`, available once I-15 is deployed). Set it **In progress**.
 2. **Ticket**: create `docs/tickets/I-xx-<slug>.md` (follow-ups and bugs) or `T-xx` (planned build tickets) quoting the owner's task text, then
    build as in the loop above. Put the Sava TM task title in the ticket header so both sides can be matched.
 3. **Finish**: set the task (and its subtasks) to **Review**, add one comment with the commit, the ticket path, the checks and what is not

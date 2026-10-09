@@ -3,6 +3,8 @@ import { db } from "@/server/db";
 import { handleMcpRequest } from "@/server/mcp/handler";
 import { RATE_LIMIT, allowRequest, resetRateLimit } from "@/server/mcp/rate-limit";
 import { createApiToken, revokeApiToken } from "@/server/services/api-tokens";
+import { NextRequest } from "next/server";
+import { GET as getImageRoute } from "@/app/api/images/[id]/route";
 import { createDoc } from "@/server/services/docs";
 import { createList } from "@/server/services/lists";
 import { createProject } from "@/server/services/projects";
@@ -117,7 +119,7 @@ describe("tools by scope", () => {
     const names = async (token: string) => (await rpc(token, "tools/list")).body.result.tools.map((t: { name: string }) => t.name).sort();
     const read = await names(readToken);
     const write = await names(writeToken);
-    expect(read).toEqual(["get_my_tasks", "get_page", "get_task", "list_docs", "list_members", "list_projects", "list_tasks", "whoami"]);
+    expect(read).toEqual(["get_image", "get_my_tasks", "get_page", "get_task", "list_docs", "list_members", "list_projects", "list_tasks", "whoami"]);
     expect(write).toEqual(
       [...read, "add_comment", "add_task_to_list", "assign_task", "create_doc", "create_page", "create_task", "quick_add", "remove_task_from_list", "rename_doc", "set_task_status", "update_page", "update_task"].sort(),
     );
@@ -327,8 +329,9 @@ describe("document tools", () => {
 
   it("keeps a pipe table as a code block and shows images as Markdown images", async () => {
     const t = client(writeToken);
-    const { firstPageId } = (await t.create_doc({ projectId, title: "Tables", content: "| a | b |\n| - | - |\n| 1 | 2 |\n\n![shot](/api/images/abc)" })).data;
-    expect((await t.get_page({ pageId: firstPageId })).data.content).toBe("```\n| a | b |\n| - | - |\n| 1 | 2 |\n```\n\n![shot](/api/images/abc)");
+    const img = await db.image.create({ data: { spaceId: s.space.id, uploadedById: s.users.owner.id, mimeType: "image/png", size: 1, data: new Uint8Array([1]) } });
+    const { firstPageId } = (await t.create_doc({ projectId, title: "Tables", content: `| a | b |\n| - | - |\n| 1 | 2 |\n\n![shot](/api/images/${img.id})` })).data;
+    expect((await t.get_page({ pageId: firstPageId })).data.content).toBe(`\`\`\`\n| a | b |\n| - | - |\n| 1 | 2 |\n\`\`\`\n\n![shot](https://tm.example.test/api/images/${img.id})`);
   });
 
   it("refuses write tools for a READ token and docs, pages and projects from another space", async () => {
@@ -434,5 +437,95 @@ describe("add_task_to_list / remove_task_from_list", () => {
       expect(r.isError).toBe(true);
       expect(r.text).toContain("NOT_FOUND");
     }
+  });
+});
+
+describe("images for agents", () => {
+  const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==", "base64");
+  const newImage = (spaceId: string, size = PNG.length, data: Buffer = PNG) =>
+    db.image.create({ data: { spaceId, uploadedById: s.users.owner.id, mimeType: "image/png", size, data: new Uint8Array(data) } });
+  const imageNode = (id: string, alt: string) => ({ type: "image", attrs: { src: `/api/images/${id}`, alt } });
+
+  it("lists the pictures of a task description and a page with absolute urls, and get_image returns the picture", async () => {
+    const t = client(writeToken);
+    const img = await newImage(s.space.id);
+    const task = await createTask(as(s.users.member.id), { listId, title: "Has a screenshot", description: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "See:" }] }, imageNode(img.id, "Table columns")] } });
+
+    const got = (await t.get_task({ taskId: task.id })).data;
+    expect(got.description).toBe("See:\n[image: Table columns]");
+    expect(got.images).toEqual([{ id: img.id, alt: "Table columns", url: `https://tm.example.test/api/images/${img.id}` }]);
+
+    const { firstPageId } = (await t.create_doc({ projectId, title: "With picture", content: `Intro\n\n![Diagram](https://tm.example.test/api/images/${img.id})` })).data;
+    const page = (await t.get_page({ pageId: firstPageId })).data;
+    expect(page.content).toBe(`Intro\n\n![Diagram](https://tm.example.test/api/images/${img.id})`);
+    expect(page.images).toEqual([{ id: img.id, alt: "Diagram", url: `https://tm.example.test/api/images/${img.id}` }]);
+    // stored in its relative form, as the editor writes it
+    const stored = await db.docPage.findUniqueOrThrow({ where: { id: firstPageId } });
+    expect(JSON.stringify(stored.content)).toContain(`"src":"/api/images/${img.id}"`);
+
+    // get_image answers with MCP image content
+    const { body } = await rpc(readToken, "tools/call", { name: "get_image", arguments: { imageId: img.id } });
+    const blocks = body.result.content as { type: string; data?: string; mimeType?: string; text?: string }[];
+    expect(blocks.map((b) => b.type)).toEqual(["text", "image"]);
+    expect(blocks[1]).toMatchObject({ mimeType: "image/png", data: PNG.toString("base64") });
+    expect(JSON.parse(blocks[0].text!)).toMatchObject({ id: img.id, size: PNG.length });
+  });
+
+  it("does not send a huge picture inline, and refuses pictures of another space", async () => {
+    const t = client(readToken);
+    const big = await newImage(s.space.id, 5_000_000, Buffer.from("x"));
+    const r = await t.get_image({ imageId: big.id });
+    expect(r.data).toMatchObject({ tooLargeToSend: true, url: `https://tm.example.test/api/images/${big.id}` });
+
+    const other = await makeSpace({ boss: "OWNER" });
+    const foreign = await db.image.create({ data: { spaceId: other.space.id, uploadedById: other.users.boss.id, mimeType: "image/png", size: PNG.length, data: new Uint8Array(PNG) } });
+    const denied = await t.get_image({ imageId: foreign.id });
+    expect(denied.isError).toBe(true);
+    expect(denied.text).toContain("NOT_FOUND");
+  });
+
+  it("lets a page embed this space's pictures only: external addresses and other spaces' pictures are refused before anything is written", async () => {
+    const t = client(writeToken);
+    const mine = await newImage(s.space.id);
+    const other = await makeSpace({ boss: "OWNER" });
+    const foreign = await db.image.create({ data: { spaceId: other.space.id, uploadedById: other.users.boss.id, mimeType: "image/png", size: PNG.length, data: new Uint8Array(PNG) } });
+
+    const { firstPageId } = (await t.create_doc({ projectId, title: "Safe", content: "Original" })).data;
+    const external = await t.update_page({ pageId: firstPageId, content: "![tracker](https://evil.example/pixel.png)" });
+    expect(external.isError).toBe(true);
+    expect(external.text).toContain("VALIDATION");
+    const foreignTry = await t.update_page({ pageId: firstPageId, content: `![x](/api/images/${foreign.id})` });
+    expect(foreignTry.isError).toBe(true);
+    expect(foreignTry.text).toContain("NOT_FOUND");
+    expect((await t.get_page({ pageId: firstPageId })).data.content).toBe("Original");
+
+    // a refused create leaves nothing behind
+    const docsBefore = await db.doc.count();
+    expect((await t.create_doc({ projectId, title: "Bad", content: "![t](https://evil.example/p.png)" })).isError).toBe(true);
+    expect((await t.create_page({ docId: (await db.doc.findFirstOrThrow({ where: { title: "Safe" } })).id, title: "Bad page", content: "![t](https://evil.example/p.png)" })).isError).toBe(true);
+    expect(await db.doc.count()).toBe(docsBefore);
+    expect(await db.docPage.count({ where: { title: "Bad page" } })).toBe(0);
+
+    // an own picture is fine, and a picture inside a sentence stays plain text (only whole-line images are pictures)
+    expect((await t.update_page({ pageId: firstPageId, content: `![ok](/api/images/${mine.id})`, mode: "append" })).isError).toBe(false);
+  });
+
+  it("serves /api/images/<id> to a token of the image's own space and to nobody else", async () => {
+    const img = await newImage(s.space.id);
+    const get = (authorization?: string) =>
+      getImageRoute(new NextRequest(`https://tm.example.test/api/images/${img.id}`, { headers: authorization ? { authorization } : {} }), { params: Promise.resolve({ id: img.id }) });
+
+    const ok = await get(`Bearer ${readToken}`);
+    expect(ok.status).toBe(200);
+    expect(ok.headers.get("content-type")).toBe("image/png");
+    expect(Buffer.from(await ok.arrayBuffer()).equals(PNG)).toBe(true);
+
+    expect((await get(`Bearer ${"sava_pat_wrong"}`)).status).toBe(401);
+    expect((await get()).status).toBe(401);
+
+    // a token of another space cannot see it
+    const other = await makeSpace({ boss: "OWNER" });
+    const foreignToken = (await createApiToken(as(other.users.boss.id), { spaceId: other.space.id, name: "f", scope: "READ", expiresInDays: 30 })).token;
+    expect((await get(`Bearer ${foreignToken}`)).status).toBe(404);
   });
 });

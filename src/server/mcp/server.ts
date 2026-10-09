@@ -21,6 +21,7 @@ import {
 } from "../services/tasks";
 import type { Ctx, TaskRowDTO } from "../services/types";
 import { docToMarkdown, markdownToDoc } from "@/lib/doc-markdown";
+import { MAX_INLINE_IMAGE_BYTES, absolutizeImages, assertImagesInSpace, imageRefs, imageUrl, relativizeImages } from "./images";
 import { docToPlain, plainToDoc } from "@/lib/plain-to-doc";
 import { parseQuickAdd } from "@/lib/quick-add-parser";
 
@@ -47,9 +48,14 @@ const dateText = z.string().describe("ISO date '2026-10-12' (a day) or datetime 
 const ok = (value: unknown) => ({ content: [{ type: "text" as const, text: JSON.stringify(value) }] });
 const fail = (text: string) => ({ isError: true as const, content: [{ type: "text" as const, text }] });
 
+/** A tool result that is already MCP content (the picture of get_image), not JSON text. */
+type RawResult = { __raw: true; content: { type: string; [key: string]: unknown }[] };
+const isRaw = (v: unknown): v is RawResult => typeof v === "object" && v !== null && (v as RawResult).__raw === true;
+
 async function run(fn: () => Promise<unknown>) {
   try {
-    return ok(await fn());
+    const value = await fn();
+    return isRaw(value) ? { content: value.content } : ok(value);
   } catch (e) {
     if (e instanceof AppError) return fail(`${e.code}: ${e.message}`);
     console.error("mcp tool failed", e instanceof Error ? e.message : e);
@@ -107,6 +113,12 @@ export function buildMcpServer(auth: McpAuth): McpServer {
   const projectOk = (projectId: string) => inSpace(spaceIdOfProject(projectId), "Project");
   const docOk = (docId: string) => inSpace(spaceIdOfDoc(docId), "Doc");
   const pageOk = (pageId: string) => inSpace(spaceIdOfDocPage(pageId), "Page");
+  /** Page content from an agent: Markdown to editor JSON, with images limited to this space's own uploads (see images.ts). */
+  const pageContent = async (markdown: string) => {
+    const doc = markdownToDoc(relativizeImages(markdown));
+    await assertImagesInSpace(doc, spaceId);
+    return doc;
+  };
 
   function tool<S extends z.ZodRawShape>(
     name: string,
@@ -177,6 +189,7 @@ export function buildMcpServer(auth: McpAuth): McpServer {
     return {
       ...compactTask(task),
       description: docToPlain(task.description),
+      images: imageRefs(task.description),
       project: task.project.name,
       list: task.homeList.name,
       linkedLists: task.linkedLists.map((l) => l.name),
@@ -213,8 +226,37 @@ export function buildMcpServer(auth: McpAuth): McpServer {
   tool("get_page", "One document page: title and content as Markdown (images show as ![alt](src)), with the version to pass back when editing.", "READ", { pageId: z.string() }, async ({ pageId }) => {
     await pageOk(pageId);
     const page = await getPage(ctx, { pageId });
-    return { id: page.id, docId: page.docId, title: page.title, content: docToMarkdown(page.content), updatedAt: page.updatedAt, updatedBy: page.updatedBy.name };
+    return {
+      id: page.id,
+      docId: page.docId,
+      title: page.title,
+      content: absolutizeImages(docToMarkdown(page.content)),
+      images: imageRefs(page.content),
+      updatedAt: page.updatedAt,
+      updatedBy: page.updatedBy.name,
+    };
   });
+
+  tool(
+    "get_image",
+    "An image from a task description or a page (ids are in the `images` list of get_task / get_page), returned as an image you can look at. Pictures above 3 MB are not sent inline: you get their url instead.",
+    "READ",
+    { imageId: z.string() },
+    async ({ imageId }) => {
+      const image = await db.image.findFirst({ where: { id: imageId, spaceId }, select: { id: true, mimeType: true, size: true, data: true } });
+      if (!image) throw notFound("Image");
+      if (image.size > MAX_INLINE_IMAGE_BYTES) {
+        return { id: image.id, mimeType: image.mimeType, size: image.size, tooLargeToSend: true, url: imageUrl(image.id) };
+      }
+      return {
+        __raw: true,
+        content: [
+          { type: "text", text: JSON.stringify({ id: image.id, mimeType: image.mimeType, size: image.size, url: imageUrl(image.id) }) },
+          { type: "image", data: Buffer.from(image.data).toString("base64"), mimeType: image.mimeType },
+        ],
+      } satisfies RawResult;
+    },
+  );
 
   // ---------- write ----------
 
@@ -389,9 +431,10 @@ export function buildMcpServer(auth: McpAuth): McpServer {
     { projectId: z.string(), title: z.string().min(1), content: markdown.optional() },
     async ({ projectId, title, content }) => {
       await projectOk(projectId);
+      const body = content ? await pageContent(content) : undefined; // refuse bad content before anything is created
       const { docId, firstPageId } = await createDoc(ctx, { projectId, title });
       const page = await getPage(ctx, { pageId: firstPageId });
-      await savePage(ctx, { pageId: firstPageId, title, content: content ? markdownToDoc(content) : undefined, baseUpdatedAt: page.updatedAt });
+      await savePage(ctx, { pageId: firstPageId, title, content: body, baseUpdatedAt: page.updatedAt });
       return { docId, firstPageId };
     },
   );
@@ -416,10 +459,11 @@ export function buildMcpServer(auth: McpAuth): McpServer {
     async ({ docId, title, parentId, content }) => {
       await docOk(docId);
       if (parentId) await pageOk(parentId);
+      const body = content ? await pageContent(content) : undefined; // refuse bad content before anything is created
       const { pageId } = await createPage(ctx, { docId, parentId: parentId ?? null, title });
-      if (content) {
+      if (body) {
         const page = await getPage(ctx, { pageId });
-        await savePage(ctx, { pageId, content: markdownToDoc(content), baseUpdatedAt: page.updatedAt });
+        await savePage(ctx, { pageId, content: body, baseUpdatedAt: page.updatedAt });
       }
       return { pageId };
     },
@@ -442,7 +486,7 @@ export function buildMcpServer(auth: McpAuth): McpServer {
       const current = await getPage(ctx, { pageId });
       let next: unknown;
       if (content !== undefined) {
-        const added = markdownToDoc(content);
+        const added = await pageContent(content);
         const existing = (current.content as { content?: unknown[] } | null)?.content ?? [];
         next = mode === "append" ? { type: "doc", content: [...existing, ...added.content] } : added;
       }

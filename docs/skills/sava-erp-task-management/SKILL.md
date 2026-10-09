@@ -70,7 +70,7 @@ Description at planning; a short informative comment when a status change carrie
 ## 4. Work routine (when asked to work on a task)
 
 1. **Pick.** `get_my_tasks`; choose by priority (1 first), then due date, then status (In progress and Update before Planned before To do). Say which one you picked and why. If the user named a task, use that one.
-2. **Understand.** `get_task` for the description, parent, subtasks, comments and latest activity. Descriptions come back as plain text and **images are not returned**: if a task depends on a screenshot, ask the owner to describe it. Read the parent task for the area's context.
+2. **Understand.** `get_task` for the description, parent, subtasks, comments and latest activity. Descriptions come back as plain text; pictures show as `[image: alt]` and are listed in `images`: open them with `get_image` and look at them before asking the owner to describe a screenshot. Read the parent task for the area's context.
 3. **Start.** Set **In progress**. If the task has the "Design in Paper" / "Implement in code" pair, work them in that order and keep their statuses true.
 4. **Do the work with this repository's own rules** (`CLAUDE.md` is the authority):
    - UI: existing shadcn components first (`components/ui`, then `components/shared`), semantic color tokens only, no raw palette colors and no manual `dark:` overrides; `PageHeader` for every page header; lucide icons.
@@ -102,11 +102,11 @@ Linking a Sava TM task from a document (and the document feature itself) is not 
 
 ## 7. Technical notes (the `sava` MCP)
 
-- Tools: `whoami`, `list_projects`, `list_members`, `list_tasks` (one list; `includeCompleted` optional), `get_my_tasks`, `get_task`, `create_task` (`listId`, optional `parentId`, `statusId`, `priority`, `assigneeIds`, dates, `description`), `update_task`, `set_task_status` (a `statusId`, or `completed: true/false`; exactly one), `assign_task` (replaces all assignees), `add_task_to_list` / `remove_task_from_list` (`taskId`, `listId`: show a task also in another list of its project, for example Weekly Tasks, or undo it; the task keeps its home list), `add_comment`, `quick_add` ("Write brief tomorrow p1 @ada #design"), `list_docs` (a project's docs and their page trees), `get_page` (a page as Markdown with its `updatedAt`), `create_doc`, `create_page`, `rename_doc`, `update_page` (replace or append; pass the `updatedAt` you read as `baseUpdatedAt` and a stale edit is refused with a CONFLICT: read again and retry).
+- Tools: `whoami`, `list_projects`, `list_members`, `list_tasks` (one list; `includeCompleted` optional), `get_my_tasks`, `get_task`, `create_task` (`listId`, optional `parentId`, `statusId`, `priority`, `assigneeIds`, dates, `description`), `update_task`, `set_task_status` (a `statusId`, or `completed: true/false`; exactly one), `assign_task` (replaces all assignees), `add_task_to_list` / `remove_task_from_list` (`taskId`, `listId`: show a task also in another list of its project, for example Weekly Tasks, or undo it; the task keeps its home list), `add_comment`, `get_image` (a picture by id, from the `images` list of `get_task` / `get_page`), `quick_add` ("Write brief tomorrow p1 @ada #design"), `list_docs` (a project's docs and their page trees), `get_page` (a page as Markdown with its `updatedAt`), `create_doc`, `create_page`, `rename_doc`, `update_page` (replace or append; pass the `updatedAt` you read as `baseUpdatedAt` and a stale edit is refused with a CONFLICT: read again and retry).
 - Dates are ISO (`2026-10-12` or `2026-10-12T15:00:00Z`). Priority is 1 urgent to 4 none. Descriptions and comments are plain text (blank line = new paragraph, `- ` = bullet).
 - `completed: true` jumps to the first Done status of the project; use it only when Done is really meant (and allowed).
 - A READ token cannot change anything; a WRITE token acts as its owner and everything it writes is labelled "via AI".
-- **Not available** (say so, do not work around): delete or move a task, edit lists / statuses / members, delete or move documents and pages, attachments, opening an image (images show as an `[image]` placeholder in task text and as `![alt](src)` in pages; ask the owner to describe a screenshot).
+- **Not available** (say so, do not work around): delete or move a task, edit lists / statuses / members, delete or move documents and pages, attachments, uploading pictures.
 
 ## 8. Not decided yet (ask the owner, do not guess)
 
