@@ -137,6 +137,9 @@ export type MyTaskDTO = TaskRowDTO & {
   listName: string;
 };
 
+/** A row of the calendar's left rail (10.1): `nextBlockStart` (ISO) is my next slot that hasn't ended, null = none yet. */
+export type CalendarTaskDTO = MyTaskDTO & { nextBlockStart: string | null };
+
 /** Section 9.5. The client groups by due date (groupMyTasks in src/lib/my-tasks.ts). */
 export type MyTasksDTO = {
   tasks: MyTaskDTO[];

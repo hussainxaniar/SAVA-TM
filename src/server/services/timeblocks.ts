@@ -4,7 +4,7 @@ import { requireMember, spaceIdOfTask } from "../guards";
 import { logActivity } from "./activity";
 import { pushTimeBlock, removeGoogleEvent } from "./google-calendar";
 import { loadTaskRows } from "./task-rows";
-import type { Ctx, DueChipDTO, MyTaskDTO, TimeBlockDTO } from "./types";
+import type { CalendarTaskDTO, Ctx, DueChipDTO, TimeBlockDTO } from "./types";
 
 /*
  * Section 8.6 / 10.1, local half (T-17). A task can be scheduled into any number of slots; each
@@ -74,10 +74,12 @@ export async function listTimeBlocks(
 }
 
 /**
- * The calendar's "Unscheduled" rail: open, live tasks assigned to me (outside archived projects
- * and lists) with none of my blocks ending in the future. Optionally one project.
+ * The calendar's left rail (10.1): open, live tasks assigned to me (outside archived projects and
+ * lists), whether or not they already have a slot, so a task can be dragged into more slots.
+ * `nextBlockStart` is the start of my next block that hasn't ended (null = nothing upcoming).
+ * Tasks with nothing upcoming come first, then scheduled ones by their next slot. Optionally one project.
  */
-export async function listUnscheduled(ctx: Ctx, input: { spaceId: string; projectId?: string | null }): Promise<MyTaskDTO[]> {
+export async function listCalendarTasks(ctx: Ctx, input: { spaceId: string; projectId?: string | null }): Promise<CalendarTaskDTO[]> {
   await requireMember(ctx.userId, input.spaceId);
   const { rows, records } = await loadTaskRows(db, {
     spaceId: input.spaceId,
@@ -86,8 +88,14 @@ export async function listUnscheduled(ctx: Ctx, input: { spaceId: string; projec
     assignees: { some: { userId: ctx.userId } },
     project: { archivedAt: null },
     homeList: { archivedAt: null },
-    timeBlocks: { none: { userId: ctx.userId, end: { gt: new Date() } } },
   });
+  const upcoming = await db.timeBlock.findMany({
+    where: { userId: ctx.userId, taskId: { in: rows.map((r) => r.id) }, end: { gt: new Date() } },
+    orderBy: { start: "asc" },
+    select: { taskId: true, start: true },
+  });
+  const nextStart = new Map<string, Date>();
+  for (const b of upcoming) if (!nextStart.has(b.taskId)) nextStart.set(b.taskId, b.start);
   const [projects, lists] = await Promise.all([
     db.project.findMany({
       where: { id: { in: [...new Set(records.map((r) => r.projectId))] } },
@@ -98,10 +106,21 @@ export async function listUnscheduled(ctx: Ctx, input: { spaceId: string; projec
   const projectById = new Map(projects.map((p) => [p.id, p]));
   const listById = new Map(lists.map((l) => [l.id, l]));
   const projectOf = new Map(records.map((r) => [r.id, r.projectId]));
-  return rows.map((row) => {
+  const tasks = rows.map((row): CalendarTaskDTO => {
     const project = projectById.get(projectOf.get(row.id)!)!;
-    return { ...row, projectId: project.id, projectName: project.name, projectColor: project.color, listName: listById.get(row.homeListId)!.name };
+    return {
+      ...row,
+      projectId: project.id,
+      projectName: project.name,
+      projectColor: project.color,
+      listName: listById.get(row.homeListId)!.name,
+      nextBlockStart: nextStart.get(row.id)?.toISOString() ?? null,
+    };
   });
+  // Stable sort: unscheduled keep their list order, scheduled ones follow by next slot.
+  const free = tasks.filter((t) => !t.nextBlockStart);
+  const booked = tasks.filter((t) => t.nextBlockStart).sort((a, b) => a.nextBlockStart!.localeCompare(b.nextBlockStart!));
+  return [...free, ...booked];
 }
 
 /** All-day chips (10.1): open tasks assigned to me with a date-only due date in the range. */

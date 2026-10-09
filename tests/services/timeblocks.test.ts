@@ -7,7 +7,7 @@ import {
   deleteTimeBlock,
   listDueChips,
   listTimeBlocks,
-  listUnscheduled,
+  listCalendarTasks,
   updateTimeBlock,
 } from "@/server/services/timeblocks";
 import { makeSpace, makeUser, resetDb } from "../helpers/db";
@@ -76,7 +76,7 @@ describe("updateTimeBlock / deleteTimeBlock", () => {
   });
 });
 
-describe("listUnscheduled / listDueChips", () => {
+describe("listCalendarTasks / listDueChips", () => {
   it("lists my open tasks without future blocks, and date-only dues in range", async () => {
     const free = await createTask(me, { listId, title: "Free", assigneeIds: [me.userId] });
     const booked = await createTask(me, { listId, title: "Booked", assigneeIds: [me.userId] });
@@ -84,7 +84,20 @@ describe("listUnscheduled / listDueChips", () => {
     await createTask(me, { listId, title: "Not mine", assigneeIds: [s.users.other.id] });
     await createTimeBlock(me, { taskId: booked.id, start: iso(hoursFromNow(2)), end: iso(hoursFromNow(3)), timeZone: tz });
     await db.timeBlock.create({ data: { taskId: past.id, userId: me.userId, spaceId: s.space.id, start: hoursFromNow(-5), end: hoursFromNow(-4) } });
-    expect((await listUnscheduled(me, { spaceId: s.space.id })).map((t) => t.title).sort()).toEqual(["Free", "Past only"]);
+    // Every open task of mine stays in the rail; scheduled ones carry their next slot and come last.
+    const rail = await listCalendarTasks(me, { spaceId: s.space.id });
+    expect(rail.map((t) => t.title)).toEqual(["Free", "Past only", "Booked"]); // unscheduled first, scheduled last
+    const bookedStart = (await db.timeBlock.findFirstOrThrow({ where: { taskId: booked.id } })).start.toISOString();
+    expect(rail.map((t) => t.nextBlockStart)).toEqual([null, null, bookedStart]); // an ended block isn't upcoming
+
+    // a second, earlier slot becomes the next one
+    const earlier = await createTimeBlock(me, { taskId: booked.id, start: iso(hoursFromNow(1)), end: iso(hoursFromNow(1.5)), timeZone: tz });
+    const again = await listCalendarTasks(me, { spaceId: s.space.id });
+    expect(again.find((t) => t.id === booked.id)?.nextBlockStart).toBe(earlier.start);
+
+    // a block on someone else's calendar doesn't mark my row
+    await db.timeBlock.create({ data: { taskId: free.id, userId: s.users.other.id, spaceId: s.space.id, start: hoursFromNow(5), end: hoursFromNow(6) } });
+    expect((await listCalendarTasks(me, { spaceId: s.space.id })).find((t) => t.id === free.id)?.nextBlockStart).toBeNull();
 
     const tomorrow = new Date();
     tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);

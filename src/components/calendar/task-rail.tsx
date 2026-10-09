@@ -12,7 +12,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useUnscheduled } from "@/hooks/use-calendar";
+import { useCalendarTasks } from "@/hooks/use-calendar";
 import type { MyTaskDTO } from "@/server/services/types";
 
 /**
@@ -20,8 +20,8 @@ import type { MyTaskDTO } from "@/server/services/types";
  * project on the client. Rows are dragged into the grid with FullCalendar's Draggable; the
  * drop itself is handled by the calendar's `drop` callback via the rows' data attributes.
  */
-export function UnscheduledRail({ spaceId }: { spaceId: string }) {
-  const { data: tasks } = useUnscheduled(spaceId, null);
+export function TaskRail({ spaceId }: { spaceId: string }) {
+  const { data: tasks } = useCalendarTasks(spaceId, null);
   const [projectId, setProjectId] = useState<string | null>(null);
   const railRef = useRef<HTMLDivElement>(null);
 

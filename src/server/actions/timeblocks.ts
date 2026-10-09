@@ -5,7 +5,7 @@ import {
   deleteTimeBlock,
   listDueChips,
   listTimeBlocks,
-  listUnscheduled,
+  listCalendarTasks,
   retrySync,
   updateTimeBlock,
 } from "../services/timeblocks";
@@ -15,7 +15,7 @@ import {
   rangeSchema,
   retrySyncSchema,
   timeBlockSchema,
-  unscheduledSchema,
+  calendarTasksSchema,
   updateTimeBlockSchema,
 } from "./timeblocks.schema";
 
@@ -24,7 +24,7 @@ import {
 
 export const listTimeBlocksAction = action(rangeSchema, (input, ctx) => listTimeBlocks(ctx, input));
 export const listDueChipsAction = action(rangeSchema, (input, ctx) => listDueChips(ctx, input));
-export const listUnscheduledAction = action(unscheduledSchema, (input, ctx) => listUnscheduled(ctx, input));
+export const listCalendarTasksAction = action(calendarTasksSchema, (input, ctx) => listCalendarTasks(ctx, input));
 export const createTimeBlockAction = action(createTimeBlockSchema, (input, ctx) => createTimeBlock(ctx, input));
 export const updateTimeBlockAction = action(updateTimeBlockSchema, (input, ctx) => updateTimeBlock(ctx, input));
 export const deleteTimeBlockAction = action(timeBlockSchema, (input, ctx) => deleteTimeBlock(ctx, input));

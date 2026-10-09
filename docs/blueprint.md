@@ -731,7 +731,7 @@ formatActivity({ type, payload, labels }): string   // src/lib/activity-format.t
 
 ```ts
 listTimeBlocks(ctx, { spaceId, rangeStart, rangeEnd }): Promise<TimeBlockDTO[]>     // current user's blocks
-listUnscheduled(ctx, { spaceId, projectId? }): Promise<TaskRowDTO[]>               // assigned to me, open, no future blocks
+listCalendarTasks(ctx, { spaceId, projectId? }): Promise<CalendarTaskDTO[]>                 // assigned to me, open; MyTaskDTO + nextBlockStart (my next slot not yet ended, or null)
 createTimeBlock(ctx, { taskId, start, end, timeZone }): Promise<TimeBlockDTO>      // logs SCHEDULED, then pushes
 updateTimeBlock(ctx, { timeBlockId, start, end, timeZone }): Promise<TimeBlockDTO>
 deleteTimeBlock(ctx, { timeBlockId }): Promise<void>                                // logs UNSCHEDULED
@@ -870,7 +870,7 @@ A task can be scheduled into any number of time slots (`TimeBlock`s). Each slot 
 ### 10.1 Calendar page (`/s/[spaceId]/calendar`)
 
 - FullCalendar with `timeGridWeek` (default), `timeGridDay`, `dayGridMonth`. Week starts Monday; the user's browser time zone is used and sent with every write.
-- **Left rail "Unscheduled"**: open tasks assigned to me with no future time blocks, filterable by project. Rows are draggable into the grid via FullCalendar's `Draggable`.
+- **Left rail "My tasks"** (`listCalendarTasks`): every open task assigned to me, filterable by project; a task keeps its row after it is scheduled, so it can be dragged into more slots. Rows with no upcoming slot come first, then scheduled ones by their next slot; a scheduled row shows a clock icon and that slot ("Thu 10:00"). Rows are draggable into the grid via FullCalendar's `Draggable`.
 - **Drop** a task on the grid → `createTimeBlock` with a 60-minute default. Dropping the same task again creates another block, so one task can occupy several slots.
 - **Drag** a block to move it, **resize** its bottom edge to change duration (15-minute snap). Both call `updateTimeBlock`.
 - **Click** a block → opens the task dialog. Block popover `⋯` → "Remove from calendar" (`deleteTimeBlock`).
@@ -1068,7 +1068,7 @@ Each project can hold many docs; each doc is a tree of pages up to 3 levels deep
 
 **T-17 Calendar and time blocks (local)**
 
-- [ ] Week/day/month views; Unscheduled rail; drop creates a 60-minute block; drag and resize update it; dropping again adds a second slot.
+- [ ] Week/day/month views; "My tasks" rail (scheduled tasks stay in it); drop creates a 60-minute block; drag and resize update it; dropping again adds a second slot.
 - [ ] Panel's Scheduled section lists and adds blocks. Works with Google not connected.
 
 **T-18 Google connect and push**

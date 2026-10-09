@@ -11,7 +11,7 @@ import { useGoogleConnection, type Range } from "@/hooks/use-calendar";
 import { useIsMobile } from "@/hooks/use-media-query";
 import { CalendarGrid } from "./calendar-grid";
 import { CalendarToolbar } from "./calendar-toolbar";
-import { UnscheduledRail } from "./unscheduled-rail";
+import { TaskRail } from "./task-rail";
 
 export type CalendarViewProps = {
   spaceId: string;
@@ -85,7 +85,7 @@ export function CalendarView({ spaceId }: CalendarViewProps) {
       </header>
       <div className="flex min-h-0 flex-1">
         <div className="max-md:hidden">
-          <UnscheduledRail spaceId={spaceId} />
+          <TaskRail spaceId={spaceId} />
         </div>
         <div className="sava-calendar min-w-0 flex-1">
           <CalendarGrid

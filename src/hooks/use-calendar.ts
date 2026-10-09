@@ -7,19 +7,19 @@ import {
   deleteTimeBlockAction,
   listDueChipsAction,
   listTimeBlocksAction,
-  listUnscheduledAction,
+  listCalendarTasksAction,
   retrySyncAction,
   updateTimeBlockAction,
 } from "@/server/actions/timeblocks";
 import { getGoogleConnectionAction, listGoogleEventsAction } from "@/server/actions/google";
-import type { GoogleEventsResult, MyTaskDTO, TimeBlockDTO } from "@/server/services/types";
+import type { CalendarTaskDTO, GoogleEventsResult, TimeBlockDTO } from "@/server/services/types";
 import { taskKey, unwrap } from "./use-list-view";
 
 /*
  * Calendar data (T-17, Sections 8.6 / 10.1). Keys live under ['calendar', spaceId]:
  *   [..., 'blocks', start, end] my time blocks in the visible range
  *   [..., 'due', start, end]    all-day due chips in the visible range
- *   [..., 'unscheduled', projectId | 'all'] the left rail
+ *   [..., 'tasks', projectId | 'all'] the left rail (all my open tasks; scheduled ones carry nextBlockStart)
  * Block writes are optimistic across every cached range, send the browser's time zone, and
  * refresh the rail and the task's dialog (its Scheduled section and feed) when they land.
  */
@@ -29,8 +29,8 @@ export type Range = { start: string; end: string };
 export const calendarKey = (spaceId: string) => ["calendar", spaceId] as const;
 const blocksKey = (spaceId: string, r: Range) => [...calendarKey(spaceId), "blocks", r.start, r.end] as const;
 const dueKey = (spaceId: string, r: Range) => [...calendarKey(spaceId), "due", r.start, r.end] as const;
-const unscheduledKey = (spaceId: string, projectId: string | null) =>
-  [...calendarKey(spaceId), "unscheduled", projectId ?? "all"] as const;
+const railKey = (spaceId: string, projectId: string | null) =>
+  [...calendarKey(spaceId), "tasks", projectId ?? "all"] as const;
 
 export const browserTimeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -52,10 +52,10 @@ export function useDueChips(spaceId: string, range: Range | null) {
   });
 }
 
-export function useUnscheduled(spaceId: string, projectId: string | null) {
+export function useCalendarTasks(spaceId: string, projectId: string | null) {
   return useQuery({
-    queryKey: unscheduledKey(spaceId, projectId),
-    queryFn: async () => unwrap(await listUnscheduledAction({ spaceId, projectId })),
+    queryKey: railKey(spaceId, projectId),
+    queryFn: async () => unwrap(await listCalendarTasksAction({ spaceId, projectId })),
   });
 }
 
@@ -65,7 +65,8 @@ function useBlockMutation<V extends { taskId: string }, R>(
   spaceId: string,
   run: (v: V) => Promise<R>,
   patch: (blocks: TimeBlockDTO[], v: V) => TimeBlockDTO[],
-  opts: { leavesRail?: (v: V) => boolean } = {},
+  /** New `nextBlockStart` for the task's rail row (the row stays; it only gets marked). */
+  opts: { markInRail?: (v: V, current: string | null) => string | null } = {},
 ) {
   const qc = useQueryClient();
   return useMutation({
@@ -78,11 +79,11 @@ function useBlockMutation<V extends { taskId: string }, R>(
         snapshot.push([key, data]);
         qc.setQueryData(key, patch(data, v));
       }
-      if (opts.leavesRail?.(v)) {
-        for (const [key, data] of qc.getQueriesData<MyTaskDTO[]>({ queryKey: [...calendarKey(spaceId), "unscheduled"] })) {
+      if (opts.markInRail) {
+        for (const [key, data] of qc.getQueriesData<CalendarTaskDTO[]>({ queryKey: [...calendarKey(spaceId), "tasks"] })) {
           if (!data) continue;
           snapshot.push([key, data]);
-          qc.setQueryData(key, data.filter((t) => t.id !== v.taskId));
+          qc.setQueryData(key, data.map((t) => (t.id === v.taskId ? { ...t, nextBlockStart: opts.markInRail!(v, t.nextBlockStart) } : t)));
         }
       }
       return { snapshot };
@@ -121,7 +122,10 @@ export function useCreateTimeBlock(spaceId: string) {
         lastSyncError: null,
       },
     ],
-    { leavesRail: (v) => new Date(v.end).getTime() > Date.now() },
+    {
+      markInRail: (v, current) =>
+        new Date(v.end).getTime() <= Date.now() || (current !== null && current <= v.start) ? current : v.start,
+    },
   );
 }
 
@@ -195,7 +199,7 @@ export function useGoogleEvents(spaceId: string, range: Range | null, enabled: b
       }
       if (res.data.changed) {
         void qc.invalidateQueries({ queryKey: [...calendarKey(spaceId), "blocks"] });
-        void qc.invalidateQueries({ queryKey: [...calendarKey(spaceId), "unscheduled"] });
+        void qc.invalidateQueries({ queryKey: [...calendarKey(spaceId), "tasks"] });
         void qc.invalidateQueries({ queryKey: ["task"] });
       }
       return res.data;

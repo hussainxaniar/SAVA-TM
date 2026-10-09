@@ -129,7 +129,7 @@ test("8. calendar: dragging unscheduled tasks into the week creates blocks", asy
   await expect(row(page, "Review budget")).toBeVisible();
 
   await page.goto(spaceUrl.replace(/\/p\/.*$/, "/calendar"));
-  const rail = page.getByRole("complementary").filter({ hasText: "Unscheduled" });
+  const rail = page.getByRole("complementary").filter({ has: page.getByRole("heading", { name: "My tasks" }) });
   await expect(rail.getByText("Plan sprint")).toBeVisible();
 
   // Tomorrow's column keeps every slot in the future whatever time the suite runs at.
@@ -154,7 +154,7 @@ test("8. calendar: dragging unscheduled tasks into the week creates blocks", asy
   };
   await drop("Plan sprint", "10:00:00");
   await expect(page.locator(".fc-event").filter({ hasText: "Plan sprint" })).toBeVisible();
-  await expect(rail.getByText("Plan sprint")).toBeHidden(); // a future block takes it off the rail
+  await expect(rail.getByText("Plan sprint")).toBeVisible(); // a scheduled task stays on the rail (it can take more slots)
   await drop("Review budget", "14:00:00");
   await expect(page.locator(".fc-event").filter({ hasText: "Review budget" })).toBeVisible();
 
