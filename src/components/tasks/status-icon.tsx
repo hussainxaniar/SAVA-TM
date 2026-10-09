@@ -172,7 +172,8 @@ export function StatusControl({
                 type="button"
                 aria-label={`Status: ${task.status.name}`}
                 disabled={disabled}
-                className="shrink-0 disabled:pointer-events-none"
+                // flex: an inline button leaves its text line-height under the icon, which sat the glyph ~3px above the title's centre
+                className="flex shrink-0 disabled:pointer-events-none"
               />
             )
           }

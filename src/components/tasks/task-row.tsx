@@ -160,6 +160,7 @@ export const TaskRow = memo(function TaskRow({
 
   const statusButton = (
     <span
+      className="flex"
       onClick={(e) => e.stopPropagation()}
       onContextMenu={(e) => e.stopPropagation()}
       onKeyDown={(e) => e.stopPropagation()}
