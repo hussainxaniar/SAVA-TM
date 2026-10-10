@@ -56,6 +56,7 @@ Work tracked on tm.sava.af (project SAVA TM; the owner's own tasks, planned 2026
 | I-15 | Images for agents: `get_image`, `images` lists on `get_task` / `get_page`, Bearer access to `/api/images/<id>`, pages may embed only the space's own pictures | `I-15-mcp-images.md` | ✅ built and tested locally; not pushed |
 | I-16 | Status icon centred on the task title in every row (was 3.3px too high): icon button and its wrapper are flex boxes | `I-16-status-icon-alignment.md` | ✅ fixed, measured before/after; 304 tests + e2e 11/11 locally; not pushed |
 | I-17 | Documents link tasks: inline task chips (insert from a search), the task's Documents section, `DocTaskLink` index (migration `doc_task_links`), Markdown `[Title](task:ID)` and MCP support | `I-17-doc-task-links.md` (+ `I-17a-editor.md`, `I-17b-dialog.md`) | ✅ built, browser-tested, 314 tests + e2e 11/11 locally; **awaiting "push"** (runs a migration on production) |
+| I-18 | Slash menu ("/") in docs and task descriptions: headings, lists, to-do, quote, code, divider, image, link task; new dependency `@tiptap/suggestion` | `I-18-slash-menu.md` (+ `I-18a-slash-list.md`) | ✅ built, browser-tested, 319 tests + e2e 11/11 locally; not pushed |
 
 Notes:
 - Google OAuth client configured locally (2026-10-01); T-18 built and tested with Google faked; a real consent test by the human is pending.

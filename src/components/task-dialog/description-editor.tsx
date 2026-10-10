@@ -8,6 +8,7 @@ import TaskItem from "@tiptap/extension-task-item";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import { PageToolbar } from "@/components/docs/page-toolbar";
+import { SlashCommand } from "@/components/rich-text/slash/slash-command";
 import { imageEditorProps } from "@/components/rich-text/image-handlers";
 import { imageExtensions } from "@/components/rich-text/resizable-image";
 
@@ -40,6 +41,7 @@ export function DescriptionEditor({
       Link.configure({ openOnClick: false, autolink: true }),
       Placeholder.configure({ placeholder: "Description" }),
       ...imageExtensions,
+      SlashCommand.configure({ spaceId, taskLinks: false }),
     ],
     content: (description ?? "") as Content,
     immediatelyRender: false,

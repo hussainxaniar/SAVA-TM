@@ -960,6 +960,17 @@ Docs are the permanent knowledge and tasks are the thread of work; a page can po
 - **MCP / Markdown:** a link is `[Task title](task:<taskId>)`. `get_page` writes the task's current title; `create_doc`, `create_page` and `update_page` accept the syntax and refuse (NOT_FOUND, nothing written) a task that is not in the token's space; `get_task` returns `documents` (`pageId`, `pageTitle`, `docId`, `doc`).
 - **Not included:** links from tasks to docs (the Documents section is the reverse view), a notification when a linked task changes, linking a whole doc (a page is the unit), `@`-style inline autocomplete (the button is the way in).
 
+### 11.5 The slash menu (I-18)
+
+Typing `/` in a doc page or a task description opens a menu at the cursor (Notion style): `/` must be at the start of a line or after a space, and not inside a code block.
+
+- **Options** (`src/lib/slash-items.ts`, grouped): **Basic blocks**: Text, Heading 1 to 3, Bullet list, Numbered list, To-do list, Quote, Code block, Divider; **Media**: Image (opens the file picker and uploads into the space, same as the toolbar button); **Tasks**: Link task (docs only: opens the "Link task" search of 11.4). Each row shows its icon and, where there is one, its Markdown shortcut (`#`, `-`, `[]`, ...). Image is hidden where there is no upload space; Link task is hidden where the editor has no task-link node (task descriptions).
+- **Filtering:** what is typed after `/` filters by title or keyword at a word start ("head", "h2", "todo", "to-do", "ul", "rule"); best matches first; no match shows "No results" (Enter then just breaks the line).
+- **Keys:** ArrowUp / ArrowDown move (wrapping), Enter or Tab apply, the mouse hovers and clicks, **Escape closes only the menu** (the `/` text stays; it opens again when a new `/` is typed). The menu never takes an enclosing dialog's Escape (the task dialog stays open).
+- **Applying** removes the typed `/text` first, then runs the item. The menu is a body-level floating element placed under the cursor (above it when there is no room), above dialogs.
+- **Built with** `@tiptap/suggestion` (the one added dependency): `src/components/rich-text/slash/` (`slash-command.tsx` the extension and placement, `slash-menu.tsx` selection and keys, `slash-menu-list.tsx` the list). The docs placeholder reads "Start writing, or type / for commands".
+- **Not included:** tables and embeds (the editor has none), a menu in comments, AI items, user-defined items.
+
 ## 12. Tickets in build order
 
 22 tickets across the weekend. Each becomes `docs/tickets/T-XX.md` using the handoff template in Section 2. "A" = Architect (Fable / Opus 5.5), "I" = Implementer (GLM 5.3 Flash, or GLM 5.3 for tickets needing more careful reasoning). Where both are listed, the Architect writes the services first, then the Implementer builds the UI.

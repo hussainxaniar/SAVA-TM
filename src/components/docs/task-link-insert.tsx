@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Editor } from "@tiptap/react";
 import { IconSubtask } from "@tabler/icons-react";
 import { StatusGlyph } from "@/components/tasks/status-icon";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { SLASH_LINK_TASK_EVENT } from "@/components/rich-text/slash/slash-command";
 import { useTaskSearch } from "@/hooks/use-task-links";
 
 /*
@@ -17,6 +18,13 @@ export function TaskLinkInsert({ editor }: { editor: Editor }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const { data: results, isLoading } = useTaskSearch(query, open);
+
+  // The "/" menu's Link task item opens this same search.
+  useEffect(() => {
+    const openSearch = () => setOpen(true);
+    window.addEventListener(SLASH_LINK_TASK_EVENT, openSearch);
+    return () => window.removeEventListener(SLASH_LINK_TASK_EVENT, openSearch);
+  }, []);
 
   const pick = (task: { id: string; title: string }) => {
     editor

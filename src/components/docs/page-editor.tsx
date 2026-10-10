@@ -16,6 +16,7 @@ import type { DocPageDTO, UserLite } from "@/server/services/types";
 import { imageEditorProps } from "@/components/rich-text/image-handlers";
 import { imageExtensions } from "@/components/rich-text/resizable-image";
 import { PageToolbar } from "./page-toolbar";
+import { SlashCommand } from "@/components/rich-text/slash/slash-command";
 import { TaskLink } from "./task-link-node";
 import { TaskLinkInsert } from "./task-link-insert";
 
@@ -54,9 +55,10 @@ function EditorBody({
       TaskList,
       TaskItem.configure({ nested: true }),
       Link.configure({ openOnClick: false, autolink: true }),
-      Placeholder.configure({ placeholder: "Start writing…" }),
+      Placeholder.configure({ placeholder: "Start writing, or type / for commands" }),
       ...imageExtensions,
       TaskLink,
+      SlashCommand.configure({ spaceId, taskLinks: true }),
     ],
     content: (content ?? "") as Content,
     immediatelyRender: false,
