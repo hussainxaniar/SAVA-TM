@@ -30,7 +30,11 @@ export function BottomSheet({ open, onOpenChange, title, label, action, children
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Backdrop className="fixed inset-0 z-50 bg-scrim duration-200 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0" />
+        {/* forceRender: a sheet opened from the full-screen task dialog is a nested dialog, and Base UI
+            drops a nested dialog's backdrop unless told to keep it. */}
+        <DialogPrimitive.Backdrop
+          forceRender
+          className="fixed inset-0 z-50 bg-scrim duration-200 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0" />
         <DialogPrimitive.Popup
           data-slot="bottom-sheet"
           aria-label={title ? undefined : label}

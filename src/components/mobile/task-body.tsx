@@ -131,14 +131,15 @@ export function MobileTaskBody({
         <div className="flex items-start pl-1 pr-4 pt-1">
           <StatusControl task={task} statuses={task.statuses} size={24} onSetStatus={onSetStatus} />
           <div className="flex min-w-0 flex-1 flex-col gap-2 pt-2">
+            {/* Siblings here, unlike the desktop dialog: the remount keys must differ. */}
             <TitleEditor
-              key={task.id}
+              key={`title-${task.id}`}
               task={task}
               onCommit={onCommitTitle}
               className="text-xl font-semibold leading-7 tracking-[-0.01em]"
             />
             <DescriptionEditor
-              key={task.id}
+              key={`description-${task.id}`}
               description={task.description}
               spaceId={task.spaceId}
               onSave={onSaveDescription}

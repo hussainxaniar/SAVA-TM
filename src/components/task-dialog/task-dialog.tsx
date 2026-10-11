@@ -69,7 +69,7 @@ export type TaskDialogProps = {
 const BOX_CLASS =
   "flex h-[780px] w-[1080px] max-w-[calc(100vw-2rem)] max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-xl p-0 gap-0 " +
   "sm:max-w-[1080px] shadow-[0_24px_64px_rgb(24_24_27/0.28)] " +
-  "max-md:h-dvh max-md:w-screen max-md:max-w-none max-md:rounded-none";
+  "max-md:h-dvh max-md:max-h-none max-md:w-screen max-md:max-w-none max-md:rounded-none max-md:ring-0";
 
 /**
  * Section 9.4 task dialog shell: header, title, description, subtasks, the Activity section and
