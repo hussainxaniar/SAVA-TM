@@ -1,6 +1,7 @@
 "use client";
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient, type QueryKey } from "@tanstack/react-query";
+import { orderRailTasks } from "@/lib/calendar-rail";
 import { LIVE_REFETCH_MS } from "@/lib/live-refetch";
 import { toast } from "sonner";
 import {
@@ -69,7 +70,7 @@ function useBlockMutation<V extends { taskId: string }, R>(
   spaceId: string,
   run: (v: V) => Promise<R>,
   patch: (blocks: TimeBlockDTO[], v: V) => TimeBlockDTO[],
-  /** New `nextBlockStart` for the task's rail row (the row stays; it only gets marked). */
+  /** New `nextBlockStart` for the task's rail row; the row stays and moves to its place in the order (orderRailTasks). */
   opts: { markInRail?: (v: V, current: string | null) => string | null } = {},
 ) {
   const qc = useQueryClient();
@@ -87,7 +88,8 @@ function useBlockMutation<V extends { taskId: string }, R>(
         for (const [key, data] of qc.getQueriesData<CalendarTaskDTO[]>({ queryKey: [...calendarKey(spaceId), "tasks"] })) {
           if (!data) continue;
           snapshot.push([key, data]);
-          qc.setQueryData(key, data.map((t) => (t.id === v.taskId ? { ...t, nextBlockStart: opts.markInRail!(v, t.nextBlockStart) } : t)));
+          const marked = data.map((t) => (t.id === v.taskId ? { ...t, nextBlockStart: opts.markInRail!(v, t.nextBlockStart) } : t));
+          qc.setQueryData(key, orderRailTasks(marked));
         }
       }
       return { snapshot };

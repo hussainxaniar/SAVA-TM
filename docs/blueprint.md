@@ -872,7 +872,7 @@ A task can be scheduled into any number of time slots (`TimeBlock`s). Each slot 
 ### 10.1 Calendar page (`/s/[spaceId]/calendar`)
 
 - FullCalendar with `timeGridWeek` (default), `timeGridDay`, `dayGridMonth`. Week starts Monday; the user's browser time zone is used and sent with every write.
-- **Left rail "My tasks"** (`listCalendarTasks`): every open task assigned to me, filterable by project; a task keeps its row after it is scheduled, so it can be dragged into more slots. Rows with no upcoming slot come first, then scheduled ones by their next slot; a scheduled row shows a clock icon and that slot ("Thu 10:00"). Rows are draggable into the grid via FullCalendar's `Draggable`.
+- **Left rail "My tasks"** (`listCalendarTasks`): every open task assigned to me, filterable by project; a task keeps its row after it is scheduled, so it can be dragged into more slots. Rows with no upcoming slot come first, then scheduled ones by their next slot (`orderRailTasks`, `src/lib/calendar-rail.ts`, also applied to the optimistic update after a drop so the row doesn't jump when the refetch lands); a scheduled row shows a clock icon and that slot ("Thu 10:00"). Rows are draggable into the grid via FullCalendar's `Draggable`.
 - **Drop** a task on the grid → `createTimeBlock` with a 60-minute default. Dropping the same task again creates another block, so one task can occupy several slots.
 - **Drag** a block to move it, **resize** its bottom edge to change duration (15-minute snap). Both call `updateTimeBlock`.
 - **Click** a block → opens the task dialog. Block popover `⋯` → "Remove from calendar" (`deleteTimeBlock`).

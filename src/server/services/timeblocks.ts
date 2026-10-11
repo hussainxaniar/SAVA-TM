@@ -5,6 +5,7 @@ import { logActivity } from "./activity";
 import { pushTimeBlock, removeGoogleEvent } from "./google-calendar";
 import { loadTaskRows } from "./task-rows";
 import type { CalendarTaskDTO, Ctx, DueChipDTO, TimeBlockDTO } from "./types";
+import { orderRailTasks } from "@/lib/calendar-rail";
 
 /*
  * Section 8.6 / 10.1, local half (T-17). A task can be scheduled into any number of slots; each
@@ -117,10 +118,7 @@ export async function listCalendarTasks(ctx: Ctx, input: { spaceId: string; proj
       nextBlockStart: nextStart.get(row.id)?.toISOString() ?? null,
     };
   });
-  // Stable sort: unscheduled keep their list order, scheduled ones follow by next slot.
-  const free = tasks.filter((t) => !t.nextBlockStart);
-  const booked = tasks.filter((t) => t.nextBlockStart).sort((a, b) => a.nextBlockStart!.localeCompare(b.nextBlockStart!));
-  return [...free, ...booked];
+  return orderRailTasks(tasks);
 }
 
 /** All-day chips (10.1): open tasks assigned to me with a date-only due date in the range. */

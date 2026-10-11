@@ -153,7 +153,14 @@ test("8. calendar: dragging unscheduled tasks into the week creates blocks", asy
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   });
   const column = page.locator(`.fc-timegrid-col[data-date="${tomorrow}"]`);
-  if (!(await column.count())) await page.getByRole("button", { name: "Next" }).click(); // today is the week's last day
+  // When today is the week's last day, tomorrow is in next week. The calendar opens on the current
+  // week (also after a reload), so wait for the grid and step forward if tomorrow isn't in it.
+  const showTomorrow = async () => {
+    await expect(page.locator(".fc-timegrid-col[data-date]").first()).toBeVisible();
+    if (!(await column.count())) await page.getByRole("button", { name: "Next", exact: true }).click();
+    await expect(column).toBeVisible();
+  };
+  await showTomorrow();
 
   const drop = async (title: string, time: string) => {
     const src = await rail.getByText(title).boundingBox();
@@ -168,11 +175,14 @@ test("8. calendar: dragging unscheduled tasks into the week creates blocks", asy
   };
   await drop("Plan sprint", "10:00:00");
   await expect(page.locator(".fc-event").filter({ hasText: "Plan sprint" })).toBeVisible();
-  await expect(rail.getByText("Plan sprint")).toBeVisible(); // a scheduled task stays on the rail (it can take more slots)
+  // A scheduled task stays on the rail (it can take more slots). Wait until its row shows the slot:
+  // the rail has then refetched and re-sorted (unscheduled first), so the next drag grabs the right row.
+  await expect(rail.locator("[data-task-id]").filter({ hasText: "Plan sprint" })).toContainText("10:00");
   await drop("Review budget", "14:00:00");
   await expect(page.locator(".fc-event").filter({ hasText: "Review budget" })).toBeVisible();
 
   await page.reload();
+  await showTomorrow();
   await expect(page.locator(".fc-event").filter({ hasText: /Plan sprint|Review budget/ })).toHaveCount(2);
 });
 
