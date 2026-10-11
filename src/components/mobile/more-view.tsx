@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import {
   IconBell,
   IconCalendar,
+  IconDeviceMobile,
   IconChevronRight,
   IconLogout,
   IconPlus,
@@ -15,10 +16,12 @@ import {
   IconSparkles,
   IconSun,
 } from "@tabler/icons-react";
+import { PushSwitch, pushHint } from "@/components/notifications/push-switch";
 import { CreateSpaceForm } from "@/components/onboarding/create-space-form";
 import { Avatar } from "@/components/tasks/avatar-stack";
 import { BottomSheet, BottomSheetOption } from "@/components/ui/bottom-sheet";
 import { useGoogleConnection } from "@/hooks/use-calendar";
+import { usePush } from "@/hooks/use-push";
 import { useUnreadCount } from "@/hooks/use-notifications";
 import { authClient } from "@/lib/auth-client";
 import { applyThemePreference, readThemePreference, type ThemePreference } from "@/lib/theme";
@@ -77,9 +80,11 @@ export function MoreView({
   const theme = useSyncExternalStore(subscribeToTheme, readThemePreference, (): ThemePreference => "system");
   const unread = useUnreadCount(spaceId);
   const google = useGoogleConnection();
+  const push = usePush();
 
   const count = unread.data ?? 0;
   const connected = google.data?.connected === true;
+  const pushHintText = pushHint(push.state);
 
   function pickTheme(p: ThemePreference) {
     applyThemePreference(p);
@@ -120,7 +125,10 @@ export function MoreView({
         </div>
 
         <div className="overflow-hidden rounded-xl bg-background">
-          <Link href={`/s/${spaceId}/notifications`} className={ROW}>
+          <Link
+            href={`/s/${spaceId}/notifications`}
+            className={cn(ROW, push.state !== "unconfigured" && "border-b border-divider")}
+          >
             <IconBell aria-hidden className="size-[22px] shrink-0 text-icon" stroke={1.8} />
             <span className="min-w-0 flex-1 truncate">Notifications</span>
             {count > 0 && (
@@ -130,6 +138,22 @@ export function MoreView({
             )}
             <IconChevronRight aria-hidden className="size-[18px] shrink-0 text-faint" />
           </Link>
+          {push.state !== "unconfigured" && (
+            <div
+              className={cn(
+                ROW,
+                "cursor-default",
+                pushHintText && "h-auto min-h-[52px] items-start py-2.5",
+              )}
+            >
+              <IconDeviceMobile aria-hidden className="mt-0.5 size-[22px] shrink-0 text-icon" stroke={1.8} />
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="text-base text-foreground">Notifications on this device</span>
+                {pushHintText && <span className="text-xs leading-4 text-muted-foreground">{pushHintText}</span>}
+              </span>
+              <PushSwitch />
+            </div>
+          )}
         </div>
 
         <div className="overflow-hidden rounded-xl bg-background">
