@@ -92,143 +92,269 @@
         <div style={{ boxSizing: 'border-box', color: 'var(--color-muted-foreground)', fontFamily: '"Inter-Regular_SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, letterSpacing: '0.04em', lineHeight: '18px' }}>
           TASK ROW · 44px status target, title 16/22 (max 2 lines), 6px gap, meta 12/16, project / list truncates with an ellipsis, divider inset 48px · tap row = open task, tap circle = status sheet
         </div>
-        <div style={{ backgroundColor: 'var(--color-background)', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', width: '390px' }}>
-          <div style={{ alignItems: 'start', boxSizing: 'border-box', display: 'flex', paddingLeft: '4px', paddingRight: '16px', paddingTop: '8px' }}>
-            <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '44px', justifyContent: 'center', width: '44px' }}>
-              <svg width="20" height="20" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
-                <circle cx="6" cy="6" r="5.5" fill="none" stroke="var(--color-faint)" strokeDasharray="2.2 1.25" />
-              </svg>
-            </div>
-            <div style={{ borderBottomColor: 'var(--color-divider)', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexDirection: 'column', flexGrow: '1', gap: '6px', paddingBottom: '12px', paddingTop: '11px' }}>
-              <div style={{ alignItems: 'start', boxSizing: 'border-box', display: 'flex', gap: '12px' }}>
-                <div style={{ boxSizing: 'border-box', color: 'var(--color-foreground)', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '16px', lineHeight: '22px' }}>
-                  Homepage layouts — desktop and tablet, with the new pricing block
-                </div>
-                <svg width="18" height="22" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0', display: 'inline-block' }}>
-                  <path d="M4 5a1 1 0 0 1 .3-.714a6 6 0 0 1 8.213-.176l.351.328a4 4 0 0 0 5.272 0l.249-.227c.61-.483 1.527-.097 1.61.676l.005.113v9a1 1 0 0 1-.3.714a6 6 0 0 1-8.213.176l-.351-.328a4 4 0 0 0-5.136-.114v6.552a1 1 0 0 1-1.993.117l-.007-.117v-16z" fill="var(--color-priority-1)" />
+        <div style={{ alignItems: 'start', boxSizing: 'border-box', display: 'flex', gap: 16, width: 'fit-content' }}>
+          <div style={{ backgroundColor: 'var(--color-background)', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', flexShrink: '0', width: '390px' }}>
+            <div style={{ alignItems: 'start', boxSizing: 'border-box', display: 'flex', paddingLeft: '4px', paddingRight: '16px', paddingTop: '8px' }}>
+              <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '44px', justifyContent: 'center', width: '44px' }}>
+                <svg width="20" height="20" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
+                  <circle cx="6" cy="6" r="5.5" fill="none" stroke="var(--color-faint)" strokeDasharray="2.2 1.25" />
                 </svg>
               </div>
-              <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '12px', height: '18px' }}>
-                <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '4px' }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
-                    <path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM16 3v4M8 3v4M4 11h16" fill="none" stroke="var(--color-success)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  <div style={{ boxSizing: 'border-box', color: 'var(--color-success)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
-                    Today
+              <div style={{ borderBottomColor: 'var(--color-divider)', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexDirection: 'column', flexGrow: '1', gap: '6px', paddingBottom: '12px', paddingTop: '11px' }}>
+                <div style={{ alignItems: 'start', boxSizing: 'border-box', display: 'flex', gap: '12px' }}>
+                  <div style={{ boxSizing: 'border-box', color: 'var(--color-foreground)', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '16px', lineHeight: '22px' }}>
+                    Homepage layouts — desktop and tablet, with the new pricing block
                   </div>
-                </div>
-                <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '3px' }}>
-                  <svg width="14" height="14" viewBox="1 1 14 14" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
-                    <path d="M5 6.5C5.828 6.5 6.5 5.828 6.5 5 6.5 4.172 5.828 3.5 5 3.5 4.172 3.5 3.5 4.172 3.5 5 3.5 5.828 4.172 6.5 5 6.5Z" fill="none" stroke="var(--color-muted-foreground)" />
-                    <path d="M5 7V9C5 10.104 5.896 11 7 11H9" fill="none" stroke="var(--color-muted-foreground)" strokeLinecap="square" />
-                    <path d="M11 12.5C11.828 12.5 12.5 11.828 12.5 11 12.5 10.172 11.828 9.5 11 9.5 10.172 9.5 9.5 10.172 9.5 11 9.5 11.828 10.172 12.5 11 12.5Z" fill="none" stroke="var(--color-muted-foreground)" />
+                  <svg width="18" height="22" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0', display: 'inline-block' }}>
+                    <path d="M4 5a1 1 0 0 1 .3-.714a6 6 0 0 1 8.213-.176l.351.328a4 4 0 0 0 5.272 0l.249-.227c.61-.483 1.527-.097 1.61.676l.005.113v9a1 1 0 0 1-.3.714a6 6 0 0 1-8.213.176l-.351-.328a4 4 0 0 0-5.136-.114v6.552a1 1 0 0 1-1.993.117l-.007-.117v-16z" fill="var(--color-priority-1)" />
                   </svg>
-                  <div style={{ boxSizing: 'border-box', color: 'var(--color-muted-foreground)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
-                    1/2
-                  </div>
                 </div>
-                <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '4px' }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
-                    <path d="M8 9h8M8 13h6M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-5l-5 3v-3h-2a3 3 0 0 1-3-3v-8a3 3 0 0 1 3-3h12z" fill="none" stroke="var(--color-muted-foreground)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  <div style={{ boxSizing: 'border-box', color: 'var(--color-muted-foreground)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
-                    3
-                  </div>
-                </div>
-                <div style={{ boxSizing: 'border-box', flexBasis: '0%', flexGrow: '1', minWidth: '4px' }} />
-                <div style={{ boxSizing: 'border-box', display: 'flex', flexShrink: '0' }}>
-                  <div style={{ alignItems: 'center', backgroundColor: '#DBEAFE', borderColor: 'var(--color-background)', borderRadius: '9px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '18px', justifyContent: 'center', width: '18px' }}>
-                    <div style={{ boxSizing: 'border-box', color: '#1D4ED8', fontFamily: '"Inter-Regular_Bold", "Inter", system-ui, sans-serif', fontSize: '8px', fontWeight: 700, lineHeight: '10px' }}>
-                      HX
+                <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '12px', height: '18px' }}>
+                  <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '4px' }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
+                      <path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM16 3v4M8 3v4M4 11h16" fill="none" stroke="var(--color-success)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <div style={{ boxSizing: 'border-box', color: 'var(--color-success)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                      Today
                     </div>
                   </div>
-                  <div style={{ alignItems: 'center', backgroundColor: '#FDE68A', borderColor: 'var(--color-background)', borderRadius: '9px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '18px', justifyContent: 'center', width: '18px' }}>
-                    <div style={{ boxSizing: 'border-box', color: '#78350F', fontFamily: '"Inter-Regular_Bold", "Inter", system-ui, sans-serif', fontSize: '8px', fontWeight: 700, lineHeight: '10px' }}>
-                      MR
+                  <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '3px' }}>
+                    <svg width="14" height="14" viewBox="1 1 14 14" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
+                      <path d="M5 6.5C5.828 6.5 6.5 5.828 6.5 5 6.5 4.172 5.828 3.5 5 3.5 4.172 3.5 3.5 4.172 3.5 5 3.5 5.828 4.172 6.5 5 6.5Z" fill="none" stroke="var(--color-muted-foreground)" />
+                      <path d="M5 7V9C5 10.104 5.896 11 7 11H9" fill="none" stroke="var(--color-muted-foreground)" strokeLinecap="square" />
+                      <path d="M11 12.5C11.828 12.5 12.5 11.828 12.5 11 12.5 10.172 11.828 9.5 11 9.5 10.172 9.5 9.5 10.172 9.5 11 9.5 11.828 10.172 12.5 11 12.5Z" fill="none" stroke="var(--color-muted-foreground)" />
+                    </svg>
+                    <div style={{ boxSizing: 'border-box', color: 'var(--color-muted-foreground)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                      1/2
                     </div>
                   </div>
-                </div>
-                <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', gap: '6px', maxWidth: '200px', minWidth: '0px', overflow: 'clip' }}>
-                  <div style={{ boxSizing: 'border-box', color: 'var(--color-muted-foreground)', display: 'flex', flexWrap: 'wrap', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', height: '16px', justifyContent: 'end', lineHeight: '16px', minWidth: '0px', textAlign: 'right' }}>
-                    Website Redesign/Design
+                  <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '4px' }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
+                      <path d="M8 9h8M8 13h6M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-5l-5 3v-3h-2a3 3 0 0 1-3-3v-8a3 3 0 0 1 3-3h12z" fill="none" stroke="var(--color-muted-foreground)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <div style={{ boxSizing: 'border-box', color: 'var(--color-muted-foreground)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                      3
+                    </div>
                   </div>
-                  <div style={{ backgroundColor: '#2563EB', borderRadius: '2px', boxSizing: 'border-box', flexShrink: '0', height: '8px', width: '8px' }} />
+                  <div style={{ boxSizing: 'border-box', flexBasis: '0%', flexGrow: '1', minWidth: '4px' }} />
+                  <div style={{ boxSizing: 'border-box', display: 'flex', flexShrink: '0' }}>
+                    <div style={{ alignItems: 'center', backgroundColor: '#DBEAFE', borderColor: 'var(--color-background)', borderRadius: '9px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '18px', justifyContent: 'center', width: '18px' }}>
+                      <div style={{ boxSizing: 'border-box', color: '#1D4ED8', fontFamily: '"Inter-Regular_Bold", "Inter", system-ui, sans-serif', fontSize: '8px', fontWeight: 700, lineHeight: '10px' }}>
+                        HX
+                      </div>
+                    </div>
+                    <div style={{ alignItems: 'center', backgroundColor: '#FDE68A', borderColor: 'var(--color-background)', borderRadius: '9px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '18px', justifyContent: 'center', width: '18px' }}>
+                      <div style={{ boxSizing: 'border-box', color: '#78350F', fontFamily: '"Inter-Regular_Bold", "Inter", system-ui, sans-serif', fontSize: '8px', fontWeight: 700, lineHeight: '10px' }}>
+                        MR
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', gap: '6px', maxWidth: '200px', minWidth: '0px', overflow: 'clip' }}>
+                    <div style={{ boxSizing: 'border-box', color: 'var(--color-muted-foreground)', display: 'flex', flexShrink: '0', flexWrap: 'wrap', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', height: '16px', justifyContent: 'end', lineHeight: '16px', minWidth: '0px', textAlign: 'right', width: '48px' }}>
+                      Website Redesign/Design
+                    </div>
+                    <div style={{ backgroundColor: '#2563EB', borderRadius: '2px', boxSizing: 'border-box', flexShrink: '0', height: '8px', width: '8px' }} />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          <div style={{ alignItems: 'start', boxSizing: 'border-box', display: 'flex', paddingLeft: '4px', paddingRight: '16px' }}>
-            <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '44px', justifyContent: 'center', width: '44px' }}>
-              <svg width="20" height="20" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
-                <circle cx="6" cy="6" r="5.5" fill="none" stroke="var(--color-status-active)" />
-                <path d="M6 0A6 6 0 0 1 6 12Z" fill="var(--color-status-active)" />
-              </svg>
-            </div>
-            <div style={{ borderBottomColor: 'var(--color-divider)', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexDirection: 'column', flexGrow: '1', gap: '6px', paddingBottom: '12px', paddingTop: '11px' }}>
-              <div style={{ alignItems: 'start', boxSizing: 'border-box', display: 'flex', gap: '12px' }}>
-                <div style={{ boxSizing: 'border-box', color: 'var(--color-foreground)', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '16px', lineHeight: '22px' }}>
-                  Design system tokens
-                </div>
-                <svg width="18" height="22" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0', display: 'inline-block' }}>
-                  <path d="M4 5a1 1 0 0 1 .3-.714a6 6 0 0 1 8.213-.176l.351.328a4 4 0 0 0 5.272 0l.249-.227c.61-.483 1.527-.097 1.61.676l.005.113v9a1 1 0 0 1-.3.714a6 6 0 0 1-8.213.176l-.351-.328a4 4 0 0 0-5.136-.114v6.552a1 1 0 0 1-1.993.117l-.007-.117v-16z" fill="var(--color-priority-2)" />
+            <div style={{ alignItems: 'start', boxSizing: 'border-box', display: 'flex', paddingLeft: '4px', paddingRight: '16px' }}>
+              <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '44px', justifyContent: 'center', width: '44px' }}>
+                <svg width="20" height="20" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
+                  <circle cx="6" cy="6" r="5.5" fill="none" stroke="var(--color-status-active)" />
+                  <path d="M6 0A6 6 0 0 1 6 12Z" fill="var(--color-status-active)" />
                 </svg>
               </div>
-              <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '12px', height: '18px' }}>
-                <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '4px' }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
-                    <path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM16 3v4M8 3v4M4 11h16" fill="none" stroke="var(--color-overdue)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <div style={{ borderBottomColor: 'var(--color-divider)', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexDirection: 'column', flexGrow: '1', gap: '6px', paddingBottom: '12px', paddingTop: '11px' }}>
+                <div style={{ alignItems: 'start', boxSizing: 'border-box', display: 'flex', gap: '12px' }}>
+                  <div style={{ boxSizing: 'border-box', color: 'var(--color-foreground)', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '16px', lineHeight: '22px' }}>
+                    Design system tokens
+                  </div>
+                  <svg width="18" height="22" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0', display: 'inline-block' }}>
+                    <path d="M4 5a1 1 0 0 1 .3-.714a6 6 0 0 1 8.213-.176l.351.328a4 4 0 0 0 5.272 0l.249-.227c.61-.483 1.527-.097 1.61.676l.005.113v9a1 1 0 0 1-.3.714a6 6 0 0 1-8.213.176l-.351-.328a4 4 0 0 0-5.136-.114v6.552a1 1 0 0 1-1.993.117l-.007-.117v-16z" fill="var(--color-priority-2)" />
                   </svg>
-                  <div style={{ boxSizing: 'border-box', color: 'var(--color-overdue)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
-                    Sep 27
+                </div>
+                <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '12px', height: '18px' }}>
+                  <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '4px' }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
+                      <path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM16 3v4M8 3v4M4 11h16" fill="none" stroke="var(--color-overdue)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <div style={{ boxSizing: 'border-box', color: 'var(--color-overdue)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                      Sep 27
+                    </div>
+                  </div>
+                  <div style={{ boxSizing: 'border-box', flexBasis: '0%', flexGrow: '1', minWidth: '4px' }} />
+                  <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', gap: '6px', maxWidth: '200px', minWidth: '0px', overflow: 'clip' }}>
+                    <div style={{ boxSizing: 'border-box', color: 'var(--color-muted-foreground)', display: 'flex', flexWrap: 'wrap', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', height: '16px', justifyContent: 'end', lineHeight: '16px', minWidth: '0px', textAlign: 'right' }}>
+                      Website Redesign/Development
+                    </div>
+                    <div style={{ backgroundColor: '#2563EB', borderRadius: '2px', boxSizing: 'border-box', flexShrink: '0', height: '8px', width: '8px' }} />
                   </div>
                 </div>
-                <div style={{ boxSizing: 'border-box', flexBasis: '0%', flexGrow: '1', minWidth: '4px' }} />
-                <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', gap: '6px', maxWidth: '200px', minWidth: '0px', overflow: 'clip' }}>
-                  <div style={{ boxSizing: 'border-box', color: 'var(--color-muted-foreground)', display: 'flex', flexWrap: 'wrap', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', height: '16px', justifyContent: 'end', lineHeight: '16px', minWidth: '0px', textAlign: 'right' }}>
-                    Website Redesign/Development
+              </div>
+            </div>
+            <div style={{ alignItems: 'start', boxSizing: 'border-box', display: 'flex', paddingLeft: '32px', paddingRight: '16px' }}>
+              <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '44px', justifyContent: 'center', width: '44px' }}>
+                <svg width="20" height="20" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
+                  <circle cx="6" cy="6" r="5.5" fill="none" stroke="var(--color-faint)" strokeDasharray="2.2 1.25" />
+                </svg>
+              </div>
+              <div style={{ borderBottomColor: 'var(--color-divider)', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexDirection: 'column', flexGrow: '1', gap: '6px', paddingBottom: '12px', paddingTop: '11px' }}>
+                <div style={{ boxSizing: 'border-box', color: 'var(--color-foreground)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '16px', lineHeight: '22px' }}>
+                  Pricing block and plan comparison
+                </div>
+                <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '12px', height: '18px' }}>
+                  <div style={{ boxSizing: 'border-box', color: 'var(--color-muted-foreground)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                    Oct 14
                   </div>
-                  <div style={{ backgroundColor: '#2563EB', borderRadius: '2px', boxSizing: 'border-box', flexShrink: '0', height: '8px', width: '8px' }} />
+                </div>
+              </div>
+            </div>
+            <div style={{ alignItems: 'start', boxSizing: 'border-box', display: 'flex', paddingLeft: '4px', paddingRight: '16px' }}>
+              <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '44px', justifyContent: 'center', width: '44px' }}>
+                <svg width="20" height="20" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
+                  <path d="M6 0C9.314 0 12 2.686 12 6C12 9.314 9.314 12 6 12C2.686 12 0 9.314 0 6C0 2.686 2.686 0 6 0ZM9.333 3.5C9.223 3.5 9.117 3.544 9.039 3.622L5.167 7.494L3.378 5.705C3.299 5.629 3.194 5.588 3.085 5.589C2.976 5.59 2.871 5.634 2.794 5.711C2.717 5.788 2.673 5.893 2.672 6.002C2.671 6.111 2.713 6.216 2.789 6.295L4.872 8.378C4.95 8.456 5.057 8.5 5.167 8.5C5.277 8.5 5.383 8.456 5.461 8.378L9.628 4.211C9.706 4.133 9.75 4.027 9.75 3.917C9.75 3.807 9.706 3.7 9.628 3.622C9.55 3.544 9.443 3.5 9.333 3.5Z" fill="var(--color-done)" />
+                </svg>
+              </div>
+              <div style={{ boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexDirection: 'column', flexGrow: '1', gap: '6px', paddingBottom: '12px', paddingTop: '11px' }}>
+                <div style={{ boxSizing: 'border-box', color: 'var(--color-muted-foreground)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '16px', lineHeight: '22px', textDecoration: 'line-through 1px', textUnderlinePosition: 'from-font' }}>
+                  Hero section
+                </div>
+                <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '12px', height: '18px' }}>
+                  <div style={{ boxSizing: 'border-box', color: 'var(--color-faint)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                    Sep 28
+                  </div>
+                  <div style={{ boxSizing: 'border-box', flexBasis: '0%', flexGrow: '1', minWidth: '4px' }} />
+                  <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', gap: '6px', maxWidth: '200px', minWidth: '0px', overflow: 'clip' }}>
+                    <div style={{ boxSizing: 'border-box', color: 'var(--color-faint)', display: 'flex', flexWrap: 'wrap', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', height: '16px', justifyContent: 'end', lineHeight: '16px', minWidth: '0px', textAlign: 'right' }}>
+                      Website Redesign/Design
+                    </div>
+                    <div style={{ backgroundColor: '#2563EB', borderRadius: '2px', boxSizing: 'border-box', flexShrink: '0', height: '8px', width: '8px' }} />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-          <div style={{ alignItems: 'start', boxSizing: 'border-box', display: 'flex', paddingLeft: '32px', paddingRight: '16px' }}>
-            <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '44px', justifyContent: 'center', width: '44px' }}>
-              <svg width="20" height="20" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
-                <circle cx="6" cy="6" r="5.5" fill="none" stroke="var(--color-faint)" strokeDasharray="2.2 1.25" />
-              </svg>
-            </div>
-            <div style={{ borderBottomColor: 'var(--color-divider)', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexDirection: 'column', flexGrow: '1', gap: '6px', paddingBottom: '12px', paddingTop: '11px' }}>
-              <div style={{ boxSizing: 'border-box', color: 'var(--color-foreground)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '16px', lineHeight: '22px' }}>
-                Pricing block and plan comparison
+          <div style={{ backgroundColor: 'var(--color-background)', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', flexShrink: '0', width: '390px' }}>
+            <div style={{ alignItems: 'start', boxSizing: 'border-box', display: 'flex', paddingLeft: '4px', paddingRight: '16px', paddingTop: '8px' }}>
+              <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '44px', justifyContent: 'center', width: '44px' }}>
+                <svg width="20" height="20" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
+                  <circle cx="6" cy="6" r="5.5" fill="none" stroke="var(--color-faint)" strokeDasharray="2.2 1.25" />
+                </svg>
               </div>
-              <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '12px', height: '18px' }}>
-                <div style={{ boxSizing: 'border-box', color: 'var(--color-muted-foreground)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
-                  Oct 14
-                </div>
-              </div>
-            </div>
-          </div>
-          <div style={{ alignItems: 'start', boxSizing: 'border-box', display: 'flex', paddingLeft: '4px', paddingRight: '16px' }}>
-            <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '44px', justifyContent: 'center', width: '44px' }}>
-              <svg width="20" height="20" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
-                <path d="M6 0C9.314 0 12 2.686 12 6C12 9.314 9.314 12 6 12C2.686 12 0 9.314 0 6C0 2.686 2.686 0 6 0ZM9.333 3.5C9.223 3.5 9.117 3.544 9.039 3.622L5.167 7.494L3.378 5.705C3.299 5.629 3.194 5.588 3.085 5.589C2.976 5.59 2.871 5.634 2.794 5.711C2.717 5.788 2.673 5.893 2.672 6.002C2.671 6.111 2.713 6.216 2.789 6.295L4.872 8.378C4.95 8.456 5.057 8.5 5.167 8.5C5.277 8.5 5.383 8.456 5.461 8.378L9.628 4.211C9.706 4.133 9.75 4.027 9.75 3.917C9.75 3.807 9.706 3.7 9.628 3.622C9.55 3.544 9.443 3.5 9.333 3.5Z" fill="var(--color-done)" />
-              </svg>
-            </div>
-            <div style={{ boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexDirection: 'column', flexGrow: '1', gap: '6px', paddingBottom: '12px', paddingTop: '11px' }}>
-              <div style={{ boxSizing: 'border-box', color: 'var(--color-muted-foreground)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '16px', lineHeight: '22px', textDecoration: 'line-through 1px', textUnderlinePosition: 'from-font' }}>
-                Hero section
-              </div>
-              <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '12px', height: '18px' }}>
-                <div style={{ boxSizing: 'border-box', color: 'var(--color-faint)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
-                  Sep 28
-                </div>
-                <div style={{ boxSizing: 'border-box', flexBasis: '0%', flexGrow: '1', minWidth: '4px' }} />
-                <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', gap: '6px', maxWidth: '200px', minWidth: '0px', overflow: 'clip' }}>
-                  <div style={{ boxSizing: 'border-box', color: 'var(--color-faint)', display: 'flex', flexWrap: 'wrap', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', height: '16px', justifyContent: 'end', lineHeight: '16px', minWidth: '0px', textAlign: 'right' }}>
-                    Website Redesign/Design
+              <div style={{ borderBottomColor: 'var(--color-divider)', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexDirection: 'column', flexGrow: '1', gap: '6px', paddingBottom: '12px', paddingTop: '11px' }}>
+                <div style={{ alignItems: 'start', boxSizing: 'border-box', display: 'flex', gap: '12px' }}>
+                  <div style={{ boxSizing: 'border-box', color: 'var(--color-foreground)', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '16px', lineHeight: '22px' }}>
+                    Homepage layouts — desktop and tablet, with the new pricing block
                   </div>
-                  <div style={{ backgroundColor: '#2563EB', borderRadius: '2px', boxSizing: 'border-box', flexShrink: '0', height: '8px', width: '8px' }} />
+                </div>
+                <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '12px', height: '18px' }}>
+                  <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '4px' }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
+                      <path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM16 3v4M8 3v4M4 11h16" fill="none" stroke="var(--color-success)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <div style={{ boxSizing: 'border-box', color: 'var(--color-success)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                      Today
+                    </div>
+                  </div>
+                  <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '3px' }}>
+                    <svg width="14" height="14" viewBox="1 1 14 14" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
+                      <path d="M5 6.5C5.828 6.5 6.5 5.828 6.5 5 6.5 4.172 5.828 3.5 5 3.5 4.172 3.5 3.5 4.172 3.5 5 3.5 5.828 4.172 6.5 5 6.5Z" fill="none" stroke="var(--color-muted-foreground)" />
+                      <path d="M5 7V9C5 10.104 5.896 11 7 11H9" fill="none" stroke="var(--color-muted-foreground)" strokeLinecap="square" />
+                      <path d="M11 12.5C11.828 12.5 12.5 11.828 12.5 11 12.5 10.172 11.828 9.5 11 9.5 10.172 9.5 9.5 10.172 9.5 11 9.5 11.828 10.172 12.5 11 12.5Z" fill="none" stroke="var(--color-muted-foreground)" />
+                    </svg>
+                    <div style={{ boxSizing: 'border-box', color: 'var(--color-muted-foreground)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                      1/2
+                    </div>
+                  </div>
+                  <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '4px' }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
+                      <path d="M8 9h8M8 13h6M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-5l-5 3v-3h-2a3 3 0 0 1-3-3v-8a3 3 0 0 1 3-3h12z" fill="none" stroke="var(--color-muted-foreground)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <div style={{ boxSizing: 'border-box', color: 'var(--color-muted-foreground)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                      3
+                    </div>
+                  </div>
+                  <div style={{ boxSizing: 'border-box', flexBasis: '0%', flexGrow: '1', minWidth: '4px' }} />
+                  <div style={{ boxSizing: 'border-box', display: 'flex', flexShrink: '0' }}>
+                    <div style={{ alignItems: 'center', backgroundColor: '#DBEAFE', borderColor: 'var(--color-background)', borderRadius: '9px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '18px', justifyContent: 'center', width: '18px' }}>
+                      <div style={{ boxSizing: 'border-box', color: '#1D4ED8', fontFamily: '"Inter-Regular_Bold", "Inter", system-ui, sans-serif', fontSize: '8px', fontWeight: 700, lineHeight: '10px' }}>
+                        HX
+                      </div>
+                    </div>
+                    <div style={{ alignItems: 'center', backgroundColor: '#FDE68A', borderColor: 'var(--color-background)', borderRadius: '9px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '18px', justifyContent: 'center', width: '18px' }}>
+                      <div style={{ boxSizing: 'border-box', color: '#78350F', fontFamily: '"Inter-Regular_Bold", "Inter", system-ui, sans-serif', fontSize: '8px', fontWeight: 700, lineHeight: '10px' }}>
+                        MR
+                      </div>
+                    </div>
+                  </div>
+                  <svg width="18" height="18" viewBox="0 2.182 24 19.636" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
+                    <path d="M4.667 6.257a0.917 0.821 0 0 1 0.275-0.586 5.5 4.923 0 0 1 7.528-0.144l0.322 0.269a3.667 3.282 0 0 0 4.833 0l0.228-0.187c0.559-0.396 1.4-0.08 1.476 0.555l0.004 0.093v7.384a0.917 0.821 0 0 1-0.275 0.586 5.5 4.923 0 0 1-7.528 0.144l-0.322-0.269a3.667 3.282 0 0 0-4.708-0.094v5.376a0.917 0.821 0 0 1-1.827 0.096l-0.006-0.096v-13.127z" fill="var(--color-priority-1)" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div style={{ alignItems: 'start', boxSizing: 'border-box', display: 'flex', paddingLeft: '4px', paddingRight: '16px' }}>
+              <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '44px', justifyContent: 'center', width: '44px' }}>
+                <svg width="20" height="20" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
+                  <circle cx="6" cy="6" r="5.5" fill="none" stroke="var(--color-status-active)" />
+                  <path d="M6 0A6 6 0 0 1 6 12Z" fill="var(--color-status-active)" />
+                </svg>
+              </div>
+              <div style={{ borderBottomColor: 'var(--color-divider)', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexDirection: 'column', flexGrow: '1', gap: '6px', paddingBottom: '12px', paddingTop: '11px' }}>
+                <div style={{ alignItems: 'start', boxSizing: 'border-box', display: 'flex', gap: '12px' }}>
+                  <div style={{ boxSizing: 'border-box', color: 'var(--color-foreground)', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '16px', lineHeight: '22px' }}>
+                    Design system tokens
+                  </div>
+                </div>
+                <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '12px', height: '18px' }}>
+                  <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '4px' }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
+                      <path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM16 3v4M8 3v4M4 11h16" fill="none" stroke="var(--color-overdue)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <div style={{ boxSizing: 'border-box', color: 'var(--color-overdue)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                      Sep 27
+                    </div>
+                  </div>
+                  <div style={{ boxSizing: 'border-box', flexBasis: '0%', flexGrow: '1', minWidth: '4px' }} />
+                  <svg width="18" height="18" viewBox="0 2.182 24 19.636" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
+                    <path d="M4.667 6.257a0.917 0.821 0 0 1 0.275-0.586 5.5 4.923 0 0 1 7.528-0.144l0.322 0.269a3.667 3.282 0 0 0 4.833 0l0.228-0.187c0.559-0.396 1.4-0.08 1.476 0.555l0.004 0.093v7.384a0.917 0.821 0 0 1-0.275 0.586 5.5 4.923 0 0 1-7.528 0.144l-0.322-0.269a3.667 3.282 0 0 0-4.708-0.094v5.376a0.917 0.821 0 0 1-1.827 0.096l-0.006-0.096v-13.127z" fill="var(--color-priority-2)" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div style={{ alignItems: 'start', boxSizing: 'border-box', display: 'flex', paddingLeft: '32px', paddingRight: '16px' }}>
+              <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '44px', justifyContent: 'center', width: '44px' }}>
+                <svg width="20" height="20" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
+                  <circle cx="6" cy="6" r="5.5" fill="none" stroke="var(--color-faint)" strokeDasharray="2.2 1.25" />
+                </svg>
+              </div>
+              <div style={{ borderBottomColor: 'var(--color-divider)', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexDirection: 'column', flexGrow: '1', gap: '6px', paddingBottom: '12px', paddingTop: '11px' }}>
+                <div style={{ boxSizing: 'border-box', color: 'var(--color-foreground)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '16px', lineHeight: '22px' }}>
+                  Pricing block and plan comparison
+                </div>
+                <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '12px', height: '18px' }}>
+                  <div style={{ boxSizing: 'border-box', color: 'var(--color-muted-foreground)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                    Oct 14
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style={{ alignItems: 'start', boxSizing: 'border-box', display: 'flex', paddingLeft: '4px', paddingRight: '16px' }}>
+              <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', height: '44px', justifyContent: 'center', width: '44px' }}>
+                <svg width="20" height="20" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
+                  <path d="M6 0C9.314 0 12 2.686 12 6C12 9.314 9.314 12 6 12C2.686 12 0 9.314 0 6C0 2.686 2.686 0 6 0ZM9.333 3.5C9.223 3.5 9.117 3.544 9.039 3.622L5.167 7.494L3.378 5.705C3.299 5.629 3.194 5.588 3.085 5.589C2.976 5.59 2.871 5.634 2.794 5.711C2.717 5.788 2.673 5.893 2.672 6.002C2.671 6.111 2.713 6.216 2.789 6.295L4.872 8.378C4.95 8.456 5.057 8.5 5.167 8.5C5.277 8.5 5.383 8.456 5.461 8.378L9.628 4.211C9.706 4.133 9.75 4.027 9.75 3.917C9.75 3.807 9.706 3.7 9.628 3.622C9.55 3.544 9.443 3.5 9.333 3.5Z" fill="var(--color-done)" />
+                </svg>
+              </div>
+              <div style={{ boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexDirection: 'column', flexGrow: '1', gap: '6px', paddingBottom: '12px', paddingTop: '11px' }}>
+                <div style={{ boxSizing: 'border-box', color: 'var(--color-muted-foreground)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '16px', lineHeight: '22px', textDecoration: 'line-through 1px', textUnderlinePosition: 'from-font' }}>
+                  Hero section
+                </div>
+                <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '12px', height: '18px' }}>
+                  <div style={{ boxSizing: 'border-box', color: 'var(--color-faint)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                    Sep 28
+                  </div>
+                  <div style={{ boxSizing: 'border-box', flexBasis: '0%', flexGrow: '1', minWidth: '4px' }} />
                 </div>
               </div>
             </div>

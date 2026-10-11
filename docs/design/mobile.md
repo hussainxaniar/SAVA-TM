@@ -44,6 +44,7 @@ the project colour as a 3px left bar; dark: #1E2A4A / #2E1F5E / #14321F).
 | Status glyph | 20px drawn, centred in a 44px target; 24px in task details; 14px inside pills and chips |
 | Tab bar | 56px + the bottom safe area; icon 24, active tab = primary colour with a 2px stroke and a semibold label |
 | Task row | Left padding 4, right 16. Title up to 2 lines with the priority flag (18px) top right. 6px gap. Meta line: due date (calendar icon 14 + text), subtask count, comment count on the left; assignee avatars (18px) and `Project/List` + the 8px project square on the right. The `Project/List` text is one line, right-aligned, max 200px, truncated with an ellipsis. Divider 1px `divider`, inset 48px from the left. Subtask rows are indented 28px |
+| Task row without project (owner's variant, 2026-10-11) | Used where the list is already known: the **List page** and the **subtasks in task details**. No `Project/List`; the title takes the full width; the priority flag moves to the right end of the meta line, after the assignee avatars |
 | Group header (date) | 44px, 15/20 semibold + count; 20px extra space above every group except the first; "Reschedule" action on Overdue |
 | Group header (status) | 44px: chevron, status pill (24px high, radius 6, 12px semibold uppercase), count, add button |
 | Chips | 32px high, radius 8, 10px side padding; outlined (border), filled (pill), selected (selected / selected-foreground), empty (dashed) |
@@ -56,7 +57,7 @@ the project colour as a 3px left bar; dark: #1E2A4A / #2E1F5E / #14321F).
 ## Behaviour
 
 - **No hover anywhere.** Tap a row = open the task; tap the status circle = status sheet (never a checkbox); the chips in task details open
-  their sheets (status, due date, assignees, priority, lists).
+  their sheets (status, due date, assignees, priority). The owner removed the list chips from task details on 2026-10-11; the list shows only in the breadcrumb.
 - **Task details** opens as a full-height sheet from any list; the chevron or a swipe down closes it. The composer stays docked.
 - **My tasks** groups: Overdue, Today, Upcoming, No date (as desktop My Tasks). Empty state has an "Add task" button.
 - **Calendar**: "See tasks" opens a sheet with my open tasks. Long-press lifts a task, the sheet closes, and the task follows the finger; the

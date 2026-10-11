@@ -1,5 +1,5 @@
 (
-    <div style={{ backgroundColor: 'var(--color-background)', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', fontSize: '12px', fontSynthesis: 'none', height: '832px', lineHeight: '16px', MozOsxFontSmoothing: 'grayscale', overflow: 'clip', overflowWrap: 'anywhere', position: 'relative', WebkitFontSmoothing: 'antialiased', width: '390px' }}>
+    <div style={{ backgroundColor: 'var(--color-background)', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', fontSize: '12px', fontSynthesis: 'none', height: '844px', lineHeight: '16px', MozOsxFontSmoothing: 'grayscale', overflow: 'clip', overflowWrap: 'anywhere', position: 'relative', WebkitFontSmoothing: 'antialiased', width: '390px' }}>
       <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', gap: '154px', paddingBottom: '19px', paddingInline: '24px', paddingTop: '21px' }}>
         <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexDirection: 'column', flexGrow: '1', justifyContent: 'center' }}>
           <div style={{ boxSizing: 'border-box', color: '#000000', display: 'flex', flexWrap: 'wrap', fontFamily: 'system-ui, sans-serif', fontSize: '17px', fontWeight: 600, justifyContent: 'center', lineHeight: '22px', textAlign: 'center', width: 'fit-content' }}>
@@ -94,12 +94,6 @@
             </svg>
           </div>
           <div style={{ borderBottomColor: 'var(--color-divider)', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexDirection: 'column', flexGrow: '1', gap: 6, paddingBottom: '12px', paddingTop: '11px' }}>
-            <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', gap: '6px', maxWidth: '200px', overflow: 'clip', width: 'fit-content' }}>
-              <div style={{ boxSizing: 'border-box', color: 'var(--color-muted-foreground)', display: 'flex', flex: 1, flexBasis: '0%', flexGrow: '1', flexWrap: 'wrap', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', height: '16px', justifyContent: 'end', lineHeight: '16px', textAlign: 'right' }}>
-                Website Redesign/Design
-              </div>
-              <div style={{ backgroundColor: '#2563EB', borderRadius: '2px', boxSizing: 'border-box', flexShrink: '0', height: '8px', width: '8px' }} />
-            </div>
             <div style={{ alignItems: 'start', boxSizing: 'border-box', display: 'flex', gap: '12px' }}>
               <div style={{ boxSizing: 'border-box', color: 'var(--color-foreground)', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '16px', lineHeight: '22px' }}>
                 Homepage layouts — desktop and tablet, with the new pricing block
@@ -147,6 +141,12 @@
                     MR
                   </div>
                 </div>
+              </div>
+              <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', gap: '6px', maxWidth: '200px', overflow: 'clip' }}>
+                <div style={{ boxSizing: 'border-box', color: 'var(--color-muted-foreground)', display: 'flex', flex: 1, flexBasis: '0%', flexGrow: '1', flexWrap: 'wrap', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', height: '16px', justifyContent: 'end', lineHeight: '16px', textAlign: 'right' }}>
+                  Website Redesign/Design
+                </div>
+                <div style={{ backgroundColor: '#2563EB', borderRadius: '2px', boxSizing: 'border-box', flexShrink: '0', height: '8px', width: '8px' }} />
               </div>
             </div>
           </div>

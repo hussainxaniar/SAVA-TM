@@ -63,4 +63,7 @@ line with an ellipsis (max 200px), 20px extra above each group after the first.
   - Truncation in Paper cuts at a word ("Website ..."); in code it should be a normal CSS ellipsis.
   - Not designed: see "Not designed" in `docs/design/mobile.md`.
   - The owner added a second "01 My tasks — Light" artboard while the work was running; both were left as they are.
+- **Owner's edits (2026-10-11):** a second task row without the project / list (title full width, flag at the end of the meta line), used on the
+  List page and for the subtasks in task details; the list chips were removed from task details. The dark Components, My tasks, Task details
+  and List page artboards were regenerated from the owner's light ones, and the four exports refreshed.
 - **Next:** the owner reviews the design; then the implementation tickets (proposed list M-01 to M-08 in `docs/design/mobile.md`).

@@ -84,9 +84,6 @@
               <div style={{ boxSizing: 'border-box', color: 'var(--color-foreground)', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '16px', lineHeight: '22px' }}>
                 Homepage layouts — desktop and tablet, with the new pricing block
               </div>
-              <svg width="18" height="22" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0', display: 'inline-block' }}>
-                <path d="M4 5a1 1 0 0 1 .3-.714a6 6 0 0 1 8.213-.176l.351.328a4 4 0 0 0 5.272 0l.249-.227c.61-.483 1.527-.097 1.61.676l.005.113v9a1 1 0 0 1-.3.714a6 6 0 0 1-8.213.176l-.351-.328a4 4 0 0 0-5.136-.114v6.552a1 1 0 0 1-1.993.117l-.007-.117v-16z" fill="var(--color-priority-1)" />
-              </svg>
             </div>
             <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '12px', height: '18px' }}>
               <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '4px' }}>
@@ -128,6 +125,9 @@
                   </div>
                 </div>
               </div>
+              <svg width="18" height="18" viewBox="0 0 27 27" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
+                <path d="M5.25 6.508a1.031 1.004 0 0 1 0.309-0.716 6.188 6.023 0 0 1 8.47-0.177l0.362 0.329a4.125 4.015 0 0 0 5.437 0l0.256-0.228c0.629-0.484 1.575-0.097 1.661 0.679l0.005 0.113v9.034a1.031 1.004 0 0 1-0.31 0.717 6.188 6.023 0 0 1-8.469 0.176l-0.362-0.329a4.125 4.015 0 0 0-5.296-0.114v6.577a1.031 1.004 0 0 1-2.056 0.116l-0.007-0.116v-16.061z" fill="var(--color-priority-1)" />
+              </svg>
             </div>
           </div>
         </div>
@@ -176,9 +176,6 @@
               <div style={{ boxSizing: 'border-box', color: 'var(--color-foreground)', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '16px', lineHeight: '22px' }}>
                 Build shared component library in Paper
               </div>
-              <svg width="18" height="22" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0', display: 'inline-block' }}>
-                <path d="M4 5a1 1 0 0 1 .3-.714a6 6 0 0 1 8.213-.176l.351.328a4 4 0 0 0 5.272 0l.249-.227c.61-.483 1.527-.097 1.61.676l.005.113v9a1 1 0 0 1-.3.714a6 6 0 0 1-8.213.176l-.351-.328a4 4 0 0 0-5.136-.114v6.552a1 1 0 0 1-1.993.117l-.007-.117v-16z" fill="var(--color-priority-3)" />
-              </svg>
             </div>
             <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '12px', height: '18px' }}>
               <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '4px' }}>
@@ -190,6 +187,9 @@
                 </div>
               </div>
               <div style={{ boxSizing: 'border-box', flexBasis: '0%', flexGrow: '1' }} />
+              <svg width="18" height="18" viewBox="0 0 24 19.636" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
+                <path d="M4.667 3.606a0.917 0.818 0 0 1 0.275-0.584 5.5 4.909 0 0 1 7.528-0.144l0.322 0.268a3.667 3.273 0 0 0 4.833 0l0.228-0.186c0.559-0.395 1.4-0.079 1.476 0.553l0.004 0.093v7.364a0.917 0.818 0 0 1-0.275 0.584 5.5 4.909 0 0 1-7.528 0.144l-0.322-0.269a3.667 3.273 0 0 0-4.708-0.093v5.361a0.917 0.818 0 0 1-1.827 0.096l-0.006-0.096v-13.091z" fill="var(--color-priority-3)" />
+              </svg>
             </div>
           </div>
         </div>
@@ -235,9 +235,6 @@
               <div style={{ boxSizing: 'border-box', color: 'var(--color-foreground)', flexBasis: '0%', flexGrow: '1', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '16px', lineHeight: '22px' }}>
                 Design system tokens
               </div>
-              <svg width="18" height="22" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: '0', display: 'inline-block' }}>
-                <path d="M4 5a1 1 0 0 1 .3-.714a6 6 0 0 1 8.213-.176l.351.328a4 4 0 0 0 5.272 0l.249-.227c.61-.483 1.527-.097 1.61.676l.005.113v9a1 1 0 0 1-.3.714a6 6 0 0 1-8.213.176l-.351-.328a4 4 0 0 0-5.136-.114v6.552a1 1 0 0 1-1.993.117l-.007-.117v-16z" fill="var(--color-priority-2)" />
-              </svg>
             </div>
             <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '12px', height: '18px' }}>
               <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexShrink: '0', gap: '4px' }}>
@@ -249,6 +246,9 @@
                 </div>
               </div>
               <div style={{ boxSizing: 'border-box', flexBasis: '0%', flexGrow: '1' }} />
+              <svg width="18" height="18" viewBox="0 0 27 27" xmlns="http://www.w3.org/2000/svg" style={{ display: 'inline-block', flexShrink: '0' }}>
+                <path d="M5.25 6.508a1.031 1.004 0 0 1 0.309-0.716 6.188 6.023 0 0 1 8.47-0.177l0.362 0.329a4.125 4.015 0 0 0 5.437 0l0.256-0.228c0.629-0.484 1.575-0.097 1.661 0.679l0.005 0.113v9.034a1.031 1.004 0 0 1-0.31 0.717 6.188 6.023 0 0 1-8.469 0.176l-0.362-0.329a4.125 4.015 0 0 0-5.296-0.114v6.577a1.031 1.004 0 0 1-2.056 0.116l-0.007-0.116v-16.061z" fill="var(--color-priority-2)" />
+              </svg>
             </div>
           </div>
         </div>
