@@ -113,7 +113,7 @@ export function MobileCalendarView({ spaceId }: { spaceId: string }) {
       {dragging ? (
         <div
           aria-hidden
-          className="pointer-events-none fixed left-1/2 z-30 flex h-12 -translate-x-1/2 items-center rounded-full bg-foreground px-5 text-[13px] font-medium text-background shadow-lg"
+          className="pointer-events-none whitespace-nowrap fixed left-1/2 z-30 flex h-12 -translate-x-1/2 items-center rounded-full bg-foreground px-5 text-[13px] font-medium text-background shadow-lg"
           style={pillPosition}
         >
           Drop on the calendar to schedule

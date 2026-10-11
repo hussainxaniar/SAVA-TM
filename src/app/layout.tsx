@@ -38,7 +38,12 @@ export default function RootLayout({
       <body className="min-h-screen bg-background font-sans antialiased">
         <Providers>{children}</Providers>
         {/* Section 4: toasts for errors only; success is silent. */}
-        <Toaster position="bottom-right" richColors />
+        {/* mobileOffset: on a phone toasts sit above the tab bar (docs/design/mobile.md). */}
+        <Toaster
+          position="bottom-right"
+          richColors
+          mobileOffset={{ bottom: "calc(72px + env(safe-area-inset-bottom))", left: 16, right: 16 }}
+        />
       </body>
     </html>
   );
