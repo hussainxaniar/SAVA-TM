@@ -30,10 +30,10 @@ export const MobileTaskRow = memo(function MobileTaskRow({
   onOpenTask: (taskId: string) => void;
   onSetStatus: (task: TaskRowDTO, statusId: string, completeSubtasks?: boolean) => void;
 }) {
-  const due = task.dueDate ? formatDue(task.dueDate, task.dueHasTime) : null;
+  const completed = task.completedAt !== null;
+  const due = task.dueDate ? formatDue(task.dueDate, task.dueHasTime, { completed }) : null;
   const doneSubtasks = task.subtaskCount - task.openSubtaskCount;
   const flag = task.priority < 4;
-  const completed = task.completedAt !== null;
 
   const hasMeta =
     due !== null ||

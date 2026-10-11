@@ -8,7 +8,7 @@ import { MobileTaskRow } from "@/components/mobile/task-row";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { groupMyTasks } from "@/lib/my-tasks";
 import { requestQuickAdd } from "@/lib/quick-add";
-import type { MyTasksDTO, StatusDTO, TaskRowDTO } from "@/server/services/types";
+import type { MyTaskDTO, MyTasksDTO, StatusDTO, TaskRowDTO } from "@/server/services/types";
 
 /**
  * My tasks on a phone (docs/design/mobile.md "My tasks"): date groups of two-line rows over the
@@ -28,7 +28,7 @@ export function MobileMyTasks({
 }) {
   // next7 + later share one header ("Upcoming"); their rows keep groupMyTasks' order.
   const groups = useMemo(() => {
-    const merged: { key: string; label: string; tasks: TaskRowDTO[] }[] = [];
+    const merged: { key: string; label: string; tasks: MyTaskDTO[] }[] = [];
     for (const group of groupMyTasks(data.tasks)) {
       if (group.key === "next7" || group.key === "later") {
         const last = merged[merged.length - 1];
@@ -44,7 +44,8 @@ export function MobileMyTasks({
   // The row reports a status id; resolve it against that row's project statuses.
   const handleSetStatus = useCallback(
     (task: TaskRowDTO, statusId: string, completeSubtasks?: boolean) => {
-      const to = data.statusesByProject[task.projectId]?.find((s) => s.id === statusId);
+      // Status ids are unique across projects, so the row's own project needn't be looked up.
+      const to = Object.values(data.statusesByProject).flat().find((s) => s.id === statusId);
       if (to) onSetStatus(task, to, completeSubtasks);
     },
     [data.statusesByProject, onSetStatus],
