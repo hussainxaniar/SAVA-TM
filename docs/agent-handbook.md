@@ -219,6 +219,8 @@ humans only). Paper MCP tools may be unavailable; they are read-only anyway. Whe
   (`docs/design/icons.md`). In-progress statuses may choose circle / ¼ / ½ / ¾; To do is always the dashed circle, Done the check.
 - Match sizes, spacing and colors pixel-exactly; use theme tokens (`globals.css`), never hex in components. Dark mode must work.
 - The owner reviews visually and will notice small misalignments.
+- Mobile (2026-10-11): the Paper page "Mobile" holds the phone design (light and dark); notes in `docs/design/mobile.md`, exports in
+  `docs/design/mobile/`. Paper can also be scripted over its local MCP endpoint when many nodes must change (see I-20).
 - No attachments/paperclip in v1 (images inside text are allowed, stored in the `Image` table, max 4 MB).
 
 ## 9. Current state (update this when it changes)

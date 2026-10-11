@@ -14,14 +14,15 @@ dark and light, plus notes for the implementer in the task comments. Implementat
 
 ## Subtasks (as in Sava TM)
 
-- [ ] Design system for mobile: tokens, tab bar, row, chips, bottom sheet, floating button (component sheet, dark and light) — **in progress**
-- [ ] Tab 1 My tasks: grouped list with project / list on each row, add-task button, empty state
-- [ ] Task details (Todoist-like): sheet, status / date / assignee / priority pickers, subtasks, comments with docked composer
-- [ ] Tab 2 Calendar: 3-day view, See tasks floating button, tasks bottom sheet, drag-and-drop to schedule, block detail
-- [ ] Tab 3 All tasks (projects, lists, documents) and the List page grouped by status
-- [ ] Documents on mobile: page tree, reader / editor, slash menu bar, task link chips
-- [ ] Tab 4 More drawer (spaces, settings, integrations, sign out), notifications, quick add and error / loading states
-- [ ] Review of the design with the owner, notes for the implementer, and implementation tickets
+- [x] Design system for mobile: tokens, tab bar, row, chips, bottom sheet, floating button (component sheet, dark and light)
+- [x] Tab 1 My tasks: grouped list with project / list on each row, add-task button, empty state
+- [x] Task details (Todoist-like): sheet, status / date / assignee / priority pickers, subtasks, comments with docked composer
+- [x] Tab 2 Calendar: 3-day view, See tasks floating button, tasks bottom sheet, drag-and-drop to schedule, block detail
+- [x] Tab 3 All tasks (projects, lists, documents) and the List page grouped by status
+- [x] Documents on mobile: page tree, reader / editor, slash menu bar, task link chips
+- [x] Tab 4 More drawer (spaces, settings, integrations, sign out), notifications, quick add and error / loading states
+- [ ] Review of the design with the owner, notes for the implementer, and implementation tickets — notes written
+      (`docs/design/mobile.md`); the review and the tickets wait for the owner
 
 ## Decisions so far
 
@@ -38,15 +39,28 @@ dark and light, plus notes for the implementer in the task comments. Implementat
   the `<svg>` do not reach the paths), and such colours are not found by `find_nodes`; dark screens are therefore written with the `--dark-*`
   tokens rather than converted from the light ones.
 
-## State (2026-10-10)
+## Owner's feedback applied (2026-10-10)
 
-- Artboard "00 Components — Light" is complete: status glyphs, tab bar, task rows (full, overdue, subtask, done), group headers (date group,
-  status group, collapsed Done), chips (due, priority, list, selected, empty, task link), buttons (floating add, extended "See tasks",
-  primary, secondary, text, icon, send), bottom sheet (status picker), navigation bar, large-title screen header, offline banner, comment
-  composer. Screens are assembled from these with `<x-paper-clone>`.
-- Artboard "01 My tasks — Light" is drawn (Overdue / Today / Upcoming / No date, floating add button, tab bar).
-- Still open in subtask 1: the dark component sheet. Still open in subtask 2: the empty state and the dark version.
-- Not yet seen: the two Todoist reference screenshots (this session's `sava` connection did not list a `get_image` tool, and the image URL
-  asks for a sign-in), so the direction is from the written brief only and waits for the owner's look before the remaining screens are drawn.
-- Row anatomy chosen: line 1 = title (max 2 lines) with the priority flag on the right; line 2 = due date, subtask count, comment count on the
-  left and assignee avatars plus the list name with the project colour square on the right.
+"For due date, comment and subtask number and project use font size 12px. Also increase the gap between this line and the title to 6px. Also
+write the project text like [project]/[list], but it gets truncated when it becomes longer than the available space. Also increase the space
+between one group and another group." Applied to the row component and every screen: meta 12/16, 6px gap, `Project/List` right-aligned on one
+line with an ellipsis (max 200px), 20px extra above each group after the first.
+
+## Completion record (2026-10-11)
+
+- **Model:** Architect only (Opus 5.5); no implementer dispatch, no application code. Branch `develop`.
+- **Drawn in Paper, page Mobile:** 12 artboards in light and 12 in dark (list and contents in `docs/design/mobile.md`). The light ones were
+  drawn by hand from the component sheet; the dark ones were generated from the light ones by a script that re-writes each artboard with the
+  `--dark-*` tokens and dark values for the few literal colours, then checked by eye (component sheet, My tasks, task details, calendar,
+  calendar flow, More, shared sheet).
+- **Exports:** `docs/design/mobile/*.jsx.txt` (the 12 light artboards). **Notes for the implementer:** `docs/design/mobile.md`.
+- **Fixed during review of my own screenshots:** tab bar icon colours, the Done glyph size in the status sheet, chip alignment, a subtask title
+  colliding with its date, the drag hint and the toast overlapping other elements, wrapped `Project/List` labels, dark calendar time colours.
+- **Not verified / open:**
+  - The two Todoist reference screenshots in the task were never seen (no `get_image` tool in this session's connection); the look follows
+    the written brief and the owner's feedback on the first screen.
+  - Dark artboards have generic layer names (the generator works from the code export, which carries no names).
+  - Truncation in Paper cuts at a word ("Website ..."); in code it should be a normal CSS ellipsis.
+  - Not designed: see "Not designed" in `docs/design/mobile.md`.
+  - The owner added a second "01 My tasks — Light" artboard while the work was running; both were left as they are.
+- **Next:** the owner reviews the design; then the implementation tickets (proposed list M-01 to M-08 in `docs/design/mobile.md`).
