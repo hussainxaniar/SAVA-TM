@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import type { DatesSetArg } from "@fullcalendar/core";
 import type FullCalendar from "@fullcalendar/react";
@@ -9,6 +9,7 @@ import { IconBrandGoogle } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { useGoogleConnection, type Range } from "@/hooks/use-calendar";
 import { useIsMobile } from "@/hooks/use-media-query";
+import { MobileCalendarView } from "@/components/mobile/calendar-view";
 import { CalendarGrid } from "./calendar-grid";
 import { CalendarToolbar } from "./calendar-toolbar";
 import { TaskRail } from "./task-rail";
@@ -32,16 +33,6 @@ export function CalendarView({ spaceId }: CalendarViewProps) {
   const google = useGoogleConnection().data;
   const isMobile = useIsMobile();
 
-  // The week grid doesn't fit below 768px: switch to Day once after hydration (9.1).
-  const didDayView = useRef(false);
-  useEffect(() => {
-    if (!isMobile || didDayView.current) return;
-    const api = calendarRef.current?.getApi();
-    if (!api) return;
-    didDayView.current = true;
-    api.changeView("timeGridDay");
-  }, [isMobile]);
-
   const onDatesSet = useCallback((arg: DatesSetArg) => {
     const start = arg.start.toISOString();
     const end = arg.end.toISOString();
@@ -54,6 +45,9 @@ export function CalendarView({ spaceId }: CalendarViewProps) {
     (taskId: string) => router.replace(`${pathname}?task=${taskId}`, { scroll: false }),
     [router, pathname],
   );
+
+  // On a phone the tab bar renders the mobile screen; the desktop layout stops here.
+  if (isMobile) return <MobileCalendarView spaceId={spaceId} />;
 
   const withApi = (run: (api: ReturnType<FullCalendar["getApi"]>) => void) => {
     const api = calendarRef.current?.getApi();

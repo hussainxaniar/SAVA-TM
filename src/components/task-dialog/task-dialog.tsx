@@ -513,6 +513,7 @@ export function TitleEditor({
       value={value}
       maxLength={500}
       aria-label="Task title"
+      data-title-field
       onChange={(e) => setValue(e.target.value)}
       onKeyDown={(e) => {
         if (e.key === "Enter") {

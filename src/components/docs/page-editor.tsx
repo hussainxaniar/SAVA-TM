@@ -186,6 +186,7 @@ export function PageEditor(props: PageEditorProps) {
         onBlur={handleFlush}
         placeholder="Untitled"
         aria-label="Page title"
+      data-title-field
         className="field-sizing-content w-full resize-none bg-transparent p-0 text-[28px] font-semibold leading-[34px] tracking-[-0.02em] text-foreground outline-none placeholder:text-muted-foreground max-md:text-[26px] max-md:font-bold max-md:leading-8"
       />
       <EditorBody

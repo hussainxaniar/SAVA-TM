@@ -248,10 +248,10 @@
 }
 
 /* Phones (docs/design/mobile.md): iOS zooms the page when a focused field's text is under 16px,
-   so every field and editor is 16px below 768px. Unlayered on purpose: it must win over utilities. */
+   so every field and editor is 16px below 768px (the big title fields, marked data-title-field, are larger already). Unlayered on purpose: it must win over utilities. */
 @media (max-width: 767.98px) {
   input,
-  textarea,
+  textarea:not([data-title-field]),
   select,
   [contenteditable="true"] {
     font-size: 16px;

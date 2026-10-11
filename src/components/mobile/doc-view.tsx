@@ -100,7 +100,7 @@ export function MobileDocView({
             type="button"
             onClick={() => void addPage()}
             disabled={createPage.isPending}
-            className="flex h-12 w-full items-center gap-2 pr-4 text-base text-muted-foreground"
+            className="flex h-12 w-full items-center gap-2 pl-4 pr-4 text-base text-muted-foreground"
           >
             <IconPlus className="size-5 shrink-0 text-primary" />
             New page
