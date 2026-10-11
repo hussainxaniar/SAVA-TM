@@ -1,5 +1,6 @@
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { resolveApiToken } from "../services/api-tokens";
+import { schedulePushDispatch } from "../services/push";
 import { runVia } from "./context";
 import { allowRequest } from "./rate-limit";
 import { buildMcpServer } from "./server";
@@ -59,5 +60,6 @@ export async function handleMcpRequest(req: Request): Promise<Response> {
     return rpcError(500, "Internal error");
   } finally {
     void transport.close().catch(() => {});
+    schedulePushDispatch(); // Section 17: push what this request's changes notified
   }
 }

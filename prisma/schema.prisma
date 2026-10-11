@@ -82,6 +82,7 @@ model User {
 
   notificationsReceived Notification[] @relation("NotificationRecipient")
   notificationsCaused   Notification[] @relation("NotificationActor")
+  pushSubscriptions     PushSubscription[]
 
   @@unique([email])
   @@map("user")
@@ -477,6 +478,7 @@ model Notification {
   type      NotificationType
   payload   Json // { to?: statusId | ISO date | null, toHasTime?: boolean, completed?: boolean }
   readAt    DateTime?
+  pushedAt  DateTime? // web push outbox (Section 17): null = not sent to the recipient's devices yet
   createdAt DateTime         @default(now())
   user      User             @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
   actor     User             @relation("NotificationActor", fields: [actorId], references: [id], onDelete: Cascade)
@@ -485,4 +487,20 @@ model Notification {
 
   @@index([userId, spaceId, createdAt])
   @@index([userId, spaceId, readAt])
+  @@index([pushedAt, createdAt])
+}
+
+model PushSubscription {
+  // one browser on one device that asked for web push (Section 17); it receives its user's notifications from every space
+  id         String    @id @default(cuid(2))
+  userId     String
+  endpoint   String    @unique // the browser vendor's push URL; identifies the device
+  p256dh     String
+  auth       String
+  userAgent  String?
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

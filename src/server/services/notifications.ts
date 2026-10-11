@@ -4,6 +4,7 @@ import { AppError } from "../errors";
 import { requireMember } from "../guards";
 import type { ActivityInput } from "./activity";
 import type { Ctx, NotificationDTO } from "./types";
+import { markPushPending } from "./push";
 
 /*
  * Section 16. In-app notifications for the people involved in a task (its assignees and its
@@ -73,7 +74,10 @@ export async function notifyFromActivities(tx: Prisma.TransactionClient, inputs:
   });
   const memberKeys = new Set(members.map((m) => `${m.spaceId}|${m.userId}`));
   const data = candidates.filter((r) => memberKeys.has(`${r.spaceId}|${r.userId}`));
-  if (data.length > 0) await tx.notification.createMany({ data });
+  if (data.length > 0) {
+    await tx.notification.createMany({ data });
+    markPushPending(); // Section 17: sent after the response, never from inside this transaction
+  }
 }
 
 const key = (userId: string, taskId: string, type: NotificationType) => `${userId}|${taskId}|${type}`;
