@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { IconCircleCheck } from "@tabler/icons-react";
+import { IconBell, IconCircleCheck } from "@tabler/icons-react";
 import { AddTaskFab } from "@/components/mobile/fab";
-import { ScreenHeader } from "@/components/mobile/screen-header";
+import { HeaderIconButton, ScreenHeader } from "@/components/mobile/screen-header";
 import { MobileTaskRow } from "@/components/mobile/task-row";
-import { NotificationBell } from "@/components/notifications/notification-bell";
+import { useUnreadCount } from "@/hooks/use-notifications";
 import { groupMyTasks } from "@/lib/my-tasks";
 import { requestQuickAdd } from "@/lib/quick-add";
 import type { MyTaskDTO, MyTasksDTO, StatusDTO, TaskRowDTO } from "@/server/services/types";
@@ -58,7 +58,7 @@ export function MobileMyTasks({
       <ScreenHeader
         title="My tasks"
         subtitle={`${n} task${n === 1 ? "" : "s"}`}
-        actions={<NotificationBell spaceId={spaceId} />}
+        actions={<NotificationsLink spaceId={spaceId} />}
       />
       {n === 0 ? (
         <div className="flex flex-col items-center gap-3 px-10 pt-24 text-center">
@@ -105,5 +105,27 @@ export function MobileMyTasks({
       )}
       {n > 0 && <AddTaskFab />}
     </div>
+  );
+}
+
+/** The header bell (M-06): links to the notifications screen, with a dot while anything is unread. */
+function NotificationsLink({ spaceId }: { spaceId: string }) {
+  const unread = useUnreadCount(spaceId);
+  const n = unread.data ?? 0;
+  return (
+    <HeaderIconButton
+      href={`/s/${spaceId}/notifications`}
+      label={n > 0 ? `Notifications, ${n} unread` : "Notifications"}
+    >
+      <span className="relative">
+        <IconBell className="size-6" stroke={1.8} />
+        {n > 0 && (
+          <span
+            aria-hidden
+            className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full border-2 border-background bg-overdue"
+          />
+        )}
+      </span>
+    </HeaderIconButton>
   );
 }

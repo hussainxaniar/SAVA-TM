@@ -24,6 +24,8 @@ import { formatDue, type DueTone } from "@/lib/list-view";
 import { QUICK_ADD_EVENT } from "@/lib/quick-add";
 import { readLastList, rememberLastList } from "@/lib/last-list";
 import { useCreateTask } from "@/hooks/use-list-view";
+import { useKeyboardInset } from "@/hooks/use-keyboard-inset";
+import { useIsMobile } from "@/hooks/use-media-query";
 import { Avatar } from "@/components/tasks/avatar-stack";
 import { PriorityFlag } from "@/components/tasks/priority-flag";
 import { Button } from "@/components/ui/button";
@@ -74,6 +76,9 @@ export function QuickAddDialog({ spaceId, projects, members }: QuickAddDialogPro
   const paramId = (v: string | string[] | undefined) => (typeof v === "string" ? v : undefined);
   const routeProjectId = paramId(params.projectId);
   const routeListId = paramId(params.listId);
+  // Below 768px the dialog becomes a bottom sheet; `keyboard` keeps it above the on-screen keys.
+  const isMobile = useIsMobile();
+  const keyboard = useKeyboardInset();
 
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
@@ -332,7 +337,8 @@ export function QuickAddDialog({ spaceId, projects, members }: QuickAddDialogPro
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="top-[20%] translate-y-0 gap-0 p-0 sm:max-w-[560px]"
+        style={isMobile && keyboard ? { bottom: keyboard } : undefined}
+        className="top-[20%] translate-y-0 gap-0 p-0 sm:max-w-[560px] max-md:top-auto max-md:bottom-0 max-md:left-0 max-md:w-full max-md:max-w-none max-md:translate-x-0 max-md:translate-y-0 max-md:rounded-b-none max-md:rounded-t-2xl max-md:pb-[env(safe-area-inset-bottom)]"
       >
         <DialogTitle className="sr-only">Quick add</DialogTitle>
         <input
@@ -445,7 +451,7 @@ export function QuickAddDialog({ spaceId, projects, members }: QuickAddDialogPro
             <p className="px-1 text-sm text-muted-foreground">Create a project first</p>
           )}
           <div className="ml-auto flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
+            <Button variant="ghost" size="sm" className="max-md:hidden" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
             <Button size="sm" disabled={!canSave} onClick={() => void save()}>

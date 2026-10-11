@@ -257,3 +257,48 @@
     font-size: 16px;
   }
 }
+
+/* Phone calendar (docs/design/mobile.md, Calendar): 56px per hour, a 44px time gutter, borderless
+   day headers. The wrapper carries both .sava-calendar and .sava-calendar-phone. */
+.sava-calendar-phone .fc .fc-timegrid-slot {
+  height: 1.75rem; /* 28px per 30-minute slot */
+}
+.sava-calendar-phone .fc .fc-timegrid-axis,
+.sava-calendar-phone .fc .fc-timegrid-slot-label {
+  width: 44px;
+}
+.sava-calendar-phone .fc .fc-col-header-cell {
+  border-width: 0;
+}
+.sava-calendar-phone .fc .fc-col-header-cell-cushion {
+  padding: 0;
+}
+.sava-calendar-phone .fc .fc-scrollgrid {
+  border-width: 0;
+}
+.sava-calendar-phone .fc .fc-timegrid-axis-cushion {
+  font-size: 10px;
+  color: var(--muted-foreground);
+}
+/* A selected block (long press) and its resize dots, in the app's primary colour. */
+.sava-calendar-phone .fc .fc-event-selected {
+  box-shadow: 0 4px 12px color-mix(in oklab, var(--primary) 30%, transparent);
+}
+.sava-calendar-phone .fc .fc-event-selected .fc-event-resizer {
+  border-color: var(--primary);
+  background: var(--background);
+}
+/* The copy of a task row that follows the finger while it is dragged from the "See tasks" panel. */
+.sava-drag-row.fc-event-dragging {
+  z-index: 60;
+  border-radius: 12px;
+  border-width: 0;
+  background: var(--background);
+  box-shadow: 0 12px 32px rgb(24 24 27 / 0.2), 0 2px 6px rgb(24 24 27 / 0.12);
+  opacity: 1;
+  rotate: -2deg;
+}
+.sava-drag-row {
+  -webkit-touch-callout: none;
+  user-select: none;
+}
