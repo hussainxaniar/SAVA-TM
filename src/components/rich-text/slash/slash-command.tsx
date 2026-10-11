@@ -43,6 +43,9 @@ function renderMenu(dismissed: Dismissed) {
   let container: HTMLDivElement | null = null;
   let latest: SuggestionProps<SlashItem> | null = null;
   let stopEscape: (() => void) | null = null;
+  // On a phone the menu is the fixed SlashBar (M-07): the wrapper stays unstyled, because a
+  // positioned or sized wrapper would clip or move its fixed child, and there is no caret to place.
+  let phone = false;
 
   const place = (props: SuggestionProps<SlashItem>) => {
     const rect = props.clientRect?.();
@@ -58,12 +61,15 @@ function renderMenu(dismissed: Dismissed) {
 
   return {
     onStart(props: SuggestionProps<SlashItem>) {
+      phone = window.matchMedia("(max-width: 767.98px)").matches;
       component = new ReactRenderer(SlashMenu, { props, editor: props.editor });
       container = document.createElement("div");
-      container.className = "fixed z-[70] overflow-y-auto rounded-lg bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10";
+      if (!phone) {
+        container.className = "fixed z-[70] overflow-y-auto rounded-lg bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10";
+      }
       container.appendChild(component.element);
       document.body.appendChild(container);
-      place(props);
+      if (!phone) place(props);
       latest = props;
       // This Tiptap version does not close the menu on Escape, and an enclosing dialog (the task dialog)
       // would take the key and close itself. So Escape is caught on the window in the capture phase, before the dialog
@@ -82,7 +88,7 @@ function renderMenu(dismissed: Dismissed) {
     onUpdate(props: SuggestionProps<SlashItem>) {
       latest = props;
       component?.updateProps(props);
-      place(props);
+      if (!phone) place(props);
     },
     onKeyDown({ event }: SuggestionKeyDownProps) {
       return component?.ref?.onKeyDown(event) ?? false;

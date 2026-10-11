@@ -162,7 +162,7 @@ export function PageEditor(props: PageEditorProps) {
           : "Saving…";
 
   return (
-    <div className="mx-auto w-full max-w-[880px] px-6 pb-24 pt-6">
+    <div className="mx-auto w-full max-w-[880px] px-6 pb-24 pt-6 max-md:px-4 max-md:pb-40 max-md:pt-2">
       {conflict && (
         <div className="mb-4 flex items-center gap-2.5 rounded-lg border border-border bg-background px-3 py-2 text-sm">
           <IconAlertTriangle aria-hidden className="size-4 shrink-0 text-overdue" />
@@ -186,7 +186,7 @@ export function PageEditor(props: PageEditorProps) {
         onBlur={handleFlush}
         placeholder="Untitled"
         aria-label="Page title"
-        className="field-sizing-content w-full resize-none bg-transparent p-0 text-[28px] font-semibold leading-[34px] tracking-[-0.02em] text-foreground outline-none placeholder:text-muted-foreground"
+        className="field-sizing-content w-full resize-none bg-transparent p-0 text-[28px] font-semibold leading-[34px] tracking-[-0.02em] text-foreground outline-none placeholder:text-muted-foreground max-md:text-[26px] max-md:font-bold max-md:leading-8"
       />
       <EditorBody
         key={version}

@@ -2,7 +2,9 @@
 
 import { forwardRef, useImperativeHandle, useState } from "react";
 import type { SuggestionProps } from "@tiptap/suggestion";
+import { useIsMobile } from "@/hooks/use-media-query";
 import type { SlashItem } from "@/lib/slash-items";
+import { SlashBar } from "./slash-bar";
 import { SlashMenuList } from "./slash-menu-list";
 
 /*
@@ -25,6 +27,8 @@ export const SlashMenu = forwardRef<SlashMenuHandle, SuggestionProps<SlashItem>>
     setIndex(0);
   }
   const safeIndex = Math.min(index, Math.max(items.length - 1, 0));
+  // On a phone the menu is the block bar pinned to the bottom of the screen (M-07), not a popup.
+  const isMobile = useIsMobile();
 
   useImperativeHandle(
     ref,
@@ -49,5 +53,8 @@ export const SlashMenu = forwardRef<SlashMenuHandle, SuggestionProps<SlashItem>>
     [items, safeIndex, command],
   );
 
+  if (isMobile) {
+    return <SlashBar items={items} selectedIndex={safeIndex} onSelect={(i) => command(items[i])} />;
+  }
   return <SlashMenuList items={items} selectedIndex={safeIndex} onSelect={(i) => command(items[i])} onHover={setIndex} />;
 });
