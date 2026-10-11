@@ -35,13 +35,22 @@ export const MobileTaskRow = memo(function MobileTaskRow({
   const doneSubtasks = task.subtaskCount - task.openSubtaskCount;
   const flag = task.priority < 4;
 
-  const hasMeta =
-    due !== null ||
-    task.subtaskCount > 0 ||
-    task.commentCount > 0 ||
-    task.assignees.length > 0 ||
-    context !== undefined ||
-    (!context && flag);
+  // The left part of the meta line. Without it (and without a project label) the avatars and the
+  // flag move up beside the title, so a row never carries a second line just for an avatar.
+  const hasLeftMeta = due !== null || task.subtaskCount > 0 || task.commentCount > 0;
+  const hasMeta = hasLeftMeta || context !== undefined;
+  const avatars =
+    task.assignees.length > 0 ? (
+      <span className="flex shrink-0 items-center">
+        {task.assignees.slice(0, 3).map((user, i) => (
+          <Avatar
+            key={user.id}
+            user={user}
+            className={cn("size-[18px] border border-background text-[8px]", i > 0 && "-ml-1")}
+          />
+        ))}
+      </span>
+    ) : null;
 
   return (
     <div
@@ -74,6 +83,12 @@ export const MobileTaskRow = memo(function MobileTaskRow({
             {task.title}
           </span>
           {context && flag && <PriorityFlag priority={task.priority} size={18} className="mt-0.5" />}
+          {!hasMeta && (avatars || flag) && (
+            <span className="flex h-[22px] shrink-0 items-center gap-3">
+              {avatars}
+              {flag && <PriorityFlag priority={task.priority} size={16} />}
+            </span>
+          )}
         </div>
         {hasMeta && (
           <div className="flex h-[18px] items-center gap-3 text-xs leading-4 text-muted-foreground">
@@ -101,17 +116,7 @@ export const MobileTaskRow = memo(function MobileTaskRow({
               </span>
             )}
             <span className="min-w-1 flex-1" />
-            {task.assignees.length > 0 && (
-              <span className="flex shrink-0 items-center">
-                {task.assignees.slice(0, 3).map((user, i) => (
-                  <Avatar
-                    key={user.id}
-                    user={user}
-                    className={cn("size-[18px] border border-background text-[8px]", i > 0 && "-ml-1")}
-                  />
-                ))}
-              </span>
-            )}
+            {avatars}
             {context ? (
               <span className="flex min-w-0 max-w-[200px] shrink items-center gap-1.5">
                 <span className="truncate text-right">
