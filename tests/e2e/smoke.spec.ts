@@ -82,6 +82,10 @@ test("5. moving the parent to the second list takes its subtasks along and is lo
   await page.getByRole("menuitem", { name: "Move to" }).click();
   await page.getByRole("menuitem", { name: "New list" }).last().click();
   await expect(row(page, "Write brief")).toHaveCount(0);
+  // The row leaves at once (optimistic); wait for the move itself before navigating away. Leaving
+  // while the action is still in flight drops its result, and the target list then shows its
+  // cached rows until they go stale (tracked as a bug in Sava TM, Test & Debug).
+  await expect(page.getByText('Moved to "New list"')).toBeVisible();
 
   await gotoList(page, "New list");
   await expect(row(page, "Write brief").first()).toBeVisible();
@@ -139,7 +143,7 @@ test("8. calendar: dragging unscheduled tasks into the week creates blocks", asy
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   });
   const column = page.locator(`.fc-timegrid-col[data-date="${tomorrow}"]`);
-  if (!(await column.count())) await page.getByRole("button", { name: "Next" }).click(); // today is the week's last day
+  if (!(await column.count())) await page.getByRole("button", { name: "Next", exact: true }).click(); // today is the week's last day (exact: the dev tools button is "Open Next.js Dev Tools")
 
   const drop = async (title: string, time: string) => {
     const src = await rail.getByText(title).boundingBox();
@@ -159,6 +163,9 @@ test("8. calendar: dragging unscheduled tasks into the week creates blocks", asy
   await expect(page.locator(".fc-event").filter({ hasText: "Review budget" })).toBeVisible();
 
   await page.reload();
+  // The reload shows this week again: on the week's last day tomorrow is on the next one.
+  await expect(page.locator(".fc-timegrid-col").first()).toBeVisible();
+  if (!(await column.count())) await page.getByRole("button", { name: "Next", exact: true }).click();
   await expect(page.locator(".fc-event").filter({ hasText: /Plan sprint|Review budget/ })).toHaveCount(2);
 });
 

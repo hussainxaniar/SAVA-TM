@@ -238,6 +238,7 @@ humans only). Paper MCP tools may be unavailable; they are read-only anyway. Whe
   `20261009012006_notifications` (I-06, deployed) and `doc_task_links` (I-17; additive, applied by the next deploy).
 - Added 2026-10-09: I-05 (activity feed) and I-06 (in-app notifications, blueprint Section 16) are pushed; I-07 (calendar rail keeps scheduled tasks) is built and tested locally, awaiting "push".
 - `pnpm e2e` runs 11 smoke flows against the local dev server (restart it first if the Prisma schema changed: a stale server holds the old client). When a UI change alters a default (like I-05's Comments-first), update the flow that relied on it.
+- Added 2026-10-11 on branch `develop`: the mobile design (I-20) and its implementation (M-01 to M-08, `docs/tickets/M-00-mobile-implementation.md`). Phone components live in `src/components/mobile/` and reuse the desktop hooks; QA at phone size uses Playwright's `devices["iPhone 14"]` (touch drags through CDP `Input.dispatchTouchEvent`).
 - The authoritative status table is `docs/progress.md`; per-ticket records are in `docs/tickets/`.
 
 ## 10. Running this in a different environment (cloud session, new machine)

@@ -59,6 +59,7 @@ Work tracked on tm.sava.af (project SAVA TM; the owner's own tasks, planned 2026
 | I-18 | Slash menu ("/") in docs and task descriptions: headings, lists, to-do, quote, code, divider, image, link task; new dependency `@tiptap/suggestion` | `I-18-slash-menu.md` (+ `I-18a-slash-list.md`) | ✅ built, browser-tested, 319 tests + e2e 11/11 locally; not pushed |
 | I-19 | Google connect redirect (and the sign-in redirect) use `APP_URL` instead of the proxy's internal `localhost:3000` origin | `I-19-google-redirect-origin.md` | ✅ fixed, unit-tested; to confirm live after the push |
 | I-20 | Mobile UI design in Paper (page "Mobile"): tokens, component sheet, 12 artboards in light and dark, exports in `docs/design/mobile/`, notes in `docs/design/mobile.md`. Design only, on branch `develop` | `I-20-mobile-design.md` | 🔄 drawn; **awaiting the owner's design review**, then the implementation tickets (M-01 to M-08 proposed) |
+| M-01 to M-08 | Mobile UI implementation from the Paper design (phone layout below 768px: tab bar, My tasks, task details, calendar with long-press scheduling, All tasks, list page, documents, More, notifications), on branch `develop` | `M-00-mobile-implementation.md` (+ `M-01` to `M-07`) | ✅ built, reviewed, browser-tested at phone size, 329 tests + e2e 11/11 locally; **not pushed; not yet tried on a real phone** |
 
 Notes:
 - Google OAuth client configured locally (2026-10-01); T-18 built and tested with Google faked; a real consent test by the human is pending.
