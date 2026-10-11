@@ -1,5 +1,17 @@
 import { expect, test, type Page } from "@playwright/test";
-import { createSpace, gotoList, openRowMenu, openTask, PASSWORD, quickAdd, row, sidebar, signUp, uniqueEmail } from "./helpers";
+import {
+  createSpace,
+  gotoList,
+  makeBootstrapInvite,
+  openRowMenu,
+  openTask,
+  PASSWORD,
+  quickAdd,
+  row,
+  sidebar,
+  signUp,
+  uniqueEmail,
+} from "./helpers";
 
 // Section 13.2: the nine smoke flows. They build on each other (one user, one space), so they run in order.
 test.describe.configure({ mode: "serial" });
@@ -16,7 +28,10 @@ test.afterAll(async () => {
 });
 
 test("1. sign up, create a space and see Getting started", async () => {
-  await signUp(page, "E2E Owner", ownerEmail);
+  await signUp(page, "E2E Owner", ownerEmail, await makeBootstrapInvite());
+  // Signed up without joining the bootstrap space: "/" offers "Create your space".
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Create your space" })).toBeVisible();
   await createSpace(page, "E2E Space");
   await expect(sidebar(page).getByRole("link", { name: "Getting started" })).toBeVisible();
   await expect(sidebar(page).getByRole("link", { name: "General" })).toBeVisible();
@@ -111,8 +126,7 @@ test("7. an invite link lets a second user join and see the same project", async
 
   const ctx = await browser.newContext();
   const guest = await ctx.newPage();
-  await signUp(guest, "E2E Guest", uniqueEmail("guest"));
-  await guest.goto(inviteUrl);
+  await signUp(guest, "E2E Guest", uniqueEmail("guest"), inviteUrl);
   await guest.getByRole("button", { name: "Join E2E Space" }).click();
   await guest.waitForURL(/\/s\//);
   await expect(sidebar(guest).getByRole("link", { name: "Getting started" })).toBeVisible();

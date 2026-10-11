@@ -1,4 +1,6 @@
+import { randomBytes, randomUUID } from "node:crypto";
 import { expect, type Locator, type Page } from "@playwright/test";
+import { PrismaClient } from "@prisma/client";
 import { E2E_EMAIL_DOMAIN, E2E_EMAIL_PREFIX } from "./teardown";
 
 export const PASSWORD = "password123";
@@ -8,14 +10,41 @@ export function uniqueEmail(label: string) {
   return `${E2E_EMAIL_PREFIX}${label}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}${E2E_EMAIL_DOMAIN}`;
 }
 
-/** Creates an account through the sign-up form; lands on "Create your space". */
-export async function signUp(page: Page, name: string, email: string) {
-  await page.goto("/sign-up");
+/**
+ * Sign-up is invite-only (7.2.6), so the first e2e account needs an invite made straight in the
+ * local database: an e2e user (removed by the teardown with its space) owns a throwaway space with
+ * a one-use invite. Returns the invite's path. Local runs only, like the teardown.
+ */
+export async function makeBootstrapInvite(): Promise<string> {
+  if (!process.env.DATABASE_URL) process.loadEnvFile(".env");
+  const db = new PrismaClient();
+  try {
+    const user = await db.user.create({ data: { id: randomUUID(), name: "E2E Inviter", email: uniqueEmail("inviter") } });
+    const token = randomBytes(32).toString("base64url");
+    await db.space.create({
+      data: {
+        name: "E2E Bootstrap",
+        createdById: user.id,
+        members: { create: { userId: user.id, role: "OWNER" } },
+        invites: { create: { token, createdById: user.id, expiresAt: new Date(Date.now() + 86_400_000), maxUses: 1 } },
+      },
+    });
+    return `/invite/${token}`;
+  } finally {
+    await db.$disconnect();
+  }
+}
+
+/** Creates an account through an invite link and the sign-up form; lands back on the invite page. */
+export async function signUp(page: Page, name: string, email: string, invite: string) {
+  const invitePath = new URL(invite, "http://x").pathname;
+  await page.goto(invitePath); // proxy.ts remembers the invite for sign-up
+  await page.goto(`/sign-up?next=${encodeURIComponent(invitePath)}`);
   await page.getByLabel("Name").fill(name);
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(PASSWORD);
   await page.getByRole("button", { name: "Create account" }).click();
-  await expect(page.getByRole("heading", { name: "Create your space" })).toBeVisible();
+  await page.waitForURL(/\/invite\//);
 }
 
 /** Creates the first space; lands on the "Getting started" project's General list. */

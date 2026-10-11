@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { authNoticeFor } from "@/lib/auth-errors";
+import { inviteTokenFromPath } from "@/lib/invite-cookie";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +25,8 @@ export function AuthForm({ mode, next, googleEnabled, callbackError }: Props) {
   const [pending, setPending] = useState(false);
   const isSignUp = mode === "sign-up";
   const nextQuery = next === "/" ? "" : `?next=${encodeURIComponent(next)}`;
+  // Sign-up is invite-only (7.2.6): offer it from sign-in only on the way to an invite.
+  const showToggle = isSignUp || inviteTokenFromPath(next) !== null;
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -109,15 +112,17 @@ export function AuthForm({ mode, next, googleEnabled, callbackError }: Props) {
         </Button>
       )}
 
-      <p className="text-center text-sm text-muted-foreground">
-        {isSignUp ? "Already have an account? " : "New to Sava TM? "}
-        <Link
-          href={`${isSignUp ? "/sign-in" : "/sign-up"}${nextQuery}`}
-          className="font-medium text-foreground underline-offset-4 hover:underline"
-        >
-          {isSignUp ? "Sign in" : "Create an account"}
-        </Link>
-      </p>
+      {showToggle && (
+        <p className="text-center text-sm text-muted-foreground">
+          {isSignUp ? "Already have an account? " : "New to Sava TM? "}
+          <Link
+            href={`${isSignUp ? "/sign-in" : "/sign-up"}${nextQuery}`}
+            className="font-medium text-foreground underline-offset-4 hover:underline"
+          >
+            {isSignUp ? "Sign in" : "Create an account"}
+          </Link>
+        </p>
+      )}
     </div>
   );
 }

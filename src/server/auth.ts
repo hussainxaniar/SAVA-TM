@@ -1,10 +1,13 @@
 import { cache } from "react";
 import { headers } from "next/headers";
 import { betterAuth } from "better-auth";
+import { APIError } from "better-auth/api";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
 import { db } from "./db";
 import { AppError } from "./errors";
+import { INVITE_ONLY_MESSAGE, signUpAllowed } from "./services/spaces";
+import { INVITE_COOKIE } from "@/lib/invite-cookie";
 
 // Section 7.1. Google sign-in uses Better Auth's default scopes (openid email profile);
 // Calendar access is a separate consent (Section 10), never requested here.
@@ -27,6 +30,19 @@ export const auth = betterAuth({
   socialProviders: googleSignInEnabled
     ? { google: { clientId: googleClientId!, clientSecret: googleClientSecret! } }
     : {},
+  databaseHooks: {
+    user: {
+      create: {
+        // Section 7.2.6: invite-only sign-up, for email and Google alike (the invite token comes
+        // from the cookie proxy.ts sets on /invite/<token>). The APIError's code reaches a Google
+        // sign-up as `?error=invite_only` on the sign-in page; email sign-up shows the message.
+        before: async (_user, ctx) => {
+          if (await signUpAllowed(ctx?.getCookie(INVITE_COOKIE) ?? null)) return;
+          throw new APIError("FORBIDDEN", { code: "invite_only", message: INVITE_ONLY_MESSAGE });
+        },
+      },
+    },
+  },
   // Rate limiting is Better Auth's default: on in production.
   plugins: [nextCookies()], // must stay last
 });

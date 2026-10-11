@@ -569,7 +569,7 @@ All members of a space see everything in that space. There is no per-project pri
 
 ### 7.1 Authentication
 
-- Better Auth with email/password (min 8 chars, email verification off in v1) and Google social sign-in. Built-in rate limiting stays on.
+- Better Auth with email/password (min 8 chars, email verification off in v1) and Google social sign-in. Built-in rate limiting stays on. New accounts need an invite (7.2.6).
 - Session cookie; `src/proxy.ts` (Next 16's rename of `middleware.ts`) redirects unauthenticated requests under `/(app)` to `/sign-in?next=<path>`.
 - `getSessionUser()` in `src/server/auth.ts` returns `{ id, name, email, image }` or throws `UNAUTHENTICATED`.
 - Google sign-in requests only `openid email profile`. Calendar access is a separate, later consent (Section 10), so people can use the app without granting calendar access.
@@ -581,6 +581,7 @@ All members of a space see everything in that space. There is no per-project pri
 3. Opening an invite: signed-out users go through sign-in/up and return to the invite; signed-in users see "Join \<space>" and confirm. Expired, revoked or used-up invites show a clear error.
 4. Joining when already a member is a no-op redirect to the space.
 5. The last OWNER cannot leave or be demoted. Ownership transfers by promoting another member to OWNER first.
+6. **Sign-up is invite-only** (added 2026-10-11 at the owner's request). A new account, by email or Google, is created only when the request carries the token of a usable invite (not expired, revoked or used up): `src/proxy.ts` stores it in the `sava_invite` cookie when `/invite/<token>` is opened, and a Better Auth `user.create.before` hook (`src/server/auth.ts`) checks it with `signUpAllowed` (`spaces.ts`), throwing `invite_only` otherwise (Google comes back to `/sign-in?error=invite_only`). The first account of an empty database needs no invite. Existing accounts sign in as before. `/sign-up` without an invite explains this instead of showing the form, and sign-in offers "Create an account" only on the way to an invite.
 
 ### 7.3 Role matrix
 

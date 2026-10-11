@@ -279,6 +279,20 @@ export async function getInvite(ctx: Ctx | null, input: { token: string }): Prom
   return { valid: true, spaceName: invite.space.name, role: invite.role as InviteRole, memberSpaceId };
 }
 
+export const INVITE_ONLY_MESSAGE = "Sava TM is invite only. Open the invite link a teammate sent you to create your account.";
+
+/**
+ * Section 7.2.6. Sign-up is invite-only: a new account needs the token of a usable invite (not
+ * expired, revoked or used up). The first account of an empty database needs none, so a fresh
+ * install can start. No ctx: it runs before the account exists (src/server/auth.ts).
+ */
+export async function signUpAllowed(inviteToken: string | null): Promise<boolean> {
+  if (!(await db.user.findFirst({ select: { id: true } }))) return true;
+  if (!inviteToken) return false;
+  const invite = await db.invite.findUnique({ where: { token: inviteToken } });
+  return invite !== null && inviteProblem(invite) === null;
+}
+
 /**
  * Section 8.2 [A]. Joins the space with the invite's role. Already a member → no-op (7.2.4).
  * `uses` is incremented with a conditional update, so concurrent accepts can't exceed maxUses.

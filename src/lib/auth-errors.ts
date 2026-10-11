@@ -13,6 +13,11 @@ const NOTICES: Record<string, AuthNotice> = {
     title: "Google sign-in was cancelled",
     description: "You didn't allow access to your Google account. Try again, or sign in with your email and password.",
   },
+  invite_only: {
+    title: "Sava TM is invite only",
+    description:
+      "There is no account for this Google address yet. Open the invite link a teammate sent you, then continue with Google there.",
+  },
   signup_disabled: {
     title: "Sign-up with Google is unavailable",
     description: "Create an account with your email and password instead.",
