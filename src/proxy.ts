@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
+import { appOrigin } from "@/lib/app-origin";
 import { LAST_SPACE_COOKIE } from "@/lib/last-space";
 
 // Section 7.1 (blueprint says middleware.ts; Next 16 renamed it to proxy.ts).
@@ -9,7 +10,7 @@ export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   if (!getSessionCookie(request)) {
-    const url = new URL("/sign-in", request.url);
+    const url = new URL("/sign-in", appOrigin(request.nextUrl.origin));
     if (pathname !== "/") url.searchParams.set("next", pathname + search);
     return NextResponse.redirect(url);
   }

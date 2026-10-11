@@ -1,21 +1,24 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { sessionUserFromHeaders } from "@/server/auth";
 import { AppError } from "@/server/errors";
+import { appOrigin } from "@/lib/app-origin";
 import { handleGoogleCallback } from "@/server/services/google-calendar";
 
 // Section 10.2: Google redirects here after consent. Verify the signed state, store the tokens,
 // push pending blocks, then send the user back to their space's Integrations page with an outcome.
 export async function GET(request: NextRequest) {
   const url = request.nextUrl;
+  // The proxy in front of the app hides the public host; redirects go to APP_URL (see app-origin.ts).
+  const origin = appOrigin(url.origin);
   const back = (spaceId: string | null, outcome: string, message?: string) => {
-    const target = new URL(spaceId ? `/s/${spaceId}/integrations` : "/", url.origin);
+    const target = new URL(spaceId ? `/s/${spaceId}/integrations` : "/", origin);
     target.searchParams.set("google", outcome);
     if (message) target.searchParams.set("message", message);
     return NextResponse.redirect(target);
   };
 
   const user = await sessionUserFromHeaders(request.headers);
-  if (!user) return NextResponse.redirect(new URL(`/sign-in?next=${encodeURIComponent(url.pathname + url.search)}`, url.origin));
+  if (!user) return NextResponse.redirect(new URL(`/sign-in?next=${encodeURIComponent(url.pathname + url.search)}`, origin));
 
   const spaceHint = spaceFromState(url.searchParams.get("state"));
   const error = url.searchParams.get("error");
