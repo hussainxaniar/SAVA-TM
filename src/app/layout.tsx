@@ -19,6 +19,9 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Sava TM",
   description: "Sava Task Manager — task management for teams",
+  // Home screen app (Section 17): the manifest comes from app/manifest.ts.
+  icons: { apple: "/apple-touch-icon.png" },
+  appleWebApp: { capable: true, title: "Sava TM", statusBarStyle: "default" },
 };
 
 // viewport-fit=cover: the mobile tab bar and bottom sheets pad themselves with env(safe-area-inset-bottom).

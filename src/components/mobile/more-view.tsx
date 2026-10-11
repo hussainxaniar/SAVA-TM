@@ -1,5 +1,6 @@
 "use client";
 
+import { removePushBeforeSignOut } from "@/hooks/use-push";
 import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -86,6 +87,7 @@ export function MoreView({
   }
 
   async function onSignOut() {
+    await removePushBeforeSignOut(); // this device stops getting my notifications (Section 17)
     await authClient.signOut();
     router.replace("/sign-in");
     router.refresh();
