@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
@@ -20,6 +20,9 @@ export const metadata: Metadata = {
   title: "Sava TM",
   description: "Sava Task Manager — task management for teams",
 };
+
+// viewport-fit=cover: the mobile tab bar and bottom sheets pad themselves with env(safe-area-inset-bottom).
+export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" };
 
 export default function RootLayout({
   children,

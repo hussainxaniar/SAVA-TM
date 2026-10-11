@@ -1,10 +1,13 @@
 import { Suspense } from "react";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { QuickAddDialog } from "@/components/quick-add/quick-add-dialog";
 import { GlobalShortcuts } from "@/components/shortcuts/global-shortcuts";
 import { Sidebar } from "@/components/sidebar/sidebar";
 import { TaskDialogHost } from "@/components/task-dialog/task-dialog-host";
+import { MobileHintProvider } from "@/hooks/mobile-hint";
 import { SpaceMembersProvider } from "@/hooks/use-space-members";
+import { isPhoneRequest } from "@/lib/mobile-hint";
 import { can } from "@/server/guards";
 import { getSessionUser } from "@/server/auth";
 import { getSidebar } from "@/server/services/projects";
@@ -29,7 +32,10 @@ export default async function SpaceLayout({
   // Quick add's @ autocomplete and the task dialog's assignee picker (current members only, 6.8).
   const memberList = members.map(({ id, name, image }) => ({ id, name, image }));
 
+  const phone = isPhoneRequest(await headers());
+
   return (
+    <MobileHintProvider mobile={phone}>
     <SpaceMembersProvider members={memberList}>
       {/* The shell (sidebar / mobile top bar + drawer / main area) renders the view; 9.1. */}
       <Sidebar
@@ -53,5 +59,6 @@ export default async function SpaceLayout({
       {/* Global shortcuts (9.7) and the "Keyboard shortcuts" help dialog. */}
       <GlobalShortcuts spaceId={spaceId} />
     </SpaceMembersProvider>
+    </MobileHintProvider>
   );
 }

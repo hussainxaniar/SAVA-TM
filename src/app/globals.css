@@ -52,6 +52,11 @@
   --color-priority-2: var(--priority-2);
   --color-priority-3: var(--priority-3);
   --color-status-active: var(--status-active);
+  /* Mobile design (docs/design/mobile.md, 2026-10-11) */
+  --color-body: var(--body);
+  --color-icon: var(--icon);
+  --color-faint: var(--faint);
+  --color-scrim: var(--scrim);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -106,6 +111,10 @@
   --priority-2: #ea580c;
   --priority-3: #2563eb;
   --status-active: #3b82f6;
+  --body: #3f3f46; /* secondary text: descriptions, read notifications */
+  --icon: #52525b;
+  --faint: #a1a1aa; /* placeholders, chevrons */
+  --scrim: #18181b66; /* behind bottom sheets */
 }
 
 .dark {
@@ -152,6 +161,10 @@
   --priority-2: #fb923c;
   --priority-3: #60a5fa;
   --status-active: #60a5fa;
+  --body: #d4d4d4;
+  --icon: #b4b4b4;
+  --faint: #737373;
+  --scrim: #00000099;
 }
 
 @layer base {
