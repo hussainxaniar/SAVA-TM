@@ -43,7 +43,16 @@ function firstName(name: string): string {
  * oldest first (activity sentences, comments with hover Edit/Delete) and the comment composer.
  * The toggle filters on the client; task edits refresh the feed through ['task', taskId].
  */
-export function ActivitySection({ taskId, me }: { taskId: string; me: UserLite }) {
+export function ActivitySection({
+  taskId,
+  me,
+  phone = false,
+}: {
+  taskId: string;
+  me: UserLite;
+  /** Phone task details: no negative margin or left indent, and the composer docks to the bottom. */
+  phone?: boolean;
+}) {
   const { data: feed } = useFeed(taskId);
   const addComment = useAddComment(taskId, me);
   const [chosen, setChosen] = useState<"all" | "comments" | null>(null);
@@ -56,7 +65,7 @@ export function ActivitySection({ taskId, me }: { taskId: string; me: UserLite }
   const shown = filter === "all" ? items : items.filter((i) => i.kind === "comment");
 
   return (
-    <section className="-mx-6 border-t border-border py-6 pl-16 pr-6">
+    <section className={phone ? "border-t border-border px-4 pt-3" : "-mx-6 border-t border-border py-6 pl-16 pr-6"}>
       <div className="flex flex-col gap-3">
         <div className="flex h-7 items-center gap-2.5">
           <h3 className="grow text-sm font-semibold">Activity</h3>
@@ -81,14 +90,22 @@ export function ActivitySection({ taskId, me }: { taskId: string; me: UserLite }
             <li className="text-[13px] text-muted-foreground">No comments yet.</li>
           )}
         </ul>
-        <div className="flex items-start gap-3">
-          <Avatar user={me} className="size-11 text-[11px]" />
-          <div className="min-w-0 grow">
+        {phone ? (
+          <div className="sticky bottom-0 -mx-4 mt-3 border-t border-border bg-background px-3 py-2 pb-[calc(8px+env(safe-area-inset-bottom))]">
             <CommentEditor
               onSubmit={(body) => addComment.mutate({ body, tempId: `temp-${crypto.randomUUID()}` })}
             />
           </div>
-        </div>
+        ) : (
+          <div className="flex items-start gap-3">
+            <Avatar user={me} className="size-11 text-[11px]" />
+            <div className="min-w-0 grow">
+              <CommentEditor
+                onSubmit={(body) => addComment.mutate({ body, tempId: `temp-${crypto.randomUUID()}` })}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

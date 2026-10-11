@@ -39,10 +39,6 @@ done
 # claude-or is usually a zsh function (docs/model-routing.md), which a bash script can't
 # see. Fall back to the same OpenRouter setup it performs.
 run_implementer() {
-  if command -v claude-or >/dev/null 2>&1; then
-    claude-or "$@"
-    return
-  fi
   local model="$1"; shift
   local key
   key="$(grep -m1 '^APIKEY-SavaTM=' .env 2>/dev/null | cut -d '=' -f2- | sed -E 's/^"(.*)"$/\1/')"
@@ -50,9 +46,21 @@ run_implementer() {
     echo "error: claude-or not found and no APIKEY-SavaTM in .env" >&2
     exit 1
   fi
+  # The CLI also makes background calls (titles, summaries, subagents) with its built-in Claude
+  # model ids. Through OpenRouter those would be billed as Claude models, which the owner does not
+  # want (2026-10-11): every model slot is pinned to the implementer model, and non-essential
+  # background calls are turned off.
   ANTHROPIC_BASE_URL="https://openrouter.ai/api" \
   ANTHROPIC_AUTH_TOKEN="$key" \
   ANTHROPIC_API_KEY="" \
+  ANTHROPIC_MODEL="$model" \
+  ANTHROPIC_SMALL_FAST_MODEL="$model" \
+  ANTHROPIC_DEFAULT_OPUS_MODEL="$model" \
+  ANTHROPIC_DEFAULT_SONNET_MODEL="$model" \
+  ANTHROPIC_DEFAULT_HAIKU_MODEL="$model" \
+  CLAUDE_CODE_SUBAGENT_MODEL="$model" \
+  CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 \
+  DISABLE_NON_ESSENTIAL_MODEL_CALLS=1 \
   claude --model "$model" "$@"
 }
 

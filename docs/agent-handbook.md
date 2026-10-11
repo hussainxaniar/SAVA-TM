@@ -115,6 +115,7 @@ scripts/dispatch-ticket.sh <ticket-id> z-ai/glm-5.3-flash -- \
 | Stopped with no changes | Background time limit | Run detached (above) |
 | Asks permission forever / forwards prompts | Inherited `CLAUDE*` env | The script already clears them; keep it |
 | Two runs corrupt tests | Parallel dispatch | Sequential only |
+| A Claude model shows up in the OpenRouter activity | The CLI's background calls (titles, summaries, subagents) used its built-in Claude model ids through OpenRouter | `dispatch-ticket.sh` pins every model slot to the implementer model and turns off non-essential calls (2026-10-11). **The owner's rule: never run a Claude model through OpenRouter; Claude runs on the subscription only** |
 | Lint "Cannot update ref during render", set-state-in-effect | React 19 lint rules | Move ref writes to effects; derive state during render |
 
 Flash is good at: wiring components to existing hooks, matching nearby code, Base UI menus and dialogs, following a precise spec.
