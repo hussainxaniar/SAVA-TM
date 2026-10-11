@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { LIVE_REFETCH_MS } from "@/lib/live-refetch";
 import { toast } from "sonner";
 import { getMyTasksAction, updateTaskAction } from "@/server/actions/tasks";
 import type { MyTasksDTO, StatusDTO } from "@/server/services/types";
@@ -19,6 +20,7 @@ export function useMyTasks(spaceId: string, initialData: MyTasksDTO) {
     queryKey: myTasksKey(spaceId),
     queryFn: async () => unwrap(await getMyTasksAction({ spaceId })),
     initialData,
+    refetchInterval: LIVE_REFETCH_MS,
   });
 }
 

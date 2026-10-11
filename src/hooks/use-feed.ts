@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { LIVE_REFETCH_MS } from "@/lib/live-refetch";
 import { toast } from "sonner";
 import { addCommentAction, deleteCommentAction, editCommentAction, getFeedAction } from "@/server/actions/comments";
 import type { FeedItemDTO, UserLite } from "@/server/services/types";
@@ -22,6 +23,7 @@ export function useFeed(taskId: string | null) {
     queryKey: feedKey(taskId ?? ""),
     queryFn: async () => unwrap(await getFeedAction({ taskId: taskId! })),
     enabled: !!taskId,
+    refetchInterval: LIVE_REFETCH_MS,
   });
 }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient, type QueryKey } from "@tanstack/react-query";
+import { LIVE_REFETCH_MS } from "@/lib/live-refetch";
 import { toast } from "sonner";
 import {
   createTimeBlockAction,
@@ -40,6 +41,7 @@ export function useTimeBlocks(spaceId: string, range: Range | null) {
     queryFn: async () => unwrap(await listTimeBlocksAction({ spaceId, rangeStart: range!.start, rangeEnd: range!.end })),
     enabled: !!range,
     placeholderData: keepPreviousData,
+    refetchInterval: LIVE_REFETCH_MS,
   });
 }
 
@@ -49,6 +51,7 @@ export function useDueChips(spaceId: string, range: Range | null) {
     queryFn: async () => unwrap(await listDueChipsAction({ spaceId, rangeStart: range!.start, rangeEnd: range!.end })),
     enabled: !!range,
     placeholderData: keepPreviousData,
+    refetchInterval: LIVE_REFETCH_MS,
   });
 }
 
@@ -56,6 +59,7 @@ export function useCalendarTasks(spaceId: string, projectId: string | null) {
   return useQuery({
     queryKey: railKey(spaceId, projectId),
     queryFn: async () => unwrap(await listCalendarTasksAction({ spaceId, projectId })),
+    refetchInterval: LIVE_REFETCH_MS,
   });
 }
 

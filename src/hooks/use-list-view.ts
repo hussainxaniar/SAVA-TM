@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { LIVE_REFETCH_MS } from "@/lib/live-refetch";
 import { toast } from "sonner";
 import { comparePositions, positionBetween } from "@/lib/position";
 import type { ActionResult } from "@/server/actions/action";
@@ -47,6 +48,7 @@ export function useListView(listId: string, initialData: ListViewDTO) {
     queryKey: listViewKey(listId),
     queryFn: async () => unwrap(await getListViewAction({ listId })),
     initialData,
+    refetchInterval: LIVE_REFETCH_MS,
   });
 }
 

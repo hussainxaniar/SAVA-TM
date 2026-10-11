@@ -179,6 +179,7 @@ export class AppError extends Error {
 - Reads in pages use Server Components calling services directly (with the session user) for first paint.
 - Interactive lists (task list, task dialog, calendar) hydrate into TanStack Query with query keys `['tasks', listId]`, `['task', taskId]`, `['timeblocks', rangeStart, rangeEnd]`.
 - Every task mutation uses `onMutate` optimistic update + rollback on error + invalidate on settle.
+- No push channel (added 2026-10-11, owner's choice of the simplest option): the list view, My Tasks, the open task and its feed, and the calendar refetch every 15 s (`LIVE_REFETCH_MS`, `src/lib/live-refetch.ts`) while the tab is visible, so changes by teammates or an AI through MCP appear without a reload. Doc pages are not polled.
 - Toasts (sonner) for errors only. Success is silent.
 
 ### Naming and style

@@ -3,6 +3,7 @@
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient, type QueryKey } from "@tanstack/react-query";
+import { LIVE_REFETCH_MS } from "@/lib/live-refetch";
 import { toast } from "sonner";
 import { comparePositions, positionBetween } from "@/lib/position";
 import {
@@ -60,6 +61,7 @@ export function useTask(taskId: string | null) {
     queryKey: taskKey(taskId ?? ""),
     queryFn: async () => unwrap(await getTaskAction({ taskId: taskId! })),
     enabled: !!taskId,
+    refetchInterval: LIVE_REFETCH_MS,
     retry: (count, error) => !(error instanceof ActionError && error.code === "NOT_FOUND") && count < 2,
   });
 }
