@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { IconCheck } from "@tabler/icons-react";
+import { useKeyboardInset } from "@/hooks/use-keyboard-inset";
 import { cn } from "@/lib/utils";
 
 /*
@@ -27,6 +28,8 @@ export type BottomSheetProps = {
 };
 
 export function BottomSheet({ open, onOpenChange, title, label, action, children, className }: BottomSheetProps) {
+  // A sheet with a field (search, rename) rides above the on-screen keyboard.
+  const keyboard = useKeyboardInset();
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
@@ -38,6 +41,7 @@ export function BottomSheet({ open, onOpenChange, title, label, action, children
         <DialogPrimitive.Popup
           data-slot="bottom-sheet"
           aria-label={title ? undefined : label}
+          style={keyboard ? { bottom: keyboard } : undefined}
           // React bubbles events through portals: a tap inside the sheet must not reach the row
           // (open task, start a drag) the sheet was opened from. Handbook bug class 1.
           onClick={(e) => e.stopPropagation()}

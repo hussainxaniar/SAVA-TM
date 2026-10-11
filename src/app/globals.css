@@ -246,3 +246,14 @@
   .rich-text ul[data-type="taskList"] li[data-checked="true"] > div { @apply text-muted-foreground line-through; }
   .rich-text li > div > p { @apply m-0; }
 }
+
+/* Phones (docs/design/mobile.md): iOS zooms the page when a focused field's text is under 16px,
+   so every field and editor is 16px below 768px. Unlayered on purpose: it must win over utilities. */
+@media (max-width: 767.98px) {
+  input,
+  textarea,
+  select,
+  [contenteditable="true"] {
+    font-size: 16px;
+  }
+}
