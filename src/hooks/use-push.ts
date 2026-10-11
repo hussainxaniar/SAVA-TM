@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -23,6 +23,7 @@ import { unwrap } from "./use-list-view";
 
 const configKey = ["push", "config"] as const;
 const deviceKey = ["push", "device"] as const;
+let synced = false;
 
 export function usePush(): { state: PushState | "loading"; busy: boolean; enable: () => void; disable: () => void } {
   const qc = useQueryClient();
@@ -36,11 +37,11 @@ export function usePush(): { state: PushState | "loading"; busy: boolean; enable
   const state: PushState | "loading" =
     config.data && device.data ? pushState(config.data.configured, device.data) : "loading";
 
-  // Keep the server's row in step with this browser (once per page load).
-  const synced = useRef(false);
+  // Keep the server's row in step with this browser: once per page load, whichever component
+  // using this hook gets there first.
   useEffect(() => {
-    if (state !== "on" || synced.current) return;
-    synced.current = true;
+    if (state !== "on" || synced) return;
+    synced = true;
     void existingSubscription().then((keys) => {
       if (keys) void savePushSubscriptionAction(keys);
     });

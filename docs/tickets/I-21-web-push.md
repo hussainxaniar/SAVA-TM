@@ -2,7 +2,7 @@
 
 **Sava TM task:** "Web push notifications: the app's notifications arrive on the phone or desktop even when Sava TM is closed" (project SAVA TM, Features)
 **Model:** A + I · **Blueprint:** Section 16 (in-app notifications); this adds Section 17 · **Branch:** `develop` (assumed; the switch lives in the new More tab)
-**State:** planned 2026-10-11, not started. Waiting for the owner's OK on the dependency, the migration and the keys (see "Needs from the owner").
+**State:** built and tested locally 2026-10-11 (the owner said "Start working on this task", taken as the OK for the dependency and the migration). Not pushed; production keys and real phones are the owner's part.
 
 > Owner, 2026-10-11: "The task is just about web push ... enable web-push notification on this app."
 
@@ -119,3 +119,20 @@ twice keeps one row; deleting another user's endpoint does nothing; nothing is s
 - iPhone: only as a home screen app, iOS 16.4+; cannot be tested from this machine.
 - tm.sava.af must be served over HTTPS with the worker at `/sw.js` (it is); a reverse proxy that caches `/sw.js` would delay worker updates.
 - `after()` runs in the same server process: if the process is killed right after a response, that push is lost (it is still in the bell).
+
+## Completion record (2026-10-11)
+
+- **Models:** Architect (Opus 5.5): schema and migration `20261011144957_web_push`, `pushApi`, push service and actions, dispatch hooks, push text, service
+  worker, manifest, icons, browser library and `usePush`, tests, blueprint Section 17. Implementer (GLM 5.3 Flash, one dispatch, `I-21a-push-switch.md`): the switch,
+  the More tab row and the Integrations card; accepted without changes.
+- **Added to the plan while building:** signing out unsubscribes the device; an existing browser subscription is re-saved for whoever signs in; the dispatcher only
+  queries the outbox when this server process actually wrote notifications (`markPushPending`), so read-only requests cost nothing.
+- **Review fix:** the "re-save my subscription" call ran once per component using the hook (five times on one page); now once per page load.
+- **Checks:** `pnpm typecheck`, `pnpm lint`, `pnpm test` (38 files, 350 tests; 16 new for push), `pnpm e2e` 11/11.
+- **Browser QA (real push, Chrome desktop, local keys):** Ben turned the switch on on the Integrations page (permission granted, subscription at Google's push
+  service, still on after a reload); Ada assigned him a task from another browser; within seconds Ben's device showed the notification "Ada Owner / assigned you to
+  QA push task" carrying the task's URL; turning the switch off removed the subscription row. No console errors.
+- **Not verified:** clicking the system notification (it cannot be clicked from the test browser); Android Chrome; iPhone as a home screen app; Firefox and Safari
+  on desktop; the `blocked`, `unsupported` and `needs-install` messages in a real browser (their logic is unit-tested); production (needs the keys and a push).
+- **Local keys:** the agent generated development VAPID keys into the git-ignored `.env` to be able to test. Production must get its own (see "Needs from the owner").
+- **Note:** `next dev` logs server action arguments, so a local dev log contains subscription endpoints and keys; production does not log them.

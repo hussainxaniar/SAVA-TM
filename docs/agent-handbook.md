@@ -179,7 +179,7 @@ Every UI ticket is verified in a real browser by the Architect. Recipe:
   dnd-kit core+sortable (no `@dnd-kit/utilities`), FullCalendar 6, googleapis, Tabler icons. Read the Next docs in
   `node_modules/next/dist/docs/` before relying on memory (`CLAUDE.md` says so).
 - `.env` (git-ignored) holds the OpenRouter key (`APIKEY-SavaTM`), `DATABASE_URL`/`DIRECT_URL`/`TEST_DATABASE_URL`, `AUTH_SECRET`,
-  `APP_URL`, `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`, `ENCRYPTION_KEY`. **Never print, source or commit it.**
+  `APP_URL`, `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`, `ENCRYPTION_KEY`, `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`/`VAPID_SUBJECT` (web push, Section 17; local development keys only). **Never print, source or commit it.**
   Do not `source .env` in the shell (a parse error echoes the key). Read single values with
   `grep -m1 '^NAME=' .env | cut -d= -f2- | tr -d '"'`, and check shape (length, suffix) instead of printing.
   Don't paste secrets into chat; the owner generates production values themselves.
