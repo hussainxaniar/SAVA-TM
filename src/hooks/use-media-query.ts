@@ -1,6 +1,7 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useContext, useSyncExternalStore } from "react";
+import { MobileHintContext } from "./mobile-hint";
 
 // One MediaQueryList per query string, shared by every caller; `change` events fan out to
 // per-query listener sets. Snapshots read `matches` live, so a resize just re-renders.
@@ -49,7 +50,10 @@ export function useMediaQuery(query: string, serverDefault: boolean): boolean {
   );
 }
 
-/** Below 768px the app switches to its mobile layout (9.1); the server assumes desktop. */
+/** Below 768px the app switches to its mobile layout (9.1). */
 export function useIsMobile(): boolean {
-  return useMediaQuery("(max-width: 767.98px)", false);
+  // The server can't measure the window, so it guesses from the request (MobileHintProvider):
+  // a phone gets the mobile layout in the first paint instead of a flash of the desktop one.
+  const hint = useContext(MobileHintContext);
+  return useMediaQuery("(max-width: 767.98px)", hint);
 }

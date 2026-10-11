@@ -97,6 +97,10 @@ test("5. moving the parent to the second list takes its subtasks along and is lo
   await page.getByRole("menuitem", { name: "Move to" }).click();
   await page.getByRole("menuitem", { name: "New list" }).last().click();
   await expect(row(page, "Write brief")).toHaveCount(0);
+  // The row leaves at once (optimistic); wait for the move itself before navigating away. Leaving
+  // while the action is still in flight drops its result, and the target list then shows its
+  // cached rows until they go stale (tracked as a bug in Sava TM, Test & Debug).
+  await expect(page.getByText('Moved to "New list"')).toBeVisible();
 
   await gotoList(page, "New list");
   await expect(row(page, "Write brief").first()).toBeVisible();

@@ -2,6 +2,7 @@ import { unstable_rethrow } from "next/navigation";
 import type { z } from "zod";
 import { getSessionUser } from "../auth";
 import { AppError } from "../errors";
+import { schedulePushDispatch } from "../services/push";
 import type { Ctx } from "../services/types";
 
 // Section 4: every server action is `action(schema, handler)`, so session lookup, input
@@ -22,7 +23,10 @@ export function action<S extends z.ZodTypeAny, T>(
       if (!parsed.success) {
         return { ok: false, error: { code: "VALIDATION", message: parsed.error.issues[0]?.message ?? "Invalid input" } };
       }
-      return { ok: true, data: await handler(parsed.data, { userId: user.id }) };
+      const data = await handler(parsed.data, { userId: user.id });
+      // Section 17: notifications this action created are pushed once the response is out.
+      schedulePushDispatch();
+      return { ok: true, data };
     } catch (e) {
       unstable_rethrow(e); // let redirect()/notFound() through
       if (e instanceof AppError) return { ok: false, error: { code: e.code, message: e.message } };

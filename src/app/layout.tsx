@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
@@ -19,7 +19,13 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Sava TM",
   description: "Sava Task Manager — task management for teams",
+  // Home screen app (Section 17): the manifest comes from app/manifest.ts.
+  icons: { apple: "/apple-touch-icon.png" },
+  appleWebApp: { capable: true, title: "Sava TM", statusBarStyle: "default" },
 };
+
+// viewport-fit=cover: the mobile tab bar and bottom sheets pad themselves with env(safe-area-inset-bottom).
+export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" };
 
 export default function RootLayout({
   children,
@@ -35,7 +41,12 @@ export default function RootLayout({
       <body className="min-h-screen bg-background font-sans antialiased">
         <Providers>{children}</Providers>
         {/* Section 4: toasts for errors only; success is silent. */}
-        <Toaster position="bottom-right" richColors />
+        {/* mobileOffset: on a phone toasts sit above the tab bar (docs/design/mobile.md). */}
+        <Toaster
+          position="bottom-right"
+          richColors
+          mobileOffset={{ bottom: "calc(72px + env(safe-area-inset-bottom))", left: 16, right: 16 }}
+        />
       </body>
     </html>
   );

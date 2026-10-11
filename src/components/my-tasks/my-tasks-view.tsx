@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { IconChevronDown, IconChevronRight } from "@tabler/icons-react";
+import { MobileMyTasks } from "@/components/mobile/my-tasks";
 import { PriorityFlag } from "@/components/tasks/priority-flag";
 import { StatusControl } from "@/components/tasks/status-icon";
+import { useIsMobile } from "@/hooks/use-media-query";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { useMyTaskStatus, useMyTasks } from "@/hooks/use-my-tasks";
 import { isTaskDialogOpen, shortcutEventAllowed } from "@/hooks/use-global-shortcuts";
@@ -25,6 +27,7 @@ export type MyTasksViewProps = {
  * the task dialog (?task=); there's no inline add, no drag and no row menu here.
  */
 export function MyTasksView({ spaceId, initialData }: MyTasksViewProps) {
+  const isMobile = useIsMobile();
   const router = useRouter();
   const pathname = usePathname();
   const { data } = useMyTasks(spaceId, initialData);
@@ -119,6 +122,11 @@ export function MyTasksView({ spaceId, initialData }: MyTasksViewProps) {
   }, [rowOrder, selectedTaskId, selectAndReveal, openTask, completeSelected]);
 
   const n = data.tasks.length;
+
+  // Phone (M-02): the mobile screen over the same data and status mutation.
+  if (isMobile) {
+    return <MobileMyTasks spaceId={spaceId} data={data} onOpenTask={openTask} onSetStatus={onSetStatus} />;
+  }
 
   return (
     <div>

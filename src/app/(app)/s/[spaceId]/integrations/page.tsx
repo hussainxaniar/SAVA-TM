@@ -1,5 +1,6 @@
 import { AiAccessCard } from "@/components/integrations/ai-access-card";
 import { GoogleCalendarCard } from "@/components/integrations/google-calendar-card";
+import { PushCard } from "@/components/integrations/push-card";
 import { getSessionUser } from "@/server/auth";
 import { listApiTokens } from "@/server/services/api-tokens";
 import { getGoogleConnection } from "@/server/services/google-calendar";
@@ -26,6 +27,7 @@ export default async function IntegrationsPage({
         <p className="mt-1 text-sm text-muted-foreground">Connections for your account. Other members connect their own.</p>
       </div>
       <GoogleCalendarCard spaceId={spaceId} connection={connection} outcome={google ?? null} message={message ?? null} />
+      <PushCard />
       <AiAccessCard spaceId={spaceId} tokens={tokens} />
     </div>
   );

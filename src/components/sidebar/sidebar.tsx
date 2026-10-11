@@ -7,7 +7,6 @@ import {
   IconCalendar,
   IconCircleCheck,
   IconLayoutSidebar,
-  IconMenu2,
   IconPlus,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
@@ -17,6 +16,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { TOGGLE_SIDEBAR_EVENT } from "@/hooks/use-global-shortcuts";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { useIsMobile } from "@/hooks/use-media-query";
+import { MobileShell } from "@/components/mobile/mobile-shell";
 import type { SidebarDTO, SpaceSummaryDTO } from "@/server/services/types";
 import { SpaceSwitcher } from "./space-switcher";
 import { ProjectTree } from "./project-tree";
@@ -150,9 +150,9 @@ function SidebarContent({
 
 /**
  * The space shell (9.1). Above 768px: a 260px sidebar that `[` collapses to 0 (per-browser
- * preference) with a floating reopen button on the main area. Below: a slim top bar with a
- * hamburger that opens the sidebar as a fixed drawer (backdrop click / Esc / navigation close),
- * and the layout stacks into a column. `[` and the part-1 `sava:toggle-sidebar` event drive both.
+ * preference) with a floating reopen button on the main area. Below 768px: the mobile shell
+ * (M-01) — a scrolling column over the bottom tab bar, no sidebar at all. `[` and the part-1
+ * `sava:toggle-sidebar` event collapse the desktop sidebar.
  */
 export function Sidebar({
   space,
@@ -163,54 +163,22 @@ export function Sidebar({
   children,
 }: SidebarProps) {
   const [collapsed, setCollapsed] = useLocalStorage("sava.sidebar.collapsed", false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const isMobile = useIsMobile();
-  const pathname = usePathname();
 
   useEffect(() => {
     function onToggle() {
-      if (isMobile) setDrawerOpen((open) => !open);
-      else setCollapsed(!collapsed);
+      setCollapsed(!collapsed);
     }
     window.addEventListener(TOGGLE_SIDEBAR_EVENT, onToggle);
     return () => window.removeEventListener(TOGGLE_SIDEBAR_EVENT, onToggle);
-  }, [isMobile, collapsed, setCollapsed]);
+  }, [collapsed, setCollapsed]);
 
-  // The drawer closes on navigation: adjusting state during render on a pathname change
-  // (react.dev "adjusting state when a prop changes") keeps it out of an effect.
-  const [lastPath, setLastPath] = useState(pathname);
-  if (lastPath !== pathname) {
-    setLastPath(pathname);
-    setDrawerOpen(false);
+  if (isMobile) {
+    return <MobileShell spaceId={space.id}>{children}</MobileShell>;
   }
-
-  // The drawer closes on Esc.
-  useEffect(() => {
-    if (!drawerOpen) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setDrawerOpen(false);
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [drawerOpen]);
 
   return (
     <div className="flex h-full flex-col md:flex-row">
-      {/* Slim top bar, below 768px only. */}
-      <header className="flex h-12 shrink-0 items-center gap-1 border-b border-border px-2 md:hidden">
-        <button
-          type="button"
-          aria-label="Open sidebar"
-          onClick={() => setDrawerOpen(true)}
-          className="flex size-9 items-center justify-center rounded-md text-foreground hover:bg-sidebar-accent"
-        >
-          <IconMenu2 className="size-5" />
-        </button>
-        <span className="text-sm font-semibold tracking-[-0.01em] text-foreground">
-          Sava
-        </span>
-      </header>
-
       {/* Desktop: the 260px column, collapsed to 0 by `[` with a width transition. */}
       <aside
         className={cn(
@@ -243,40 +211,6 @@ export function Sidebar({
         )}
         {children}
       </div>
-
-      {/* Mobile drawer: fixed 280px panel over a dimmed backdrop, mounted only below 768px. */}
-      {isMobile && (
-        <>
-          <div
-            aria-hidden
-            onClick={() => setDrawerOpen(false)}
-            className={cn(
-              "fixed inset-0 z-40 bg-foreground/40 transition-opacity duration-200 md:hidden",
-              drawerOpen ? "opacity-100" : "pointer-events-none opacity-0",
-            )}
-          />
-          <aside
-            // Only a dialog while open: a closed drawer is off-screen, and a standing
-            // role="dialog" would make every keyboard shortcut stand down.
-            role={drawerOpen ? "dialog" : undefined}
-            aria-modal={drawerOpen || undefined}
-            aria-label="Space navigation"
-            inert={!drawerOpen}
-            className={cn(
-              "fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col border-r border-sidebar-border bg-sidebar px-2 py-3 shadow-xl transition-transform duration-200 ease-in-out md:hidden",
-              drawerOpen ? "translate-x-0" : "-translate-x-full",
-            )}
-          >
-            <SidebarContent
-              space={space}
-              spaces={spaces}
-              projects={projects}
-              user={user}
-              canArchiveProjects={canArchiveProjects}
-            />
-          </aside>
-        </>
-      )}
     </div>
   );
 }

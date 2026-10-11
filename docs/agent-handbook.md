@@ -115,6 +115,7 @@ scripts/dispatch-ticket.sh <ticket-id> z-ai/glm-5.3-flash -- \
 | Stopped with no changes | Background time limit | Run detached (above) |
 | Asks permission forever / forwards prompts | Inherited `CLAUDE*` env | The script already clears them; keep it |
 | Two runs corrupt tests | Parallel dispatch | Sequential only |
+| A Claude model shows up in the OpenRouter activity | The CLI's background calls (titles, summaries, subagents) used its built-in Claude model ids through OpenRouter | `dispatch-ticket.sh` pins every model slot to the implementer model and turns off non-essential calls (2026-10-11). **The owner's rule: never run a Claude model through OpenRouter; Claude runs on the subscription only** |
 | Lint "Cannot update ref during render", set-state-in-effect | React 19 lint rules | Move ref writes to effects; derive state during render |
 
 Flash is good at: wiring components to existing hooks, matching nearby code, Base UI menus and dialogs, following a precise spec.
@@ -178,7 +179,7 @@ Every UI ticket is verified in a real browser by the Architect. Recipe:
   dnd-kit core+sortable (no `@dnd-kit/utilities`), FullCalendar 6, googleapis, Tabler icons. Read the Next docs in
   `node_modules/next/dist/docs/` before relying on memory (`CLAUDE.md` says so).
 - `.env` (git-ignored) holds the OpenRouter key (`APIKEY-SavaTM`), `DATABASE_URL`/`DIRECT_URL`/`TEST_DATABASE_URL`, `AUTH_SECRET`,
-  `APP_URL`, `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`, `ENCRYPTION_KEY`. **Never print, source or commit it.**
+  `APP_URL`, `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`, `ENCRYPTION_KEY`, `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`/`VAPID_SUBJECT` (web push, Section 17; local development keys only). **Never print, source or commit it.**
   Do not `source .env` in the shell (a parse error echoes the key). Read single values with
   `grep -m1 '^NAME=' .env | cut -d= -f2- | tr -d '"'`, and check shape (length, suffix) instead of printing.
   Don't paste secrets into chat; the owner generates production values themselves.
@@ -219,6 +220,8 @@ humans only). Paper MCP tools may be unavailable; they are read-only anyway. Whe
   (`docs/design/icons.md`). In-progress statuses may choose circle / ¼ / ½ / ¾; To do is always the dashed circle, Done the check.
 - Match sizes, spacing and colors pixel-exactly; use theme tokens (`globals.css`), never hex in components. Dark mode must work.
 - The owner reviews visually and will notice small misalignments.
+- Mobile (2026-10-11): the Paper page "Mobile" holds the phone design (light and dark); notes in `docs/design/mobile.md`, exports in
+  `docs/design/mobile/`. Paper can also be scripted over its local MCP endpoint when many nodes must change (see I-20).
 - No attachments/paperclip in v1 (images inside text are allowed, stored in the `Image` table, max 4 MB).
 
 ## 9. Current state (update this when it changes)
@@ -235,6 +238,7 @@ humans only). Paper MCP tools may be unavailable; they are read-only anyway. Whe
   `20261009012006_notifications` (I-06, deployed) and `doc_task_links` (I-17; additive, applied by the next deploy).
 - Added 2026-10-09: I-05 (activity feed) and I-06 (in-app notifications, blueprint Section 16) are pushed; I-07 (calendar rail keeps scheduled tasks) is built and tested locally, awaiting "push".
 - `pnpm e2e` runs 11 smoke flows against the local dev server (restart it first if the Prisma schema changed: a stale server holds the old client). When a UI change alters a default (like I-05's Comments-first), update the flow that relied on it.
+- Added 2026-10-11 on branch `develop`: the mobile design (I-20) and its implementation (M-01 to M-08, `docs/tickets/M-00-mobile-implementation.md`). Phone components live in `src/components/mobile/` and reuse the desktop hooks; QA at phone size uses Playwright's `devices["iPhone 14"]` (touch drags through CDP `Input.dispatchTouchEvent`).
 - The authoritative status table is `docs/progress.md`; per-ticket records are in `docs/tickets/`.
 
 ## 10. Running this in a different environment (cloud session, new machine)

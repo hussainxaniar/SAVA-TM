@@ -33,7 +33,10 @@ export function EventContent({
   onRemove,
   onRetry,
   connected,
+  menu = true,
 }: {
+  /** The hover ⋯ menu; off on a phone, where a tap opens the block's detail sheet instead. */
+  menu?: boolean;
   arg: EventContentArg;
   onRemove: RemoveBlockFn;
   onRetry: RemoveBlockFn;
@@ -72,12 +75,14 @@ export function EventContent({
           {formatClock(start)}–{formatClock(end)}
         </div>
       )}
-      <BlockMenu
-        timeBlockId={arg.event.id}
-        taskId={props.taskId}
-        onRemove={onRemove}
-        onRetry={connected && props.syncState === "ERROR" ? onRetry : undefined}
-      />
+      {menu && (
+        <BlockMenu
+          timeBlockId={arg.event.id}
+          taskId={props.taskId}
+          onRemove={onRemove}
+          onRetry={connected && props.syncState === "ERROR" ? onRetry : undefined}
+        />
+      )}
     </div>
   );
 }

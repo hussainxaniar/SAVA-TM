@@ -19,6 +19,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { BottomSheet, BottomSheetOption } from "@/components/ui/bottom-sheet";
+import { useIsMobile } from "@/hooks/use-media-query";
 import { cn } from "@/lib/utils";
 import type { StatusCategoryName, StatusDTO, TaskRowDTO } from "@/server/services/types";
 
@@ -140,6 +142,7 @@ export function StatusControl({
   const glyphSize = size ?? (done ? 16 : 18);
   const [open, setOpen] = useState(false);
   const [pendingStatusId, setPendingStatusId] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   function pick(status: StatusDTO) {
     if (status.id === task.status.id) return;
@@ -154,57 +157,103 @@ export function StatusControl({
 
   return (
     <>
-      <DropdownMenu open={open} onOpenChange={setOpen}>
-        <DropdownMenuTrigger
-          render={
-            variant === "pill" ? (
-              <button
-                type="button"
-                aria-label={`Status: ${task.status.name}`}
-                disabled={disabled}
-                className={cn(
-                  "flex h-[26px] w-fit shrink-0 items-center gap-2 rounded-md pl-2 pr-2.5 disabled:pointer-events-none",
-                  done ? "bg-done text-white" : "bg-pill text-foreground/80",
-                )}
-              />
-            ) : (
-              <button
-                type="button"
-                aria-label={`Status: ${task.status.name}`}
-                disabled={disabled}
-                // flex: an inline button leaves its text line-height under the icon, which sat the glyph ~3px above the title's centre
-                className="flex shrink-0 disabled:pointer-events-none"
-              />
-            )
-          }
-        >
-          {variant === "pill" && (
-            <StatusGlyph status={task.status} statuses={statuses} size={14} pill />
-          )}
-          {variant === "pill" && (
-            <span className="text-xs font-semibold uppercase tracking-[0.04em]">
-              {task.status.name}
-            </span>
-          )}
-          {variant === "icon" && (
-            <StatusGlyph status={task.status} statuses={statuses} size={glyphSize} />
-          )}
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
-          <DropdownMenuGroup>
-            <DropdownMenuLabel>Status</DropdownMenuLabel>
+      {isMobile ? (
+        // Phone: a 44px touch target that opens the status bottom sheet (docs/design/mobile.md).
+        <>
+          <button
+            type="button"
+            aria-label={`Status: ${task.status.name}`}
+            disabled={disabled}
+            onClick={() => setOpen(true)}
+            className={cn(
+              "shrink-0 disabled:pointer-events-none",
+              variant === "pill"
+                ? cn(
+                    "flex h-8 w-fit items-center gap-1.5 rounded-lg pl-2 pr-2.5",
+                    done ? "bg-done text-white" : "bg-pill text-body",
+                  )
+                : "flex size-11 items-center justify-center",
+            )}
+          >
+            <StatusGlyph
+              status={task.status}
+              statuses={statuses}
+              size={variant === "pill" ? 14 : (size ?? 20)}
+              pill={variant === "pill"}
+            />
+            {variant === "pill" && (
+              <span className="text-xs font-semibold uppercase tracking-[0.04em]">{task.status.name}</span>
+            )}
+          </button>
+          <BottomSheet open={open} onOpenChange={setOpen} title="Status">
             {statuses.map((status) => (
-              <DropdownMenuItem key={status.id} onClick={() => pick(status)}>
-                <StatusGlyph status={status} statuses={statuses} size={14} />
+              <BottomSheetOption
+                key={status.id}
+                selected={status.id === task.status.id}
+                icon={<StatusGlyph status={status} statuses={statuses} size={20} />}
+                onClick={() => {
+                  setOpen(false);
+                  pick(status);
+                }}
+              >
                 {status.name}
-                {status.id === task.status.id && (
-                  <IconCheck className="ml-auto" aria-hidden />
-                )}
-              </DropdownMenuItem>
+              </BottomSheetOption>
             ))}
-          </DropdownMenuGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          </BottomSheet>
+        </>
+      ) : (
+        <DropdownMenu open={open} onOpenChange={setOpen}>
+          <DropdownMenuTrigger
+            render={
+              variant === "pill" ? (
+                <button
+                  type="button"
+                  aria-label={`Status: ${task.status.name}`}
+                  disabled={disabled}
+                  className={cn(
+                    "flex h-[26px] w-fit shrink-0 items-center gap-2 rounded-md pl-2 pr-2.5 disabled:pointer-events-none",
+                    done ? "bg-done text-white" : "bg-pill text-foreground/80",
+                  )}
+                />
+              ) : (
+                <button
+                  type="button"
+                  aria-label={`Status: ${task.status.name}`}
+                  disabled={disabled}
+                  // flex: an inline button leaves its text line-height under the icon, which sat the glyph ~3px above the title's centre
+                  className="flex shrink-0 disabled:pointer-events-none"
+                />
+              )
+            }
+          >
+            {variant === "pill" && (
+              <StatusGlyph status={task.status} statuses={statuses} size={14} pill />
+            )}
+            {variant === "pill" && (
+              <span className="text-xs font-semibold uppercase tracking-[0.04em]">
+                {task.status.name}
+              </span>
+            )}
+            {variant === "icon" && (
+              <StatusGlyph status={task.status} statuses={statuses} size={glyphSize} />
+            )}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>Status</DropdownMenuLabel>
+              {statuses.map((status) => (
+                <DropdownMenuItem key={status.id} onClick={() => pick(status)}>
+                  <StatusGlyph status={status} statuses={statuses} size={14} />
+                  {status.name}
+                  {status.id === task.status.id && (
+                    <IconCheck className="ml-auto" aria-hidden />
+                  )}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
       <AlertDialog
         open={pending !== null}
         onOpenChange={(o) => {

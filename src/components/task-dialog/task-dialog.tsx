@@ -28,6 +28,7 @@ import {
   type TaskEdit,
 } from "@/hooks/use-task";
 import { useTaskOrder } from "@/lib/task-nav";
+import { MobileTaskBody } from "@/components/mobile/task-body";
 import { StatusControl } from "@/components/tasks/status-icon";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -43,6 +44,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { TaskDetailDTO, UserLite } from "@/server/services/types";
+import { useIsMobile } from "@/hooks/use-media-query";
+import { cn } from "@/lib/utils";
 import { ActivitySection } from "./activity";
 import { DescriptionEditor } from "./description-editor";
 import { LinkedDocs } from "./linked-docs";
@@ -66,7 +69,7 @@ export type TaskDialogProps = {
 const BOX_CLASS =
   "flex h-[780px] w-[1080px] max-w-[calc(100vw-2rem)] max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-xl p-0 gap-0 " +
   "sm:max-w-[1080px] shadow-[0_24px_64px_rgb(24_24_27/0.28)] " +
-  "max-md:h-dvh max-md:w-screen max-md:max-w-none max-md:rounded-none";
+  "max-md:h-dvh max-md:max-h-none max-md:w-screen max-md:max-w-none max-md:rounded-none max-md:ring-0";
 
 /**
  * Section 9.4 task dialog shell: header, title, description, subtasks, the Activity section and
@@ -74,6 +77,7 @@ const BOX_CLASS =
  */
 export function TaskDialog({ spaceId, members, me, taskId, open, onClose, onOpenTask }: TaskDialogProps) {
   const { data: task, error } = useTask(open ? taskId : null);
+  const isMobile = useIsMobile();
   const order = useTaskOrder();
   const editTask = useEditTask();
   const setAssigneesMutation = useSetAssignees();
@@ -211,24 +215,49 @@ export function TaskDialog({ spaceId, members, me, taskId, open, onClose, onOpen
         onKeyDown={onKeyDown}
       >
         <DialogTitle className="sr-only">{task?.title ?? "Task"}</DialogTitle>
-        <Header
-          task={task}
-          prevId={prevId}
-          nextId={nextId}
-          onStep={step}
-          onClose={onClose}
-          onCopyLink={copyLink}
-          onDelete={remove}
-          canConvert={!!task?.parentId}
-          onConvert={convert}
-          onMoveToList={moveToList}
-          onAddToList={addToList}
-        />
-        {error ? (
-          <ErrorState onClose={onClose} />
-        ) : !task ? (
-          <LoadingState />
+        {isMobile ? (
+          error ? (
+            <ErrorState onClose={onClose} />
+          ) : !task ? (
+            <LoadingState />
+          ) : (
+            <MobileTaskBody
+              task={task}
+              members={members}
+              me={me}
+              onClose={onClose}
+              onOpenTask={onOpenTask}
+              onSetStatus={onSetStatus}
+              onEditTask={onEditTask}
+              onSetAssignees={onSetAssignees}
+              onCommitTitle={(title) => editTask.mutate({ taskId: task.id, title })}
+              onSaveDescription={(description) => editTask.mutate({ taskId: task.id, description })}
+              onCopyLink={copyLink}
+              onDelete={remove}
+              canConvert={!!task.parentId}
+              onConvert={convert}
+            />
+          )
         ) : (
+          <>
+            <Header
+              task={task}
+              prevId={prevId}
+              nextId={nextId}
+              onStep={step}
+              onClose={onClose}
+              onCopyLink={copyLink}
+              onDelete={remove}
+              canConvert={!!task?.parentId}
+              onConvert={convert}
+              onMoveToList={moveToList}
+              onAddToList={addToList}
+            />
+            {error ? (
+              <ErrorState onClose={onClose} />
+            ) : !task ? (
+              <LoadingState />
+            ) : (
           // Below 768px the columns stack and the body scrolls as one (9.1).
           <div className="flex min-h-0 flex-1 max-md:flex-col max-md:overflow-y-auto">
             <div className="min-w-0 flex-1 overflow-y-auto p-6 max-md:overflow-visible">
@@ -266,6 +295,8 @@ export function TaskDialog({ spaceId, members, me, taskId, open, onClose, onOpen
               onRemoveFromList={removeFromList}
             />
           </div>
+            )}
+          </>
         )}
       </DialogContent>
     </Dialog>
@@ -446,12 +477,15 @@ const Crumb = () => <span aria-hidden className="shrink-0 opacity-50">/</span>;
 
 // ---------- Title (9.4.2) ----------
 
-function TitleEditor({
+export function TitleEditor({
   task,
   onCommit,
+  className,
 }: {
   task: TaskDetailDTO;
   onCommit: (title: string) => void;
+  /** Replaces the default title type classes (the phone body passes its own). */
+  className?: string;
 }) {
   const [value, setValue] = useState(task.title);
   const ref = useRef<HTMLTextAreaElement>(null);
@@ -479,6 +513,7 @@ function TitleEditor({
       value={value}
       maxLength={500}
       aria-label="Task title"
+      data-title-field
       onChange={(e) => setValue(e.target.value)}
       onKeyDown={(e) => {
         if (e.key === "Enter") {
@@ -494,7 +529,10 @@ function TitleEditor({
         }
       }}
       onBlur={commit}
-      className="min-w-0 flex-1 resize-none field-sizing-content bg-transparent text-2xl font-semibold leading-8 tracking-[-0.015em] outline-none"
+      className={cn(
+        "min-w-0 flex-1 resize-none field-sizing-content bg-transparent outline-none",
+        className ?? "text-2xl font-semibold leading-8 tracking-[-0.015em]",
+      )}
     />
   );
 }

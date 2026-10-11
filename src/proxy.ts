@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
+import { appOrigin } from "@/lib/app-origin";
 import { INVITE_COOKIE, inviteTokenFromPath } from "@/lib/invite-cookie";
 import { LAST_SPACE_COOKIE } from "@/lib/last-space";
 
@@ -24,7 +25,7 @@ export function proxy(request: NextRequest) {
   }
 
   if (!getSessionCookie(request)) {
-    const url = new URL("/sign-in", request.url);
+    const url = new URL("/sign-in", appOrigin(request.nextUrl.origin));
     if (pathname !== "/") url.searchParams.set("next", pathname + search);
     return NextResponse.redirect(url);
   }

@@ -1,5 +1,6 @@
 "use client";
 
+import { removePushBeforeSignOut } from "@/hooks/use-push";
 import { useRouter } from "next/navigation";
 import { IconKeyboard, IconLogout, IconPlug } from "@tabler/icons-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -27,6 +28,7 @@ export function UserMenu({ user, spaceId }: UserMenuProps) {
   const { bg, fg } = avatarColors(user.id);
 
   async function onSignOut() {
+    await removePushBeforeSignOut(); // this device stops getting my notifications (Section 17)
     await authClient.signOut();
     router.replace("/sign-in");
     router.refresh();

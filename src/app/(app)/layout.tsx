@@ -6,5 +6,5 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!(await getOptionalSessionUser())) redirect("/sign-in");
 
   // The space shell (sidebar, task panel host) is in s/[spaceId]/layout.tsx.
-  return <main className="h-screen">{children}</main>;
+  return <main className="h-dvh">{children}</main>;
 }

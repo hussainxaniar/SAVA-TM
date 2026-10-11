@@ -52,6 +52,11 @@
   --color-priority-2: var(--priority-2);
   --color-priority-3: var(--priority-3);
   --color-status-active: var(--status-active);
+  /* Mobile design (docs/design/mobile.md, 2026-10-11) */
+  --color-body: var(--body);
+  --color-icon: var(--icon);
+  --color-faint: var(--faint);
+  --color-scrim: var(--scrim);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -106,6 +111,10 @@
   --priority-2: #ea580c;
   --priority-3: #2563eb;
   --status-active: #3b82f6;
+  --body: #3f3f46; /* secondary text: descriptions, read notifications */
+  --icon: #52525b;
+  --faint: #a1a1aa; /* placeholders, chevrons */
+  --scrim: #18181b66; /* behind bottom sheets */
 }
 
 .dark {
@@ -152,6 +161,10 @@
   --priority-2: #fb923c;
   --priority-3: #60a5fa;
   --status-active: #60a5fa;
+  --body: #d4d4d4;
+  --icon: #b4b4b4;
+  --faint: #737373;
+  --scrim: #00000099;
 }
 
 @layer base {
@@ -232,4 +245,60 @@
   .rich-text ul[data-type="taskList"] li > label { @apply mt-[3px] select-none; }
   .rich-text ul[data-type="taskList"] li[data-checked="true"] > div { @apply text-muted-foreground line-through; }
   .rich-text li > div > p { @apply m-0; }
+}
+
+/* Phones (docs/design/mobile.md): iOS zooms the page when a focused field's text is under 16px,
+   so every field and editor is 16px below 768px (the big title fields, marked data-title-field, are larger already). Unlayered on purpose: it must win over utilities. */
+@media (max-width: 767.98px) {
+  input,
+  textarea:not([data-title-field]),
+  select,
+  [contenteditable="true"] {
+    font-size: 16px;
+  }
+}
+
+/* Phone calendar (docs/design/mobile.md, Calendar): 56px per hour, a 44px time gutter, borderless
+   day headers. The wrapper carries both .sava-calendar and .sava-calendar-phone. */
+.sava-calendar-phone .fc .fc-timegrid-slot {
+  height: 1.75rem; /* 28px per 30-minute slot */
+}
+.sava-calendar-phone .fc .fc-timegrid-axis,
+.sava-calendar-phone .fc .fc-timegrid-slot-label {
+  width: 44px;
+}
+.sava-calendar-phone .fc .fc-col-header-cell {
+  border-width: 0;
+}
+.sava-calendar-phone .fc .fc-col-header-cell-cushion {
+  padding: 0;
+}
+.sava-calendar-phone .fc .fc-scrollgrid {
+  border-width: 0;
+}
+.sava-calendar-phone .fc .fc-timegrid-axis-cushion {
+  font-size: 10px;
+  color: var(--muted-foreground);
+}
+/* A selected block (long press) and its resize dots, in the app's primary colour. */
+.sava-calendar-phone .fc .fc-event-selected {
+  box-shadow: 0 4px 12px color-mix(in oklab, var(--primary) 30%, transparent);
+}
+.sava-calendar-phone .fc .fc-event-selected .fc-event-resizer {
+  border-color: var(--primary);
+  background: var(--background);
+}
+/* The copy of a task row that follows the finger while it is dragged from the "See tasks" panel. */
+.sava-drag-row.fc-event-dragging {
+  z-index: 60;
+  border-radius: 12px;
+  border-width: 0;
+  background: var(--background);
+  box-shadow: 0 12px 32px rgb(24 24 27 / 0.2), 0 2px 6px rgb(24 24 27 / 0.12);
+  opacity: 1;
+  rotate: -2deg;
+}
+.sava-drag-row {
+  -webkit-touch-callout: none;
+  user-select: none;
 }

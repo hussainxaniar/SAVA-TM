@@ -39,6 +39,8 @@ import {
 } from "@/hooks/use-task";
 import { useSidebarDrop } from "@/hooks/use-sidebar-drop";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+import { useIsMobile } from "@/hooks/use-media-query";
+import { MobileListView } from "@/components/mobile/list-view";
 import { isTaskDialogOpen, shortcutEventAllowed } from "@/hooks/use-global-shortcuts";
 import { ListHeader } from "@/components/tasks/list-header";
 import { StatusGroup, type AddTarget } from "@/components/tasks/status-group";
@@ -54,11 +56,17 @@ export type ListViewProps = {
   canDeleteLists: boolean;
 };
 
+/** The list view renders its phone layout under 768px (9.1) and the desktop one otherwise. */
+export function ListView(props: ListViewProps) {
+  const isMobile = useIsMobile();
+  return isMobile ? <MobileListView {...props} /> : <DesktopListView {...props} />;
+}
+
 /**
  * Section 9.2 list view (docs/design/list-view-*.jpg): status groups over the shared
  * `['tasks', listId]` cache, with all mutations going through the optimistic hooks.
  */
-export function ListView({ initialData, spaceId, canDeleteLists }: ListViewProps) {
+function DesktopListView({ initialData, spaceId, canDeleteLists }: ListViewProps) {
   const listId = initialData.list.id;
   const router = useRouter();
   const pathname = usePathname();

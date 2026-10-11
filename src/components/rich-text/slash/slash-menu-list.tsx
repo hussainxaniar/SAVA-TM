@@ -18,7 +18,7 @@ import {
 import { cn } from "cn";
 import { groupSlashItems, type SlashIconKey, type SlashItem } from "@/lib/slash-items";
 
-const ICONS: Record<SlashIconKey, typeof IconTypography> = {
+export const ICONS: Record<SlashIconKey, typeof IconTypography> = {
   text: IconTypography,
   h1: IconH1,
   h2: IconH2,

@@ -179,7 +179,7 @@ export class AppError extends Error {
 - Reads in pages use Server Components calling services directly (with the session user) for first paint.
 - Interactive lists (task list, task dialog, calendar) hydrate into TanStack Query with query keys `['tasks', listId]`, `['task', taskId]`, `['timeblocks', rangeStart, rangeEnd]`.
 - Every task mutation uses `onMutate` optimistic update + rollback on error + invalidate on settle.
-- No push channel (added 2026-10-11, owner's choice of the simplest option): the list view, My Tasks, the open task and its feed, and the calendar refetch every 15 s (`LIVE_REFETCH_MS`, `src/lib/live-refetch.ts`) while the tab is visible, so changes by teammates or an AI through MCP appear without a reload. Doc pages are not polled.
+- No live data sync (no WebSocket/SSE; added 2026-10-11, owner's choice of the simplest option): the list view, My Tasks, the open task and its feed, and the calendar refetch every 15 s (`LIVE_REFETCH_MS`, `src/lib/live-refetch.ts`) while the tab is visible, so changes by teammates or an AI through MCP appear without a reload. Doc pages are not polled.
 - Toasts (sonner) for errors only. Success is silent.
 
 ### Naming and style
@@ -1325,7 +1325,7 @@ Added after v1 at the owner's request (task "Notification" in the SAVA TM projec
 
 ### 16.1 Decisions
 
-- **In-app only.** No email, no push, no @mentions, no due-soon or overdue reminders (those need a scheduler and are separate tasks). Real-time delivery is not built: the client polls every 30 seconds and when the window regains focus.
+- **In-app, plus web push since Section 17.** No email, no @mentions, no due-soon or overdue reminders (those need a scheduler and are separate tasks). Real-time delivery is not built: the client polls every 30 seconds and when the window regains focus.
 - **Involved people only.** The recipients of an event are the task's assignees and its creator, never the actor, and only while they are members of the task's space. Being assigned notifies the new assignee only.
 - **Four types**, each created from the activity row that describes the same event:
 
@@ -1382,4 +1382,63 @@ Services: each of the four types reaches the right people (assignee, creator, bo
 
 ### 16.6 Out of scope
 
-Email, push, @mentions, reminders, per-type preferences and muting, grouping or digests, real-time updates.
+Email, @mentions, reminders, per-type preferences and muting, grouping or digests, real-time updates. (Web push was added later: Section 17.)
+
+## 17. Web push notifications (I-21)
+
+Added at the owner's request (task "Web push notifications" in the SAVA TM project, 2026-10-11). The four notifications of Section 16 also arrive as a system notification on every device where the recipient turned "Notifications on this device" on, also when Sava TM is closed. Same recipients and rules as Section 16; no new notification types.
+
+### 17.1 Decisions
+
+- **Standard Web Push with our own VAPID keys** (`web-push` library; env `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`). No hosted push service. Without the keys the feature is off: the switch is hidden and nothing is sent.
+- **Outbox, sent after the response.** Notification rows are written inside the activity's transaction (16.1), so nothing is sent there. A row is created with `pushedAt = null`; `dispatchPendingPushes()` claims the unpushed rows of the last 10 minutes in one `UPDATE … RETURNING` (two requests never send the same row) and sends them. `schedulePushDispatch()` runs it with Next's `after()` from the only two doors a change comes through: the `action()` wrapper and the MCP handler. A push that fails is logged and dropped (the notification is still in the bell); there is no retry queue.
+- **Per device, not per space.** A `PushSubscription` is one browser of one user and receives that user's notifications from every space. Saving an endpoint that another user had moves it to the caller (a shared computer follows whoever is signed in); signing out unsubscribes the device.
+- **Dead subscriptions clean themselves:** a 404 or 410 from the push service deletes the subscription.
+- **Text built on the server** (`src/lib/push-text.ts`): title = the actor's name, body = the bell's sentence. The server does not know the reader's time zone, so a date-only due date reads as its calendar day and a due time is left out.
+- **Permission only on a tap.** The switch states: on, off, blocked in the browser, not supported, and on an iPhone in a browser tab "add to the home screen first" (iOS delivers web push only to a home screen app, 16.4+).
+- **Exception to rule 4 (`requireMember` first):** the subscription services have no space; the session is the guard and a user only ever touches their own rows.
+
+### 17.2 Data (migration `web_push`)
+
+```prisma
+model PushSubscription {
+  id         String    @id @default(cuid(2))
+  userId     String
+  endpoint   String    @unique
+  p256dh     String
+  auth       String
+  userAgent  String?
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+  // relation: user (cascade)
+  @@index([userId])
+}
+// Notification: + pushedAt DateTime?, @@index([pushedAt, createdAt]). The migration sets pushedAt = createdAt on existing rows, so nothing old is pushed.
+```
+
+### 17.3 Server
+
+`src/server/push/api.ts` is the only module that talks to the push services (`pushApi.isConfigured()`, `.publicKey()`, `.send(target, payload) → "sent" | "gone"`); tests spy on it.
+
+```ts
+// src/server/services/push.ts
+getPushConfig(): { configured: boolean; publicKey: string | null }
+savePushSubscription(ctx, { endpoint, p256dh, auth, userAgent? }): Promise<void>   // upsert by endpoint; https only
+deletePushSubscription(ctx, { endpoint }): Promise<void>                           // the caller's own; otherwise a no-op
+markPushPending(): void                                                            // called by notifyFromActivities
+schedulePushDispatch(): void                                                       // action wrapper, MCP handler
+dispatchPendingPushes(): Promise<void>                                             // never throws
+```
+
+Push payload: `{ title, body, url, tag }` where `url` is the notification's link (16.4) and `tag` its id.
+
+### 17.4 Browser
+
+- `public/sw.js`: shows the notification on `push`; on `notificationclick` focuses an open Sava TM window and navigates it to the task, else opens one. No caching, no offline mode.
+- `src/app/manifest.ts` and the icons in `public/` make the app installable (standalone display).
+- `src/lib/push-client.ts` (`pushState`, subscribe / unsubscribe) and `src/hooks/use-push.ts` (`usePush()` → `state`, `enable`, `disable`, `busy`).
+- UI: a "Notifications on this device" switch in the phone's More tab and a card on the Integrations page.
+
+### 17.5 Out of scope
+
+Reminders (need a scheduler), per-type preferences, quiet hours, grouping, a retry queue, marking a notification read when its push is tapped, replacing the bell's 30 second poll, caching or offline use through the service worker.
